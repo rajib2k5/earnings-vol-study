@@ -1,0 +1,85 @@
+# The workflow for one milestone: who does what, in which order, and where work loops back.
+# Rules behind it: delegate substantive work to subagents, choosing the model by difficulty; every
+# substantive task gets an adversarial review with evidence-gated validation (two independent
+# channels, documentation and runtime probes, that must agree) before it counts as done; only
+# measured numbers are reported, each re-measured by a verifier; and ADR 0001 section 6 (mutation
+# check at each milestone).
+kind: flow
+title: Milestone workflow
+subtitle: Build, break it on purpose, attack it, re-measure it, then teach it back
+direction: TB
+
+lanes:
+  - {id: learner,   label: Learner}
+  - {id: orch,      label: Orchestrator}
+  - {id: architect, label: Architect}
+  - {id: impl,      label: Implementer}
+  - {id: verifier,  label: Verifier}
+  - {id: reviewer,  label: Adversarial reviewer}
+  - {id: gh,        label: GitHub}
+
+nodes:
+  # --- Start and plan ------------------------------------------------------
+  - {id: start,   label: Pick milestone,         sublabel: "learner says go",            type: ui,      lane: learner}
+  - {id: plan,    label: Plan and create tasks,  sublabel: "delegate by difficulty",     type: process, lane: orch}
+  - {id: design,  label: Decide approach,        sublabel: "ADR, trade-offs, rejects",   type: process, lane: architect}
+
+  # --- Build and test ------------------------------------------------------
+  - {id: build,   label: Build code and tests,   sublabel: "pure functions, hand oracles", type: process, lane: impl}
+  - {id: suite,   label: "Run lint, types, tests", sublabel: "print the counts",           type: process, lane: impl}
+  - {id: mutate,  label: Mutation check,         sublabel: "break code, tests go red",   type: process, lane: impl}
+
+  # --- Adversarial review (evidence-gated validation) ----------------------
+  - {id: claims,  label: Adversarial review,     sublabel: "refute numbered claims",     type: process, lane: reviewer}
+  - {id: docs,    label: Docs channel,           sublabel: "official documentation",     type: external, lane: reviewer}
+  - {id: runtime, label: Runtime channel,        sublabel: "empirical probes",           type: process, lane: reviewer}
+  - {id: gate,    label: Accept if both agree,   sublabel: "else REFUTED",               type: model,   lane: reviewer}
+  - {id: check,   label: Verify the refutation,  sublabel: "reviewers can be wrong",     type: process, lane: orch}
+  - {id: fix,     label: Fix and re-test,        sublabel: "say it was wrong",           type: process, lane: impl}
+
+  # --- Verify, secure, ship ------------------------------------------------
+  - {id: measure, label: Re-measure numbers,     sublabel: "counts, coverage, timings",  type: process, lane: verifier}
+  - {id: sec,     label: Security review,        sublabel: "secrets, licences, leaks",   type: process, lane: reviewer}
+  - {id: commit,  label: Commit with notes,      sublabel: "records what was wrong",     type: output,  lane: orch}
+  - {id: push,    label: Push,                   sublabel: "branch on GitHub",           type: external, lane: gh}
+
+  # --- Learner checkpoint --------------------------------------------------
+  - {id: ask,     label: Ask for prediction,     sublabel: "before showing results",     type: process, lane: orch}
+  - {id: predict, label: Predict the result,     sublabel: "learner writes it down",     type: ui,      lane: learner}
+  - {id: reveal,  label: Show result vs guess,   sublabel: "numbers with evidence",      type: process, lane: orch}
+  - {id: explain, label: Explain it back,        sublabel: "in the learner's words",     type: ui,      lane: learner}
+  - {id: grade,   label: Check the explanation,  sublabel: "gaps become notes",          type: process, lane: orch}
+  - {id: cont,    label: Say continue,           sublabel: "next milestone",             type: ui,      lane: learner}
+
+edges:
+  - {from: start,  to: plan}
+  - {from: plan,   to: design, label: approach open}
+  - {from: design, to: build,  label: decision}
+  - {from: plan,   to: build,  label: approach settled, style: dashed}
+
+  - {from: build,  to: suite}
+  - {from: suite,  to: mutate}
+  - {from: mutate, to: claims, label: tests and evidence}
+
+  - {from: claims,  to: docs}
+  - {from: claims,  to: runtime}
+  - {from: docs,    to: gate}
+  - {from: runtime, to: gate}
+  - {from: gate,    to: check, label: verdict per claim}
+  - {from: check,   to: fix,   label: refutation holds, style: control}
+  - {from: fix,     to: suite, label: re-run, style: control}
+  - {from: check,   to: measure, label: all claims survive}
+
+  - {from: measure, to: sec,   label: numbers AGREE}
+  - {from: measure, to: fix,   label: DISAGREE, style: control}
+  - {from: sec,     to: commit, label: no findings}
+  - {from: sec,     to: fix,   label: finding, style: control}
+  - {from: commit,  to: push}
+
+  - {from: push,    to: ask}
+  - {from: ask,     to: predict}
+  - {from: predict, to: reveal}
+  - {from: reveal,  to: explain}
+  - {from: explain, to: grade}
+  - {from: grade,   to: cont}
+  - {from: cont,    to: plan, label: continue, style: control}

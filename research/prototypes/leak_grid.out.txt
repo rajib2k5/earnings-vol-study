@@ -1,0 +1,4 @@
+pairs 80; leak fraction f: min 0.000, median 0.128, max 0.400 (max at tau_a=17, tau_b=27; f = 0 whenever tau_a = 21)
+E = 0.0007                                      : leak in vol points min 0.00, median 0.21, max 0.66; at the ADR's old example (19, 32) 0.26
+E = 0.000883 (AAPL worked example, ADR 0003 §c) : leak in vol points min 0.00, median 0.27, max 0.83; at the ADR's old example (19, 32) 0.32
+E = 0.003 (about a 5.5% implied move)           : leak in vol points min 0.00, median 0.90, max 2.73; at the ADR's old example (19, 32) 1.08

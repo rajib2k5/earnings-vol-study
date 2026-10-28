@@ -1,0 +1,90 @@
+---
+title: "Milestone workflow"
+---
+flowchart TB
+    subgraph learner["Learner"]
+        start("Pick milestone\nlearner says go")
+        predict("Predict the result\nlearner writes it down")
+        explain("Explain it back\nin the learner's words")
+        cont("Say continue\nnext milestone")
+    end
+    subgraph orch["Orchestrator"]
+        plan["Plan and create tasks\ndelegate by difficulty"]
+        check["Verify the refutation\nreviewers can be wrong"]
+        commit[/"Commit with notes\nrecords what was wrong"/]
+        ask["Ask for prediction\nbefore showing results"]
+        reveal["Show result vs guess\nnumbers with evidence"]
+        grade["Check the explanation\ngaps become notes"]
+    end
+    subgraph architect["Architect"]
+        design["Decide approach\nADR, trade-offs, rejects"]
+    end
+    subgraph impl["Implementer"]
+        build["Build code and tests\npure functions, hand oracles"]
+        suite["Run lint, types, tests\nprint the counts"]
+        mutate["Mutation check\nbreak code, tests go red"]
+        fix["Fix and re-test\nsay it was wrong"]
+    end
+    subgraph verifier["Verifier"]
+        measure["Re-measure numbers\ncounts, coverage, timings"]
+    end
+    subgraph reviewer["Adversarial reviewer"]
+        claims["Adversarial review\nrefute numbered claims"]
+        docs{{"Docs channel\nofficial documentation"}}
+        runtime["Runtime channel\nempirical probes"]
+        gate[["Accept if both agree\nelse REFUTED"]]
+        sec["Security review\nsecrets, licences, leaks"]
+    end
+    subgraph gh["GitHub"]
+        push{{"Push\nbranch on GitHub"}}
+    end
+    start --> plan
+    plan -->|"approach open"| design
+    design -->|"decision"| build
+    plan -.->|"approach settled"| build
+    build --> suite
+    suite --> mutate
+    mutate -->|"tests and evidence"| claims
+    claims --> docs
+    claims --> runtime
+    docs --> gate
+    runtime --> gate
+    gate -->|"verdict per claim"| check
+    check ==>|"refutation holds"| fix
+    fix ==>|"re-run"| suite
+    check -->|"all claims survive"| measure
+    measure -->|"numbers AGREE"| sec
+    measure ==>|"DISAGREE"| fix
+    sec -->|"no findings"| commit
+    sec ==>|"finding"| fix
+    commit --> push
+    push --> ask
+    ask --> predict
+    predict --> reveal
+    reveal --> explain
+    explain --> grade
+    grade --> cont
+    cont ==>|"continue"| plan
+    classDef process fill:#E0E7FF,stroke:#4F46E5,color:#0F172A
+    class plan,design,build,suite,mutate,claims,runtime,check,fix,measure,sec,ask,reveal,grade process
+    classDef model fill:#EDE9FE,stroke:#7C3AED,color:#0F172A
+    class gate model
+    classDef output fill:#D1FAE5,stroke:#059669,color:#0F172A
+    class commit output
+    classDef external fill:#F1F5F9,stroke:#475569,color:#0F172A
+    class docs,push external
+    classDef ui fill:#FCE7F3,stroke:#DB2777,color:#0F172A
+    class start,predict,explain,cont ui
+    style learner fill:#F1F5F9,stroke:#E2E8F0,color:#64748B
+    style orch fill:#EFF6FF,stroke:#DBEAFE,color:#64748B
+    style architect fill:#F5F3FF,stroke:#E9E5FD,color:#64748B
+    style impl fill:#ECFDF5,stroke:#D1FAE5,color:#64748B
+    style verifier fill:#FFF7ED,stroke:#FFEDD5,color:#64748B
+    style reviewer fill:#FDF2F8,stroke:#FCE7F3,color:#64748B
+    style gh fill:#F1F5F9,stroke:#E2E8F0,color:#64748B
+    linkStyle 3 stroke:#94A3B8
+    linkStyle 12 stroke:#6366F1
+    linkStyle 13 stroke:#6366F1
+    linkStyle 16 stroke:#6366F1
+    linkStyle 18 stroke:#6366F1
+    linkStyle 26 stroke:#6366F1

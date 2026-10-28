@@ -1,0 +1,30 @@
+Licence for the files in data/derived/
+
+Everything in this folder is licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International licence (CC BY-SA 4.0).
+
+  Legal code: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+  Summary:    https://creativecommons.org/licenses/by-sa/4.0/
+
+The files are DERIVED / MODIFIED from these DoltHub databases, which declare
+the same licence (each repo has a LICENSE.md titled "Attribution-ShareAlike 4.0
+International"):
+
+  - https://www.dolthub.com/repositories/post-no-preference/earnings
+  - https://www.dolthub.com/repositories/post-no-preference/options
+
+Attribution: the original data is from DoltHub, repositories
+post-no-preference/earnings and post-no-preference/options. We selected
+and filtered it (see the code in src/ and tools/ that makes each file). We
+changed the data; DoltHub and the original authors do not endorse the
+changes.
+
+ShareAlike: if you remix or build on these files, you must share your
+version under CC BY-SA 4.0 (or a compatible licence) as well.
+
+The licence of the rest of this repository (the code) is the MIT licence in
+the LICENSE file at the root of the repository. It does not apply to this
+folder.
+
+CBOE and Yahoo Finance data are NOT in this folder or anywhere else in this
+repository, so this licence says nothing about them. See README.md.

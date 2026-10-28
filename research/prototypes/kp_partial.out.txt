@@ -1,0 +1,12 @@
+research/prototypes/kp_partial.py:27: RuntimeWarning: invalid value encountered in sqrt
+  adj = lambda r: np.sqrt((1-r)/(1+(N-1)*r))
+dates=15 rho=0.0 {'bmp': np.float64(0.049), 'kp_all': np.float64(0.061), 'kp_samedate': np.float64(0.051), 'clus': np.float64(0.075)}
+dates=15 rho=0.1 {'bmp': np.float64(0.085), 'kp_all': np.float64(0.0), 'kp_samedate': np.float64(0.047), 'clus': np.float64(0.069)}
+dates=15 rho=0.2 {'bmp': np.float64(0.134), 'kp_all': np.float64(0.0), 'kp_samedate': np.float64(0.053), 'clus': np.float64(0.081)}
+dates=40 rho=0.0 {'bmp': np.float64(0.055), 'kp_all': np.float64(0.071), 'kp_samedate': np.float64(0.055), 'clus': np.float64(0.059)}
+dates=40 rho=0.1 {'bmp': np.float64(0.068), 'kp_all': np.float64(0.0), 'kp_samedate': np.float64(0.053), 'clus': np.float64(0.064)}
+dates=40 rho=0.2 {'bmp': np.float64(0.084), 'kp_all': np.float64(0.0), 'kp_samedate': np.float64(0.055), 'clus': np.float64(0.068)}
+
+real	3m39.952s
+user	3m40.567s
+sys	0m0.022s

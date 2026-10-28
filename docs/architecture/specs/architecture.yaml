@@ -1,0 +1,139 @@
+# System architecture of the earnings / implied-vol event study (ADR 0001 layers).
+# Source of truth: docs/adr/0001..0005 and docs/architecture/data-model.md.
+# One lane per ADR 0001 layer: ingest -> events -> measures -> panel -> stats -> export. A layer
+# reads only from layers to its left (ADR 0001 section 1 table):
+#   events   writes session, market_daily, security, ticker_alias, events, eps, timing_check
+#   measures reads  session, market_daily (r_cont), security, ticker_alias, events (day 0);
+#            writes chain_expiry, iv_daily
+#   panel    reads  iv_daily, chain_expiry, events, eps, security, session, market_daily and the
+#            local Yahoo / VX* extracts; writes event_window_obs, event_measures, event_measures_vx
+#   stats    reads  event_measures(_vx), event_window_obs, events, eps, security and, for validation,
+#            iv_daily, chain_expiry and the VX* extract; writes results
+# Inside the events layer the order is fixed (sessions, market_daily, security, alias, base events,
+# timing, day 0, eps matching, orphan_nearby / sample, exclusion_reason), so "Events builder" and
+# "EPS match" are one layer with no edge back from EPS match to the builder.
+# Downloads (yfinance, FRED, CBOE) go to $VOL_DATA_DIR/earnings-vol-study/raw/; Dolt extracts and
+# the derived stage tables go to $VOL_DATA_DIR/earnings-vol-study/cache/ (the shared data folder's
+# convention). Neither is inside the repo.
+# Timing labels come from documents, never from IV or the price gap (ADR 0002 section 3). SEC EDGAR
+# 8-K acceptance times are PROPOSED, pending the owner's decision (dashed edge). The default without
+# EDGAR is the press release (hand check, recorded in the committed data/manual/press_release_checks.csv),
+# then the calendar label; the price gap triggers a second reading (daily/mixed) or a look-up
+# (coarse), never a label.
+# Event tests (ADR 0005): the primary is a two-way cluster-robust t (day-0 date x firm for CRUSH,
+# season x firm for RUNUP / PERSIST, Rademacher p if seasons are unbalanced); BMP and the
+# Kolari-Pynnönen family are robustness, labelled precision-weighted. Regressions: two-way firm x date.
+kind: flow
+title: Earnings vol study architecture
+subtitle: One-way pipeline from DoltHub and index data to the React app (milestone 0)
+direction: LR
+
+lanes:
+  - {id: sources,  label: Sources}
+  - {id: ingest,   label: Ingest}
+  - {id: events,   label: Events layer}
+  - {id: measures, label: Measures layer}
+  - {id: panel,    label: Panel layer}
+  - {id: stats,    label: Stats layer}
+  - {id: delivery, label: Export}
+
+nodes:
+  # --- Sources -------------------------------------------------------------
+  - {id: dh_cal,   label: DoltHub earnings_calendar, sublabel: "date, when (BMO / AMC / NULL)", type: source,   lane: sources}
+  - {id: dh_eps,   label: DoltHub eps_history,       sublabel: "reported, estimate",      type: source,   lane: sources}
+  - {id: dh_chain, label: DoltHub option_chain,      sublabel: "bid, ask by strike",      type: source,   lane: sources}
+  - {id: yf,       label: yfinance prices,           sublabel: "OHLC, local only",        type: external, lane: sources}
+  - {id: fred,     label: FRED,                      sublabel: "DTB3 rate, VIXCLS",       type: external, lane: sources}
+  - {id: cboe_vx,  label: CBOE VX* indices,          sublabel: "5 names, local only",     type: external, lane: sources}
+  - {id: sp500,    label: S&P 500 list,              sublabel: "sector, sub-industry",    type: external, lane: sources}
+  - {id: pr,       label: Press releases,            sublabel: "IR time stamp, press_release_checks.csv", type: external, lane: sources}
+  - {id: edgar,    label: SEC EDGAR 8-K (proposed),  sublabel: "only if owner approves",  type: external, lane: sources}
+
+  # --- Ingest (I/O) --------------------------------------------------------
+  - {id: dolt,    label: dolt sql extraction, sublabel: "read-only, AS OF commit", type: process, lane: ingest}
+  - {id: fetch,   label: Price and index fetch, sublabel: "yfinance, FRED, CBOE",  type: process, lane: ingest}
+  - {id: cache,   label: Parquet cache,       sublabel: "raw/, cache/ outside repo",  type: store,   lane: ingest}
+
+  # --- Events layer --------------------------------------------------------
+  - {id: ses,      label: Sessions + market,  sublabel: "session, market_daily",    type: process, lane: events}
+  - {id: evt,      label: Events builder,     sublabel: "security, events, timing, day 0", type: process, lane: events}
+  - {id: epsm,     label: EPS match,          sublabel: "eps: raw, consensus, link", type: process, lane: events}
+
+  # --- Measures layer ------------------------------------------------------
+  - {id: ivm,      label: IV measures,        sublabel: "chain_expiry, iv_daily",  type: model,   lane: measures}
+
+  # --- Panel layer ---------------------------------------------------------
+  - {id: pan,      label: Event panel,        sublabel: "window, baseline, eligible_*", type: process, lane: panel}
+  - {id: abn,      label: Abnormal IV,        sublabel: "log, VIX-adjusted, VX*",  type: model,   lane: panel}
+  - {id: surp,     label: Surprise scaling,   sublabel: "price_ref, surprise_scaled, SUE", type: process, lane: panel}
+
+  # --- Stats layer ---------------------------------------------------------
+  - {id: tests,    label: Event tests,        sublabel: "two-way t; BMP, KP robustness", type: model, lane: stats}
+  - {id: regs,     label: Regressions,        sublabel: "two-way firm × date SE",  type: model,   lane: stats}
+  - {id: valid,    label: VX* validation,     sublabel: "statistics only",         type: process, lane: stats}
+  - {id: results,  label: Results table,      sublabel: "Holm and BH adjusted",    type: store,   lane: stats}
+
+  # --- Export (I/O) --------------------------------------------------------
+  - {id: export,   label: export_app_data,    sublabel: "disclosure test, drop _yf / _cboe", type: process, lane: delivery}
+  - {id: contract, label: JSON contract,      sublabel: "meta.json + 8 view files (views v0.2.0)", type: output,  lane: delivery}
+  - {id: app,      label: React app,          sublabel: "draws, never computes",   type: ui,      lane: delivery}
+  - {id: derived,  label: data/derived,       sublabel: "CC BY-SA 4.0 Parquet",    type: store,   lane: delivery}
+  - {id: nb,       label: Notebooks,          sublabel: "generated from src",      type: output,  lane: delivery}
+  - {id: report,   label: Report,             sublabel: "numbers from results",    type: output,  lane: delivery}
+
+edges:
+  # Sources -> extraction
+  - {from: dh_cal,   to: dolt, label: SELECT AS OF}
+  - {from: dh_eps,   to: dolt}
+  - {from: dh_chain, to: dolt}
+  - {from: yf,       to: fetch, label: local only}
+  - {from: fred,     to: fetch}
+  - {from: cboe_vx,  to: fetch, label: local only}
+  - {from: sp500,    to: fetch}
+  - {from: edgar,    to: fetch, label: proposed, style: dashed}
+  - {from: pr,       to: evt,   label: timing label}
+  - {from: dolt,  to: cache, label: monthly extracts}
+  - {from: fetch, to: cache, label: raw files}
+
+  # Cache -> events layer
+  - {from: cache,   to: ses,    label: "rates, VIX"}
+  - {from: cache,   to: evt,    label: "calendar, prices, S&P"}
+  - {from: cache,   to: epsm,   label: "eps_history, estimates"}
+  - {from: ses,     to: evt,    label: "sessions"}
+  - {from: evt,     to: epsm,   label: "event_id, day 0"}
+
+  # Events layer -> measures layer
+  - {from: cache,   to: ivm,    label: "chains, vol history"}
+  - {from: ses,     to: ivm,    label: "sessions, r_cont"}
+  - {from: evt,     to: ivm,    label: "events (day 0)"}
+
+  # Measures + events layers -> panel layer
+  - {from: ivm,     to: pan,    label: "iv_daily, chain_expiry"}
+  - {from: evt,     to: pan,    label: "events, security"}
+  - {from: ses,     to: pan,    label: "market_daily (VIX)"}
+  - {from: pan,     to: abn}
+  - {from: cache,   to: abn,    label: "Yahoo, VX* (local)", style: dashed}
+  - {from: epsm,    to: surp,   label: "eps surprise"}
+  - {from: ivm,     to: surp,   label: "day -1 forward"}
+
+  # Stats layer
+  - {from: abn,     to: tests,  label: "event_measures, window obs"}
+  - {from: surp,    to: regs,   label: "surprise_scaled"}
+  - {from: abn,     to: regs,   label: "event_measures"}
+  - {from: epsm,    to: regs,   label: "eps"}
+  - {from: evt,     to: regs,   label: "sector, season", style: dashed}
+  - {from: ivm,     to: valid,  label: "cm30 blind IV, chains"}
+  - {from: cache,   to: valid,  label: VX* closes, style: dashed}
+  - {from: tests,   to: results}
+  - {from: regs,    to: results}
+  - {from: valid,   to: results}
+
+  # Export
+  - {from: results, to: export}
+  - {from: abn,     to: export, label: window obs}
+  - {from: evt,     to: export, label: funnel, style: dashed}
+  - {from: export,  to: contract, label: JSON files}
+  - {from: export,  to: derived,  label: committed tables}
+  - {from: contract, to: app,     label: fetch}
+  - {from: results, to: nb,     label: stage calls, style: dashed}
+  - {from: results, to: report, label: numbers,     style: dashed}

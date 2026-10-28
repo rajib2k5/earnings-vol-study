@@ -1,0 +1,108 @@
+# One announcement through the pipeline, from calendar row to exported JSON, in ADR 0001 layer order
+# (events -> measures -> panel -> stats -> export). Each participant reads only tables written by a
+# participant to its left in the layer table.
+# Worked example in the notes: AAPL, reported after the close on Thu 2025-10-30
+# (ADR 0002 day-0 table, ADR 0003 worked event variance).
+# Step 2 follows ADR 0002 section 3: documents decide the timing label, the price gap only
+# diagnoses. SEC EDGAR 8-K acceptance times are PROPOSED, pending the owner's decision; the default
+# without them is the press release, then the calendar label. The release is looked up for every
+# event with D on or after 2024-09-11 and every NULL label; in the coarse sample only on a gap flag.
+# There is no audit. A gap contradiction triggers a second reading, which sets gap_check_changed.
+kind: sequence
+title: One announcement through the pipeline
+subtitle: Calendar row to per-event result to aggregate test to JSON (AAPL 2025-10-30 AMC)
+autonumber: true
+
+participants:
+  - {id: cal,    label: earnings_calendar, type: source}
+  - {id: ev,     label: Events builder,    type: process}
+  - {id: docs,   label: Press release / EDGAR (proposed), type: external}
+  - {id: px,     label: Price-gap diagnostic, type: external}
+  - {id: ses,    label: Sessions + market_daily, type: store}
+  - {id: epsm,   label: EPS match,         type: process}
+  - {id: ivm,    label: IV measures,       type: model}
+  - {id: pan,    label: Panel + abnormal IV, type: model}
+  - {id: tst,    label: Event tests,       type: model}
+  - {id: res,    label: results,           type: store}
+  - {id: exp,    label: export_app_data,   type: process}
+  - {id: app,    label: React app,         type: ui}
+
+messages:
+  # 1. calendar row (events layer)
+  - {from: ev,  to: cal, label: read row for the event, note: "AAPL, 2025-10-30, After market close"}
+  - {from: cal, to: ev,  label: "act_symbol, date, when", kind: return, note: "when becomes timing_raw: BMO, AMC or null"}
+
+  # 2. timing label (ADR 0002 section 3): documents decide; never IV, never the price gap
+  - {from: ev, to: px,  label: gap z-scores at D and next(D), note: "local diagnostic only; it never sets a label"}
+  - {from: px, to: ev,  label: "gap_verdict_yf, outside_flag_yf", kind: return}
+  - opt: "look-up: D from 2024-09-11, NULL label, or (coarse) a gap flag"
+    messages:
+      - {from: ev, to: docs, label: "release time for D-1 to D+1", note: "press release; EDGAR 8-K only if approved"}
+      - {from: docs, to: ev, label: "time stamp, or none found", kind: return}
+  - alt:
+      - when: "a document gives the timing"
+        messages:
+          - {from: ev, to: ev, label: timing_used = the document's, note: "confirmed, corrected or inferred"}
+      - when: "the documents put it on another date"
+        messages:
+          - {from: ev, to: ev, label: use the documents' date, note: "status date_corrected"}
+      - when: "looked up, no document, calendar label given"
+        messages:
+          - {from: ev, to: ev, label: keep the calendar label, note: "status no_document"}
+      - when: "looked up, no document, calendar label NULL"
+        messages:
+          - {from: ev, to: ev, label: no day 0, note: "status ambiguous: two-session crush only"}
+      - when: "not looked up (coarse, no gap flag)"
+        messages:
+          - {from: ev, to: ev, label: keep the calendar label, note: "status not_checked"}
+  - opt: "the gap contradicts the label, or the nearby-session flag fires"
+    messages:
+      - {from: ev, to: docs, label: "read the release again", note: "second reading, daily and mixed"}
+      - {from: docs, to: ev, label: "second time stamp", kind: return}
+      - {from: ev, to: ev, label: "second reading decides", note: "label changed: gap_check_changed = true"}
+
+  # 3. day-0 resolution (ADR 0002 section 2)
+  - {from: ev,  to: ses, label: "next session after D (AMC)"}
+  - {from: ses, to: ev,  label: "day 0 = 2025-10-31, day -1 = 2025-10-30", kind: return}
+
+  # 4. EPS match, then the last event-level columns (ADR 0001 section 1: fixed order in the events layer)
+  - {from: ev,   to: epsm, label: "events with day 0", kind: async}
+  - {from: epsm, to: epsm, label: "match period to first event 10-100 days later", note: "eps.event_id, match_status; raw EPS and consensus only"}
+  - {from: epsm, to: ev,   label: "match_status", kind: return}
+  - {from: ev,   to: ev,   label: "orphan_nearby, sample, exclusion_reason", note: "event-level rules only; no IV data needed"}
+
+  # 5. IV series (ADR 0003), measures layer: reads events (day 0), session and market_daily (r_cont)
+  - {from: ev,  to: ivm, label: "events: day 0, next event", kind: async}
+  - {from: ivm, to: ses, label: "r_cont for the discount factor"}
+  - {from: ses, to: ivm, label: market_daily, kind: return}
+  - loop: for each session, rel_day -60 to +10
+    messages:
+      - {from: ivm, to: ivm, label: "chain_expiry: forward, w_atm per expiry", note: "Black-76 on the parity forward, session clock"}
+      - {from: ivm, to: ivm, label: "iv_daily: cm30_iv, event_var, implied move", note: "event-aware 21-session horizon"}
+  - {from: ivm, to: pan, label: "iv_daily, chain_expiry", kind: return}
+
+  # 6. window slice, baseline, abnormal IV (ADR 0004), panel layer
+  - {from: pan, to: ses, label: "ln VIX per session (local)"}
+  - {from: ses, to: pan, label: market_daily, kind: return}
+  - {from: pan, to: pan, label: "slice [-10, +10], baseline [-60, -22]", note: "drop other events [-21, +10] zones; reads events, eps, security"}
+  - alt:
+      - when: "at least 20 clean sessions and 15 changes"
+        messages:
+          - {from: pan, to: pan, label: "beta_s, ALIV, abnormal change e_t", note: "market-adjusted log IV, VIX as market"}
+          - {from: pan, to: pan, label: "event_measures row", note: "runup, crush, persist, evar, realised move, price_ref, surprise_scaled"}
+      - when: "fewer than 20 clean sessions"
+        messages:
+          - {from: pan, to: pan, label: eligible_* false, note: "ineligible_reason short_baseline; the event still gets a row"}
+
+  # 7. aggregate test (ADR 0005), stats layer
+  - {from: pan, to: tst, label: "event_measures, event_window_obs, events, eps"}
+  - {from: tst, to: tst, label: "two-way cluster-robust t (primary)", note: "CRUSH: date x firm; RUNUP, PERSIST: season x firm"}
+  - {from: tst, to: tst, label: "robustness rows", note: "BMP, kp_ow_t, kpp_t (precision-weighted), one-way t, rad_season_p"}
+  - {from: tst, to: res, label: "rows H1..H7 + robustness", note: "Holm for primary, BH for exploratory"}
+
+  # 8. export (ADR 0001 sections 4 and 7)
+  - {from: exp, to: res, label: read results and tables}
+  - {from: res, to: exp, label: rows, kind: return}
+  - {from: exp, to: exp, label: "disclosure test, then drop _yf and _cboe", note: "refuse the export if one event's market-adjusted value is solvable"}
+  - {from: exp, to: exp, label: "round, null for NaN", note: "same inputs give identical bytes"}
+  - {from: exp, to: app, label: "write tests.json, terrain.json, ...", kind: async}

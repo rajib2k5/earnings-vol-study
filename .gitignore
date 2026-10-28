@@ -1,0 +1,23 @@
+# Raw and cached data: large, and some of it we may not share.
+data/raw/
+data/cache/
+
+# Secrets.
+.env
+.env.*
+
+# Python.
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# App (React).
+node_modules/
+app/dist/
+app/coverage/
+
+# Tools and OS.
+graphify-out/
+.DS_Store
