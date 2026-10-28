@@ -1,0 +1,129 @@
+---
+title: "Earnings vol study data flow"
+---
+flowchart TB
+    s_cal(["earnings_calendar\nact_symbol, date, when"])
+    s_eps(["eps_history\nperiod_end_date, reported, estimate"])
+    s_est(["eps_estimate\ndate, period, consensus, high, low"])
+    s_chain(["option_chain\ndate, expiration, strike, bid, ask"])
+    s_vol(["volatility_history\niv_current"])
+    s_sp{{"S#38;P 500 list\nname, GICS sector, sub-industry"}}
+    s_xnys{{"exchange_calendars\nXNYS sessions, half days"}}
+    s_fred{{"FRED\nDTB3, VIXCLS"}}
+    s_yf{{"yfinance\nOpen, Close, shares (local only)"}}
+    s_vx{{"CBOE VX*\nVXAPL ... VXIBM closes"}}
+    s_pr{{"press releases\nIR time stamp, in press_release_checks.csv"}}
+    s_edgar{{"SEC EDGAR 8-K (proposed)\nacceptanceDateTime, if approved"}}
+    t_security[("security\nPK security_id")]
+    t_alias[("ticker_alias\nPK ticker, valid_from")]
+    t_session[("session\nPK session_date, session_index")]
+    t_market[("market_daily\nr_cont, ln_vix_cboe (events layer)")]
+    t_timing[("timing_check\ngap_verdict_yf, outside_flag_yf")]
+    t_events[("events\nPK event_id, timing_source, day0_session")]
+    t_eps[("eps\nsurprise, consensus, event_id")]
+    t_chain[("chain_expiry\nforward, w_atm, tau")]
+    t_iv[("iv_daily\ncm30_iv, event_var, sigma_d_iv")]
+    t_ewo[("event_window_obs\nrel_day, aliv_mean_adj, in_baseline")]
+    t_em[("event_measures\ncrush, runup, persist, price_ref, eligible_*")]
+    t_vx[("event_measures_vx\ncboe5 members, local only")]
+    t_results[("results\nstatistic, estimand, n_clusters_firm, p_holm")]
+    j_meta[/"meta.json"/]
+    j_funnel[/"sample_funnel.json"/]
+    j_paths[/"event_paths.json"/]
+    j_heat[/"heatmap.json"/]
+    j_terrain[/"terrain.json"/]
+    j_ivr[/"implied_vs_realised.json"/]
+    j_tests[/"tests.json"/]
+    j_drivers[/"drivers.json"/]
+    j_valid[/"validation.json"/]
+    s_sp -->|"name, GICS"| t_security
+    s_xnys -->|"sessions"| t_session
+    s_fred -->|"DTB3, VIXCLS"| t_market
+    t_session -->|"session_date"| t_market
+    s_cal -->|"act_symbol"| t_alias
+    t_security -->|"security_id"| t_alias
+    s_yf -.->|"Open, Close, SPY"| t_timing
+    s_cal -->|"date, when"| t_events
+    t_alias -->|"security_id"| t_events
+    t_session -->|"day0, day-1"| t_events
+    s_pr -->|"timing (hand check)"| t_events
+    s_edgar -.->|"edgar_accepted_utc"| t_events
+    t_timing -.->|"trigger#58; second reading or look-up"| t_events
+    t_eps -.->|"match_status to orphan_nearby"| t_events
+    s_chain -->|"bid, ask, strike, vol"| t_chain
+    t_alias -->|"security_id"| t_chain
+    t_session -->|"tau_sessions"| t_chain
+    t_market -->|"r_cont to df"| t_chain
+    t_events -->|"next_event_id"| t_chain
+    t_chain -->|"w_atm, forward, tau"| t_iv
+    t_events -->|"next / prev event"| t_iv
+    s_vol -.->|"iv_current"| t_iv
+    s_eps -->|"reported, estimate"| t_eps
+    s_est -->|"consensus, high, low"| t_eps
+    t_alias -->|"security_id"| t_eps
+    t_events -->|"event_id, lag_days"| t_eps
+    t_events -->|"rel_day, baseline zones"| t_ewo
+    t_session -->|"session_date"| t_ewo
+    t_iv -->|"cm30_iv, sigma_d_iv, event_var"| t_ewo
+    t_chain -->|"front_fixed_iv (T1*)"| t_ewo
+    t_market -.->|"ln_vix_cboe"| t_ewo
+    s_vx -.->|"ln_vx_cboe"| t_ewo
+    t_ewo -->|"aliv, e_abn, baseline"| t_em
+    t_iv -->|"event_var, front_expiry, ts_slope"| t_em
+    t_chain -->|"forward x df (price_ref, realised)"| t_em
+    t_events -->|"exclusion_reason (eligible_*)"| t_em
+    t_eps -->|"surprise (surprise_scaled, SUE)"| t_em
+    t_market -.->|"vix_regime"| t_em
+    s_yf -.->|"close, shares (local)"| t_em
+    t_ewo -.->|"ln_vx_cboe, e_abn_vx_cboe"| t_vx
+    t_security -.->|"cboe_vx_index"| t_vx
+    t_events -.->|"exclusion_reason"| t_vx
+    t_em -->|"crush, runup, persist, E"| t_results
+    t_ewo -->|"aliv path"| t_results
+    t_vx -.->|"cboe5 rows (all only)"| t_results
+    t_eps -->|"dispersion, signed surprise"| t_results
+    t_events -->|"sample, timing, season labels"| t_results
+    t_security -->|"sector"| t_results
+    t_iv -.->|"cm30_blind_iv"| t_results
+    t_chain -.->|"vendor_iv_atm"| t_results
+    s_vx -.->|"VX* closes (stats only)"| t_results
+    t_events -->|"n_events"| j_meta
+    t_events -->|"timing_status, gap_check_changed, exclusion_reason, sample"| j_funnel
+    t_em -->|"eligible_*, abs_move_cand_max terciles, crush_mean_adj"| j_funnel
+    t_timing -.->|"gap_verdict_yf share by tercile"| j_funnel
+    t_ewo -->|"per-event aliv_mean_adj"| j_paths
+    t_results -->|"aliv_path"| j_paths
+    t_em -->|"crush_mean_adj by season"| j_heat
+    t_results -->|"BH q"| j_heat
+    t_ewo -->|"mean aliv_mean_adj by security"| j_terrain
+    t_security -->|"ticker, sector"| j_terrain
+    t_em -->|"event_var, realized_ret_0, surprise_scaled"| j_ivr
+    t_results -->|"H7 regression"| j_ivr
+    t_results -->|"event_test#58; estimand, n_clusters_firm"| j_tests
+    t_results -->|"regression#58; n_clusters_season"| j_drivers
+    t_results -->|"family validation"| j_valid
+    classDef source fill:#E0F2FE,stroke:#0284C7,color:#0F172A
+    class s_cal,s_eps,s_est,s_chain,s_vol source
+    classDef store fill:#FEF3C7,stroke:#D97706,color:#0F172A
+    class t_security,t_alias,t_session,t_market,t_timing,t_events,t_eps,t_chain,t_iv,t_ewo,t_em,t_vx,t_results store
+    classDef output fill:#D1FAE5,stroke:#059669,color:#0F172A
+    class j_meta,j_funnel,j_paths,j_heat,j_terrain,j_ivr,j_tests,j_drivers,j_valid output
+    classDef external fill:#F1F5F9,stroke:#475569,color:#0F172A
+    class s_sp,s_xnys,s_fred,s_yf,s_vx,s_pr,s_edgar external
+    linkStyle 6 stroke:#94A3B8
+    linkStyle 11 stroke:#94A3B8
+    linkStyle 12 stroke:#94A3B8
+    linkStyle 13 stroke:#94A3B8
+    linkStyle 21 stroke:#94A3B8
+    linkStyle 30 stroke:#94A3B8
+    linkStyle 31 stroke:#94A3B8
+    linkStyle 37 stroke:#94A3B8
+    linkStyle 38 stroke:#94A3B8
+    linkStyle 39 stroke:#94A3B8
+    linkStyle 40 stroke:#94A3B8
+    linkStyle 41 stroke:#94A3B8
+    linkStyle 44 stroke:#94A3B8
+    linkStyle 48 stroke:#94A3B8
+    linkStyle 49 stroke:#94A3B8
+    linkStyle 50 stroke:#94A3B8
+    linkStyle 54 stroke:#94A3B8

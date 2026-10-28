@@ -1,0 +1,74 @@
+design: N=352 events, 50 firms, 187 distinct day-0 dates, 71 ISO weeks, quarters {np.str_('2024Q4'): 4, np.str_('2025Q1'): 48, np.str_('2025Q2'): 50, np.str_('2025Q3'): 50, np.str_('2025Q4'): 50, np.str_('2026Q1'): 49, np.str_('2026Q2'): 49, np.str_('2026Q3'): 50, np.str_('2026Q4'): 2}, season clusters after merging < 10: {np.str_('2025Q1'): 52, np.str_('2025Q2'): 50, np.str_('2025Q3'): 50, np.str_('2025Q4'): 50, np.str_('2026Q1'): 49, np.str_('2026Q2'): 49, np.str_('2026Q3'): 52}
+baseline sessions: min 20, median 30; reps per design 2000; MC se at 5% = 0.49 pp; 99% band [3.80, 6.30]%
+
+[D0 iid, no cross-corr]  {'phi': 1, 'rho_m': 0.0, 'rho_s': 0.0, 'noise': 0.0, 'sig_disp': 0.0, 'jump_k': 0.0}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup             5.5%       4.7%       5.1%       5.5%       5.3%       5.5%       5.6%       4.3%       4.5%       4.5%       5.3%       5.2%       5.2%   0.0001  0.102  -0.0000
+  persist_10        5.5%       4.5%       4.9%       5.9%       5.4%       5.3%       5.3%       4.7%       5.0%       4.7%       5.7%       4.8%       4.5%   0.0001  0.118  -0.0000
+  crush             4.8%       4.8%       4.8%       4.8%       4.4%       4.5%       5.0%       4.2%       4.7%       4.5%       4.5%       4.1%       4.3%   0.0000  0.005  -0.0000
+
+[D1 rho=0.10 same-date, iid changes]  {'phi': 1, 'rho_m': 0.1, 'rho_s': 0.0, 'noise': 0.0, 'sig_disp': 0.0, 'jump_k': 0.0}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup            35.3%       1.1%       5.5%       4.8%      35.4%      31.9%      24.1%       4.5%       5.1%       5.0%       5.0%       4.8%       4.7%   0.0096  0.102  0.0984
+  persist_10       37.5%       0.9%       5.0%       4.7%      37.9%      35.2%      27.1%       4.8%       5.5%       5.2%       4.7%       4.7%       4.3%   0.0112  0.118  0.0984
+  crush             7.4%       4.8%       4.8%       4.7%       7.4%       5.4%       5.5%       4.8%       5.5%       4.8%       5.2%       4.8%       4.7%   0.0005  0.005  0.0984
+
+[D2 D1 + quote noise (MA1, acf1 ~ -0.17)]  {'phi': 1, 'rho_m': 0.1, 'rho_s': 0.0, 'noise': 0.5, 'sig_disp': 0.0, 'jump_k': 0.0}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup            35.4%       1.1%       6.4%       9.3%      36.4%      32.6%      23.5%       5.2%       5.9%       5.3%       5.5%       4.7%       4.2%   0.0092  0.102  0.0651
+  persist_10       38.4%       1.1%       6.0%       9.2%      38.7%      36.0%      27.2%       6.2%       6.7%       5.9%       5.4%       4.8%       4.5%   0.0107  0.118  0.0651
+  crush             6.7%       5.1%       5.1%       5.1%       6.7%       5.5%       5.4%       4.8%       5.4%       5.0%       5.2%       5.1%       4.7%   0.0003  0.005  0.0651
+
+[D3 D1 + quote noise 0.8 (acf1 ~ -0.28)]  {'phi': 1, 'rho_m': 0.1, 'rho_s': 0.0, 'noise': 0.8, 'sig_disp': 0.0, 'jump_k': 0.0}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup            35.3%       1.5%       6.7%      14.2%      36.0%      32.6%      24.7%       5.5%       5.7%       5.5%       5.6%       5.2%       4.3%   0.0087  0.102  0.0429
+  persist_10       39.4%       1.3%       6.6%      15.5%      40.6%      36.4%      28.2%       5.9%       6.6%       6.1%       5.6%       5.7%       4.7%   0.0102  0.118  0.0429
+  crush             6.3%       5.5%       5.5%       5.7%       6.6%       5.9%       5.8%       6.0%       6.3%       5.5%       6.0%       5.1%       4.8%   0.0002  0.005  0.0429
+
+[D4 realistic: sector rho, AR(.98), noise, hetero sd, jumps x3]  {'phi': 0.98, 'rho_m': 0.05, 'rho_s': 0.15, 'noise': 0.5, 'sig_disp': 0.4, 'jump_k': 3.0}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup             9.1%       0.0%       0.1%       0.5%       7.8%       6.2%       4.0%       0.8%       0.9%       0.8%       0.1%       0.0%       0.0%   0.0088  0.102  0.0492
+  persist_10        3.6%       0.0%       0.0%       0.0%       3.1%       2.3%       1.6%       0.4%       0.5%       0.3%       0.0%       0.0%       0.0%   0.0104  0.118  0.0492
+  crush             5.2%       4.3%       4.3%       4.3%       5.3%       5.0%       5.5%       4.5%       5.5%       5.2%       5.2%       4.8%       4.9%   0.0003  0.005  0.0492
+
+[D5 D4 + heterogeneous effects, EW mean 0]  {'phi': 0.98, 'rho_m': 0.05, 'rho_s': 0.15, 'noise': 0.5, 'sig_disp': 0.4, 'jump_k': 3.0, 'hetero': 3.0}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup            49.1%       0.4%       4.2%      13.2%       6.7%       5.6%       3.4%       0.9%       1.1%      11.2%       0.0%       0.0%       0.0%   0.0088  0.102  0.0490
+  persist_10       35.4%       0.0%       0.1%       2.9%       2.4%       2.0%       1.0%       0.2%       0.3%       5.1%       0.0%       0.0%       0.0%   0.0104  0.118  0.0490
+  crush             5.4%       4.0%       4.0%       4.2%       4.5%       4.6%       4.3%       5.3%       5.5%       5.4%       4.5%       4.0%       4.0%   0.0003  0.005  0.0490
+
+[D6 rho=0.10, AR(.98) levels only]  {'phi': 0.98, 'rho_m': 0.1, 'rho_s': 0.0, 'noise': 0.0, 'sig_disp': 0.0, 'jump_k': 0.0}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup            11.8%       0.0%       0.0%       0.1%      12.0%       9.5%       5.2%       1.2%       1.5%       1.2%       0.0%       0.0%       0.0%   0.0112  0.102  0.0974
+  persist_10        7.0%       0.0%       0.0%       0.0%       8.0%       5.9%       3.1%       0.6%       0.7%       0.6%       0.0%       0.0%       0.0%   0.0130  0.118  0.0974
+  crush             4.7%       3.2%       3.2%       3.4%       5.2%       3.6%       4.2%       4.3%       4.3%       4.4%       3.4%       3.4%       3.0%   0.0005  0.005  0.0974
+
+[P1 power: D4 + common shift mu=0.03]  {'phi': 0.98, 'rho_m': 0.05, 'rho_s': 0.15, 'noise': 0.5, 'sig_disp': 0.4, 'jump_k': 3.0, 'mu': 0.03}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup            97.3%      21.7%      58.4%      80.7%      89.5%      87.2%      81.5%      34.6%      35.1%      51.0%      30.6%      24.1%      21.8%   0.0088  0.102  0.0491
+  persist_10       94.5%       2.2%      21.8%      52.8%      81.1%      78.5%      69.3%      23.9%      24.6%      36.2%       8.8%       4.7%       4.1%   0.0104  0.118  0.0491
+  crush             4.8%       3.9%       3.9%       3.9%       5.1%       5.1%       5.2%       5.5%       6.0%       5.2%       5.1%       5.0%       4.5%   0.0003  0.005  0.0491
+
+[P2 power: D4 + common shift mu=0.05]  {'phi': 0.98, 'rho_m': 0.05, 'rho_s': 0.15, 'noise': 0.5, 'sig_disp': 0.4, 'jump_k': 3.0, 'mu': 0.05}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup           100.0%      92.2%      99.5%      99.9%     100.0%      99.9%      99.7%      82.4%      82.1%      93.8%      92.2%      86.8%      85.4%   0.0088  0.102  0.0491
+  persist_10      100.0%      52.9%      91.6%      98.8%      99.5%      99.4%      98.8%      65.8%      66.7%      83.8%      72.3%      58.0%      54.4%   0.0104  0.118  0.0491
+  crush             5.2%       4.2%       4.2%       4.2%       5.0%       4.8%       5.5%       5.3%       5.2%       5.7%       5.0%       4.9%       4.5%   0.0003  0.005  0.0491
+
+[P3 power: D4 + common shift mu=0.08]  {'phi': 0.98, 'rho_m': 0.05, 'rho_s': 0.15, 'noise': 0.5, 'sig_disp': 0.4, 'jump_k': 3.0, 'mu': 0.08}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup           100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%      99.7%      99.7%     100.0%     100.0%     100.0%     100.0%   0.0087  0.102  0.0488
+  persist_10      100.0%      99.9%     100.0%     100.0%     100.0%     100.0%     100.0%      98.1%      97.8%      99.8%     100.0%      99.8%      99.6%   0.0103  0.118  0.0488
+  crush             5.5%       4.4%       4.4%       4.7%       5.7%       5.7%       5.9%       5.7%       5.8%       5.2%       5.7%       5.4%       5.1%   0.0003  0.005  0.0488
+
+[P4 power: D2 (random-walk) + mu=0.03]  {'phi': 1, 'rho_m': 0.1, 'rho_s': 0.0, 'noise': 0.5, 'sig_disp': 0.0, 'jump_k': 0.0, 'mu': 0.03}
+  measure            bmp      kp_ow  kp_ow_raw        kpp         cs    cl_date    cl_week  cl_season wcb_season  sa_season      cs_ow        dk1        dk5   mean rbar_ow  nubar  rhobar_pyn
+  runup            75.3%      14.9%      35.5%      45.1%      75.0%      72.4%      65.6%      26.8%      27.7%      26.8%      34.4%      32.1%      30.0%   0.0092  0.102  0.0654
+  persist_10       68.2%       8.2%      25.1%      34.5%      68.5%      65.5%      58.6%      20.3%      20.1%      20.2%      23.4%      21.8%      20.6%   0.0107  0.118  0.0654
+  crush             5.9%       4.5%       4.5%       4.6%       5.7%       4.6%       4.9%       4.8%       5.5%       4.5%       4.8%       4.7%       4.3%   0.0003  0.005  0.0654
+
+elapsed 136s
+
+real	2m16.218s
+user	33m0.435s
+sys	3m58.779s

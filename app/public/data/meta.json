@@ -1,0 +1,50 @@
+{
+  "data": {
+    "data_licence": {
+      "applies_to": [
+        "DoltHub post-no-preference/earnings",
+        "DoltHub post-no-preference/options"
+      ],
+      "attribution": "Contains data from the DoltHub repositories post-no-preference/earnings and post-no-preference/options, licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0). Changes: selected and filtered by this project. CBOE and Yahoo Finance data is downloaded locally for analysis and is never committed to this repository.",
+      "name": "CC BY-SA 4.0",
+      "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    "data_sources": [
+      {
+        "committed": true,
+        "licence": "CC BY-SA 4.0",
+        "name": "DoltHub post-no-preference/earnings",
+        "url": "https://www.dolthub.com/repositories/post-no-preference/earnings",
+        "uses": "earnings_calendar, eps_history"
+      },
+      {
+        "committed": true,
+        "licence": "CC BY-SA 4.0",
+        "name": "DoltHub post-no-preference/options",
+        "url": "https://www.dolthub.com/repositories/post-no-preference/options",
+        "uses": "option_chain"
+      },
+      {
+        "committed": false,
+        "licence": "see source",
+        "name": "CBOE single-stock VIX indices",
+        "url": "https://www.cboe.com/",
+        "uses": "VX* single-stock IV indices"
+      },
+      {
+        "committed": false,
+        "licence": "see source",
+        "name": "Yahoo Finance prices (via yfinance)",
+        "url": "https://finance.yahoo.com/",
+        "uses": "daily prices"
+      }
+    ],
+    "milestone": 0,
+    "project": "earnings-vol-study",
+    "title": "Earnings and implied volatility: an event study"
+  },
+  "generated_at": "2026-10-28T15:46:59Z",
+  "kind": "meta",
+  "schema_version": "0.1.0",
+  "source_commit": "uncommitted"
+}

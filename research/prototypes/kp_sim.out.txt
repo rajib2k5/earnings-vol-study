@@ -1,0 +1,7 @@
+rho 0.0 {'bmp': np.float64(0.05275), 'kp': np.float64(0.0575), 'cs': np.float64(0.0525)} | with 3x event variance: {'bmp': np.float64(0.05325), 'kp': np.float64(0.0605), 'cs': np.float64(0.05375)}
+rho 0.05 {'bmp': np.float64(0.312), 'kp': np.float64(0.0665), 'cs': np.float64(0.30975)} | with 3x event variance: {'bmp': np.float64(0.31325), 'kp': np.float64(0.06225), 'cs': np.float64(0.31475)}
+rho 0.15 {'bmp': np.float64(0.535), 'kp': np.float64(0.059), 'cs': np.float64(0.5375)} | with 3x event variance: {'bmp': np.float64(0.51925), 'kp': np.float64(0.05425), 'cs': np.float64(0.5225)}
+
+real	0m1.361s
+user	0m2.538s
+sys	0m0.014s

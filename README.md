@@ -1,0 +1,154 @@
+# Earnings & Implied Volatility: an event study
+
+An event study of how earnings announcements move options implied volatility. For each announcement by about 50 large
+US companies, the project lines up the implied-volatility (IV) series in event time and measures the run-up before the
+news, the fall ("IV crush") after it, and how long the fall lasts. It also compares the move the options priced with the
+move the stock really made. A Python pipeline computes every number from open data and exports versioned JSON files. A
+React app only checks and draws those files. Every design choice is written down in a short decision record.
+
+**Not financial advice.** This is research for learning. It describes the past, ignores transaction costs and covers
+large, liquid US stocks only.
+
+**Status:** Milestone 0: scaffold and design. No results yet. The primary significance test is a t-test with two-way
+cluster-robust standard errors: by announcement date and company for the crush, and by earnings season and company for
+the run-up and persistence. Its size has been checked in simulations at the real design; the check on the real event
+set (gate G1) comes at milestone 3. BMP and the Kolari-Pynnönen family are reported as robustness
+([ADR 0005](docs/adr/0005-statistical-test-suite.md)). Taking the before/after-market labels from SEC EDGAR filing
+times is proposed and waits for the owner's decision; the default is the company's press release, then the calendar
+label ([ADR 0002](docs/adr/0002-day-zero-convention.md)).
+
+## What the study answers
+
+- Does IV run up in the days before an earnings announcement?
+- How big is the crush right after the announcement, and how quickly does IV settle?
+- Is IV abnormal compared with a baseline window, and is that statistically significant when many companies report in
+  the same few weeks?
+- What drives the size of the run-up and the crush: the earnings surprise, or the level of IV beforehand?
+- Do the moves that options imply for earnings match the moves that are actually realised?
+
+The full story, written backwards from the finished study, is in the [PR/FAQ](docs/prfaq.md).
+
+## Repository layout
+
+```
+earnings-vol-study/
+├── README.md
+├── LEARNING_LOG.md             index of milestone pages, my predictions, explain-it-back grades
+├── LICENSE                     MIT, for the code
+├── pyproject.toml              Python project and pinned dependencies
+├── uv.lock                     exact Python dependency versions
+├── .python-version             3.12
+├── src/earnings_vol/           the Python package
+│   ├── __init__.py             the package version
+│   ├── config.py               where the data lives on disk (VOL_DATA_DIR)
+│   └── contract.py             the JSON envelope Python gives the app
+├── tools/
+│   ├── export_app_data.py      writes app/public/data/meta.json
+│   ├── build_notebooks.py      generates the notebooks from src/
+│   └── blender/                3D hero-render script
+├── tests/                      pytest tests for src/ and tools/
+├── notebooks/                  generated notebooks (never edited by hand)
+│   └── 00_scaffold_tour.ipynb
+├── data/derived/               small derived tables, CC BY-SA 4.0
+│   ├── README.md               what is here, and the licence terms
+│   ├── LICENSE                 CC BY-SA 4.0 notice
+│   └── earnings_calendar_30_large_caps.json   DoltHub extract, input to research/prototypes/spacing.py
+├── research/prototypes/        throwaway scripts behind numbers quoted in the ADRs (not tested, not reviewed)
+│   ├── README.md               which script backs which claim, and their limits
+│   ├── spacing.py, worked.py   event spacing (ADR 0004), the AAPL worked example (ADR 0003)
+│   ├── leak_grid.py            the event-variance leak of blind 30-day interpolation (ADR 0003)
+│   ├── kp_sim.py, kp_partial.py, kp_partial_clamp.py   size of the KP tests, one-session measure (ADR 0005)
+│   ├── h2h3_size_sim.py, h2h3_followup_sim.py   size and power at the real daily design (ADR 0005)
+│   └── iv_persistence_mc.py    why IV levels must not be summed (ADR 0004); outputs in *.out.txt
+├── docs/
+│   ├── prfaq.md                the product story
+│   ├── adr/                    architecture decision records 0001 to 0005
+│   ├── architecture/           diagrams, specs and the data model
+│   │   ├── README.md
+│   │   ├── data-model.md
+│   │   ├── specs/              YAML sources of the diagrams
+│   │   ├── *.mmd               Mermaid copies of the diagrams
+│   │   └── graph/              a graphify knowledge graph of the repository (generated; see its README)
+│   ├── concepts/               background reading
+│   │   └── 00-background.md
+│   ├── milestones/             one learning page per milestone
+│   │   └── 00-scaffold-and-design.md
+│   └── validation/             adversarial review ledgers and the probe scripts behind them
+│       ├── m0-code-ledger.md
+│       ├── m0-methodology-ledger.md
+│       └── probes/
+└── app/                        the React + TypeScript + Vite app
+    ├── src/lib/                small pure helpers and thin components, with tests beside them
+    ├── src/three/              the lazy-loaded 3D view
+    ├── src/test/               shared test fixtures
+    ├── public/data/            JSON written by Python (never edited by hand)
+    ├── CLAUDE.md               rules for working in the app
+    ├── DATA.md                 the JSON contract and the data licences
+    └── package.json
+```
+
+The diagrams are in [`docs/architecture/README.md`](docs/architecture/README.md). They are not copied here, so there is
+only one version to keep right.
+
+## How to run
+
+You need Python 3.12 with [uv](https://docs.astral.sh/uv/), and Node with npm for the app. Milestone 0 needs no market
+data.
+
+```bash
+uv sync                                          # install the Python dependencies
+uv run pytest -q                                 # run the Python tests
+uv run python tools/build_notebooks.py --check   # check the notebooks match src/
+uv run python tools/export_app_data.py           # write app/public/data/meta.json
+cd app && npm ci && npm run dev                  # run the app locally
+npm run verify                                   # inside app/: lint + tests + coverage + production build
+```
+
+`uv run python tools/build_notebooks.py` (without `--check`) rewrites the notebooks. Never edit them by hand.
+
+## Data
+
+- **Where it lives.** Large and unshareable data stays *outside* the repository, under `VOL_DATA_DIR`
+  (default `~/data/vol-projects`). `src/earnings_vol/config.py` is the only place that knows the folder layout. From
+  milestone 1 the pipeline reads two shared DoltHub clones from `$VOL_DATA_DIR/dolthub/` with `SELECT` only.
+- **DoltHub (CC BY-SA 4.0).** The earnings calendar, EPS history and option chains come from the DoltHub repositories
+  `post-no-preference/earnings` and `post-no-preference/options`. Both declare *Attribution-ShareAlike 4.0
+  International*. Attribution: "Contains data from the DoltHub repositories post-no-preference/earnings and
+  post-no-preference/options, licensed under CC BY-SA 4.0. Changes: selected and filtered by this project."
+- **CBOE and Yahoo are never committed.** CBOE single-stock volatility indices, the VIX (FRED's `VIXCLS` is a CBOE
+  index, so it counts as CBOE data) and Yahoo Finance prices (via `yfinance`) are downloaded to your own machine and
+  used there. Every column computed from them from a per-date or per-event value carries a `_yf` or `_cboe` suffix and
+  is dropped before anything is committed or exported. Only aggregates that pass a disclosure test and coarse labels
+  may leave the machine (ADR 0001 §7, data model §2.1).
+- **`data/derived/`** will hold small tables derived from DoltHub. They are licensed CC BY-SA 4.0, not MIT. See
+  [`data/derived/README.md`](data/derived/README.md). At milestone 0 it holds one file,
+  `earnings_calendar_30_large_caps.json`, a DoltHub extract that `research/prototypes/spacing.py` reads. The pipeline
+  tables are not there yet.
+
+Details and the JSON contract are in [`app/DATA.md`](app/DATA.md).
+
+## Results
+
+No results yet. Measured numbers appear here from milestone 3, each re-measured by an independent verifier.
+
+## Screenshots
+
+Added at the final milestone.
+
+## Read more
+
+- [PR/FAQ](docs/prfaq.md): what the study will show and what could make it wrong.
+- Decision records: [ADR 0001 architecture](docs/adr/0001-overall-architecture.md),
+  [0002 day zero](docs/adr/0002-day-zero-convention.md), [0003 IV measures](docs/adr/0003-iv-measures.md),
+  [0004 baseline and windows](docs/adr/0004-baseline-and-event-windows.md),
+  [0005 statistical tests](docs/adr/0005-statistical-test-suite.md).
+- Architecture: [diagrams](docs/architecture/README.md) and the [data model](docs/architecture/data-model.md).
+- Prototypes: [`research/prototypes/`](research/prototypes/README.md), the throwaway scripts behind numbers in the ADRs.
+  They are not part of the package and are not tested or reviewed.
+- Learning: [LEARNING_LOG.md](LEARNING_LOG.md) and the
+  [milestone 0 page](docs/milestones/00-scaffold-and-design.md).
+
+## License
+
+The code is MIT licensed (see [`LICENSE`](LICENSE)). The tables in `data/derived/` are licensed CC BY-SA 4.0 (see
+[`data/derived/LICENSE`](data/derived/LICENSE)).

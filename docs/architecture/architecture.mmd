@@ -1,0 +1,119 @@
+---
+title: "Earnings vol study architecture"
+---
+flowchart LR
+    subgraph sources["Sources"]
+        dh_cal(["DoltHub earnings_calendar\ndate, when (BMO / AMC / NULL)"])
+        dh_eps(["DoltHub eps_history\nreported, estimate"])
+        dh_chain(["DoltHub option_chain\nbid, ask by strike"])
+        yf{{"yfinance prices\nOHLC, local only"}}
+        fred{{"FRED\nDTB3 rate, VIXCLS"}}
+        cboe_vx{{"CBOE VX* indices\n5 names, local only"}}
+        sp500{{"S#38;P 500 list\nsector, sub-industry"}}
+        pr{{"Press releases\nIR time stamp, press_release_checks.csv"}}
+        edgar{{"SEC EDGAR 8-K (proposed)\nonly if owner approves"}}
+    end
+    subgraph ingest["Ingest"]
+        dolt["dolt sql extraction\nread-only, AS OF commit"]
+        fetch["Price and index fetch\nyfinance, FRED, CBOE"]
+        cache[("Parquet cache\nraw/, cache/ outside repo")]
+    end
+    subgraph events["Events layer"]
+        ses["Sessions + market\nsession, market_daily"]
+        evt["Events builder\nsecurity, events, timing, day 0"]
+        epsm["EPS match\neps#58; raw, consensus, link"]
+    end
+    subgraph measures["Measures layer"]
+        ivm[["IV measures\nchain_expiry, iv_daily"]]
+    end
+    subgraph panel["Panel layer"]
+        pan["Event panel\nwindow, baseline, eligible_*"]
+        abn[["Abnormal IV\nlog, VIX-adjusted, VX*"]]
+        surp["Surprise scaling\nprice_ref, surprise_scaled, SUE"]
+    end
+    subgraph stats["Stats layer"]
+        tests[["Event tests\ntwo-way t; BMP, KP robustness"]]
+        regs[["Regressions\ntwo-way firm × date SE"]]
+        valid["VX* validation\nstatistics only"]
+        results[("Results table\nHolm and BH adjusted")]
+    end
+    subgraph delivery["Export"]
+        export["export_app_data\ndisclosure test, drop _yf / _cboe"]
+        contract[/"JSON contract\nmeta.json + 8 view files (views v0.2.0)"/]
+        app("React app\ndraws, never computes")
+        derived[("data/derived\nCC BY-SA 4.0 Parquet")]
+        nb[/"Notebooks\ngenerated from src"/]
+        report[/"Report\nnumbers from results"/]
+    end
+    dh_cal -->|"SELECT AS OF"| dolt
+    dh_eps --> dolt
+    dh_chain --> dolt
+    yf -->|"local only"| fetch
+    fred --> fetch
+    cboe_vx -->|"local only"| fetch
+    sp500 --> fetch
+    edgar -.->|"proposed"| fetch
+    pr -->|"timing label"| evt
+    dolt -->|"monthly extracts"| cache
+    fetch -->|"raw files"| cache
+    cache -->|"rates, VIX"| ses
+    cache -->|"calendar, prices, S#38;P"| evt
+    cache -->|"eps_history, estimates"| epsm
+    ses -->|"sessions"| evt
+    evt -->|"event_id, day 0"| epsm
+    cache -->|"chains, vol history"| ivm
+    ses -->|"sessions, r_cont"| ivm
+    evt -->|"events (day 0)"| ivm
+    ivm -->|"iv_daily, chain_expiry"| pan
+    evt -->|"events, security"| pan
+    ses -->|"market_daily (VIX)"| pan
+    pan --> abn
+    cache -.->|"Yahoo, VX* (local)"| abn
+    epsm -->|"eps surprise"| surp
+    ivm -->|"day -1 forward"| surp
+    abn -->|"event_measures, window obs"| tests
+    surp -->|"surprise_scaled"| regs
+    abn -->|"event_measures"| regs
+    epsm -->|"eps"| regs
+    evt -.->|"sector, season"| regs
+    ivm -->|"cm30 blind IV, chains"| valid
+    cache -.->|"VX* closes"| valid
+    tests --> results
+    regs --> results
+    valid --> results
+    results --> export
+    abn -->|"window obs"| export
+    evt -.->|"funnel"| export
+    export -->|"JSON files"| contract
+    export -->|"committed tables"| derived
+    contract -->|"fetch"| app
+    results -.->|"stage calls"| nb
+    results -.->|"numbers"| report
+    classDef source fill:#E0F2FE,stroke:#0284C7,color:#0F172A
+    class dh_cal,dh_eps,dh_chain source
+    classDef store fill:#FEF3C7,stroke:#D97706,color:#0F172A
+    class cache,results,derived store
+    classDef process fill:#E0E7FF,stroke:#4F46E5,color:#0F172A
+    class dolt,fetch,ses,evt,epsm,pan,surp,valid,export process
+    classDef model fill:#EDE9FE,stroke:#7C3AED,color:#0F172A
+    class ivm,abn,tests,regs model
+    classDef output fill:#D1FAE5,stroke:#059669,color:#0F172A
+    class contract,nb,report output
+    classDef external fill:#F1F5F9,stroke:#475569,color:#0F172A
+    class yf,fred,cboe_vx,sp500,pr,edgar external
+    classDef ui fill:#FCE7F3,stroke:#DB2777,color:#0F172A
+    class app ui
+    style sources fill:#F1F5F9,stroke:#E2E8F0,color:#64748B
+    style ingest fill:#EFF6FF,stroke:#DBEAFE,color:#64748B
+    style events fill:#F5F3FF,stroke:#E9E5FD,color:#64748B
+    style measures fill:#ECFDF5,stroke:#D1FAE5,color:#64748B
+    style panel fill:#FFF7ED,stroke:#FFEDD5,color:#64748B
+    style stats fill:#FDF2F8,stroke:#FCE7F3,color:#64748B
+    style delivery fill:#F1F5F9,stroke:#E2E8F0,color:#64748B
+    linkStyle 7 stroke:#94A3B8
+    linkStyle 23 stroke:#94A3B8
+    linkStyle 30 stroke:#94A3B8
+    linkStyle 32 stroke:#94A3B8
+    linkStyle 38 stroke:#94A3B8
+    linkStyle 42 stroke:#94A3B8
+    linkStyle 43 stroke:#94A3B8

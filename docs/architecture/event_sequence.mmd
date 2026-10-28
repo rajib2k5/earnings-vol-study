@@ -1,0 +1,97 @@
+---
+title: "One announcement through the pipeline"
+---
+sequenceDiagram
+    autonumber
+    participant cal as earnings_calendar
+    participant ev as Events builder
+    participant docs as Press release / EDGAR (proposed)
+    participant px as Price-gap diagnostic
+    participant ses as Sessions + market_daily
+    participant epsm as EPS match
+    participant ivm as IV measures
+    participant pan as Panel + abnormal IV
+    participant tst as Event tests
+    participant res as results
+    participant exp as export_app_data
+    participant app as React app
+    ev->>cal: read row for the event
+    Note right of cal: AAPL, 2025-10-30, After market close
+    cal-->>ev: act_symbol, date, when
+    Note right of ev: when becomes timing_raw#58; BMO, AMC or null
+    ev->>px: gap z-scores at D and next(D)
+    Note right of px: local diagnostic only#59; it never sets a label
+    px-->>ev: gap_verdict_yf, outside_flag_yf
+    opt look-up#58; D from 2024-09-11, NULL label, or (coarse) a gap flag
+        ev->>docs: release time for D-1 to D+1
+        Note right of docs: press release#59; EDGAR 8-K only if approved
+        docs-->>ev: time stamp, or none found
+    end
+    alt a document gives the timing
+        ev->>ev: timing_used = the document's
+        Note right of ev: confirmed, corrected or inferred
+    else the documents put it on another date
+        ev->>ev: use the documents' date
+        Note right of ev: status date_corrected
+    else looked up, no document, calendar label given
+        ev->>ev: keep the calendar label
+        Note right of ev: status no_document
+    else looked up, no document, calendar label NULL
+        ev->>ev: no day 0
+        Note right of ev: status ambiguous#58; two-session crush only
+    else not looked up (coarse, no gap flag)
+        ev->>ev: keep the calendar label
+        Note right of ev: status not_checked
+    end
+    opt the gap contradicts the label, or the nearby-session flag fires
+        ev->>docs: read the release again
+        Note right of docs: second reading, daily and mixed
+        docs-->>ev: second time stamp
+        ev->>ev: second reading decides
+        Note right of ev: label changed#58; gap_check_changed = true
+    end
+    ev->>ses: next session after D (AMC)
+    ses-->>ev: day 0 = 2025-10-31, day -1 = 2025-10-30
+    ev-)epsm: events with day 0
+    epsm->>epsm: match period to first event 10-100 days later
+    Note right of epsm: eps.event_id, match_status#59; raw EPS and consensus only
+    epsm-->>ev: match_status
+    ev->>ev: orphan_nearby, sample, exclusion_reason
+    Note right of ev: event-level rules only#59; no IV data needed
+    ev-)ivm: events#58; day 0, next event
+    ivm->>ses: r_cont for the discount factor
+    ses-->>ivm: market_daily
+    loop for each session, rel_day -60 to +10
+        ivm->>ivm: chain_expiry#58; forward, w_atm per expiry
+        Note right of ivm: Black-76 on the parity forward, session clock
+        ivm->>ivm: iv_daily#58; cm30_iv, event_var, implied move
+        Note right of ivm: event-aware 21-session horizon
+    end
+    ivm-->>pan: iv_daily, chain_expiry
+    pan->>ses: ln VIX per session (local)
+    ses-->>pan: market_daily
+    pan->>pan: slice [-10, +10], baseline [-60, -22]
+    Note right of pan: drop other events [-21, +10] zones#59; reads events, eps, security
+    alt at least 20 clean sessions and 15 changes
+        pan->>pan: beta_s, ALIV, abnormal change e_t
+        Note right of pan: market-adjusted log IV, VIX as market
+        pan->>pan: event_measures row
+        Note right of pan: runup, crush, persist, evar, realised move, price_ref, surprise_scaled
+    else fewer than 20 clean sessions
+        pan->>pan: eligible_* false
+        Note right of pan: ineligible_reason short_baseline#59; the event still gets a row
+    end
+    pan->>tst: event_measures, event_window_obs, events, eps
+    tst->>tst: two-way cluster-robust t (primary)
+    Note right of tst: CRUSH#58; date x firm#59; RUNUP, PERSIST#58; season x firm
+    tst->>tst: robustness rows
+    Note right of tst: BMP, kp_ow_t, kpp_t (precision-weighted), one-way t, rad_season_p
+    tst->>res: rows H1..H7 + robustness
+    Note right of res: Holm for primary, BH for exploratory
+    exp->>res: read results and tables
+    res-->>exp: rows
+    exp->>exp: disclosure test, then drop _yf and _cboe
+    Note right of exp: refuse the export if one event's market-adjusted value is solvable
+    exp->>exp: round, null for NaN
+    Note right of exp: same inputs give identical bytes
+    exp-)app: write tests.json, terrain.json, ...

@@ -1,0 +1,394 @@
+---
+title: "Earnings vol study schema"
+---
+erDiagram
+    security {
+        string security_id PK
+        string name
+        enum gics_sector
+        string gics_sub_industry
+        bool in_universe
+        int16 universe_rank "nullable"
+        enum cboe_vx_index "nullable"
+    }
+    ticker_alias {
+        string ticker PK
+        date32 valid_from PK
+        date32 valid_to "nullable"
+        string security_id FK
+    }
+    session {
+        date32 session_date PK
+        int32 session_index
+        bool is_half_day
+        string close_time_et
+        enum era
+    }
+    market_daily {
+        date32 session_date PK, FK
+        float64 r_dtb3
+        float64 r_cont
+        float64 vix_close_cboe "nullable"
+        float64 ln_vix_cboe "nullable"
+    }
+    chain_expiry {
+        string security_id PK, FK
+        date32 session_date PK, FK
+        date32 expiration PK
+        date32 snapshot_date
+        int16 tau_sessions
+        int16 tau_cal_days
+        float64 df
+        float64 forward
+        int16 forward_n_strikes
+        float64 forward_dispersion
+        int16 n_strikes_valid
+        float64 strike_lo
+        float64 strike_hi
+        float64 k_lo
+        float64 k_hi
+        float64 rel_spread_lo
+        float64 rel_spread_hi
+        float64 w_atm
+        float64 iv_atm
+        enum atm_method
+        float64 vendor_iv_atm "nullable"
+        float64 straddle_atm "nullable"
+        float64 iv_straddle "nullable"
+        string next_event_id FK "nullable"
+        bool spans_next_event "nullable"
+        enum status
+        string flags
+    }
+    iv_daily {
+        string security_id PK, FK
+        date32 session_date PK, FK
+        date32 snapshot_date "nullable"
+        enum snapshot_status
+        string next_event_id FK "nullable"
+        int16 sessions_to_next_event "nullable"
+        string prev_event_id FK "nullable"
+        int16 sessions_since_prev_event "nullable"
+        date32 front_expiry FK "nullable"
+        int16 front_tau "nullable"
+        float64 front_atm_iv "nullable"
+        float64 cm30_iv "nullable"
+        enum cm30_method
+        date32 cm30_exp_lo FK "nullable"
+        date32 cm30_exp_hi FK "nullable"
+        float64 cm30_blind_iv "nullable"
+        float64 sigma_d_iv "nullable"
+        float64 event_var "nullable"
+        date32 ev_exp1 FK "nullable"
+        date32 ev_exp2 FK "nullable"
+        int16 ev_tau1 "nullable"
+        int16 ev_tau2 "nullable"
+        float64 ev_w1 "nullable"
+        float64 ev_w2 "nullable"
+        float64 implied_move "nullable"
+        float64 implied_abs_move "nullable"
+        float64 implied_abs_move_total "nullable"
+        enum implied_move_status
+        float64 ts_slope "nullable"
+        float64 forward_front "nullable"
+        float64 vendor_iv_current "nullable"
+        string flags
+    }
+    events["events (edgar#95;#42; only if the owner approves EDGAR)"] {
+        string event_id PK
+        string security_id FK
+        string ticker_at_event
+        date32 announce_date
+        enum timing_raw "nullable"
+        enum timing_used "nullable"
+        enum timing_status
+        enum timing_source "nullable"
+        bool gap_check_changed
+        string edgar_accession "nullable"
+        string edgar_accepted_utc "nullable"
+        date32 day0_session FK "nullable"
+        date32 day_m1_session FK "nullable"
+        date32 fiscal_period_end "nullable"
+        string prev_event_id "nullable"
+        string next_event_id "nullable"
+        int16 gap_sessions_prev "nullable"
+        bool orphan_nearby
+        string season
+        enum sample
+        string exclusion_reason "nullable"
+        string calendar_commit
+    }
+    eps {
+        string security_id PK, FK
+        date32 fiscal_period_end PK
+        string event_id FK "nullable"
+        enum match_status
+        int16 lag_days "nullable"
+        float64 reported "nullable"
+        float64 estimate "nullable"
+        float64 surprise "nullable"
+        float64 consensus "nullable"
+        float64 consensus_high "nullable"
+        float64 consensus_low "nullable"
+        int16 consensus_count "nullable"
+        date32 consensus_date "nullable"
+        float64 surprise_disp "nullable"
+    }
+    timing_check {
+        string event_id PK, FK
+        float64 gap_bmo_yf
+        float64 gap_amc_yf
+        float64 gap_scale_yf
+        float64 z_bmo_yf
+        float64 z_amc_yf
+        float64 z_max_outside_yf
+        int16 rel_day_max_outside_yf "nullable"
+        enum gap_verdict_yf
+        bool outside_flag_yf
+    }
+    event_window_obs {
+        string event_id PK, FK
+        int16 rel_day PK
+        date32 session_date FK
+        bool observed
+        bool in_window
+        bool in_baseline
+        enum baseline_excluded_reason "nullable"
+        float64 cm30_iv "nullable"
+        float64 ln_cm30 "nullable"
+        float64 d_ln_cm30 "nullable"
+        float64 e_abn_cboe "nullable"
+        float64 aliv_cboe "nullable"
+        float64 aliv_mean_adj "nullable"
+        float64 aiv_level "nullable"
+        float64 front_fixed_iv "nullable"
+        bool front_fixed_interpolated
+        float64 sigma_d_iv "nullable"
+        float64 event_var "nullable"
+        float64 ln_vx_cboe "nullable"
+        float64 e_abn_vx_cboe "nullable"
+    }
+    event_measures {
+        string event_id PK, FK
+        bool eligible_crush
+        bool eligible_runup
+        bool eligible_persist_10
+        string ineligible_reason
+        int16 baseline_n
+        int16 baseline_n_changes
+        float64 baseline_mean_ln_iv "nullable"
+        float64 baseline_mean_iv "nullable"
+        float64 beta_vix "nullable"
+        int32 beta_n
+        float64 s_abn_cboe "nullable"
+        float64 runup_cboe "nullable"
+        float64 crush_cboe "nullable"
+        float64 persist_1_cboe "nullable"
+        float64 persist_5_cboe "nullable"
+        float64 persist_10_cboe "nullable"
+        float64 dsigma_d_cboe "nullable"
+        float64 crush_mean_adj "nullable"
+        float64 dsigma_d_mean_adj "nullable"
+        float64 crush_two_session_cboe "nullable"
+        float64 crush_two_session_mean_adj "nullable"
+        float64 crush_front_fixed "nullable"
+        int16 crush_span_sessions "nullable"
+        float64 sa_crush_cboe "nullable"
+        float64 sa_runup_cboe "nullable"
+        float64 sa_persist_1_cboe "nullable"
+        float64 sa_persist_5_cboe "nullable"
+        float64 sa_persist_10_cboe "nullable"
+        float64 sa_dsigma_d_cboe "nullable"
+        float64 evar_m1 "nullable"
+        float64 evar_m2 "nullable"
+        float64 implied_move_m1 "nullable"
+        float64 implied_abs_move_total_m1 "nullable"
+        enum implied_move_status
+        float64 sigma_d_m1 "nullable"
+        float64 cm30_m1 "nullable"
+        float64 ts_slope_m1 "nullable"
+        float64 price_ref "nullable"
+        float64 surprise_scaled "nullable"
+        float64 abs_surprise_scaled_w "nullable"
+        float64 sue_hist "nullable"
+        int16 sue_hist_n "nullable"
+        float64 realized_ret_0 "nullable"
+        float64 abs_move_cand_max "nullable"
+        float64 realized_ret_0_yf "nullable"
+        float64 abs_ret_over_implied "nullable"
+        enum vix_regime "nullable"
+        float64 ln_mcap_yf "nullable"
+    }
+    event_measures_vx {
+        string event_id PK, FK
+        enum vx_index
+        int16 baseline_n_changes
+        float64 beta_vix_vx_cboe "nullable"
+        float64 s_abn_vx_cboe "nullable"
+        float64 runup_vx_cboe "nullable"
+        float64 crush_vx_cboe "nullable"
+        float64 persist_10_vx_cboe "nullable"
+        float64 sa_runup_vx_cboe "nullable"
+        float64 sa_crush_vx_cboe "nullable"
+        float64 sa_persist_10_vx_cboe "nullable"
+    }
+    results {
+        string result_id PK
+        enum family
+        enum hypothesis "nullable"
+        enum role
+        string measure
+        string statistic
+        enum estimand "nullable"
+        int16 rel_day "nullable"
+        enum sample
+        string subgroup_key
+        string subgroup_value
+        enum adjustment
+        string model_id "nullable"
+        string term "nullable"
+        int32 n
+        int32 n_clusters "nullable"
+        int32 n_clusters_firm "nullable"
+        float64 df "nullable"
+        float64 estimate "nullable"
+        float64 se "nullable"
+        float64 stat "nullable"
+        float64 p_value "nullable"
+        float64 ci_lo "nullable"
+        float64 ci_hi "nullable"
+        float64 p_holm "nullable"
+        float64 q_bh "nullable"
+        float64 rbar "nullable"
+        string params_hash
+        string code_commit
+    }
+    json_envelope["envelope (all files)"] {
+        string kind PK
+        string schema_version
+        string generated_at
+        string source_commit
+        object data
+    }
+    json_meta["meta.json"] {
+        string kind PK
+        string project
+        int32 milestone
+        string title
+        array data_sources
+        object data_licence
+        object_planned sample
+        object_planned params
+        array_planned files
+        object_planned provenance
+        string_planned from_events FK "nullable"
+    }
+    json_sample_funnel["sample#95;funnel.json"] {
+        string kind PK
+        array steps
+        object timing_status_counts
+        array by_move_tercile
+        object evar_nonpositive
+        array by_sample
+        object provenance
+        string from_events FK "nullable"
+        string from_event_measures FK "nullable"
+        string from_timing_check FK "nullable"
+    }
+    json_event_paths["event#95;paths.json"] {
+        string kind PK
+        array rel_days
+        array series
+        array per_event
+        object provenance
+        string from_event_window_obs FK "nullable"
+        string from_results FK "nullable"
+    }
+    json_heatmap["heatmap.json"] {
+        string kind PK
+        array grids
+        object provenance
+        string from_event_measures FK "nullable"
+        string from_results FK "nullable"
+    }
+    json_terrain["terrain.json"] {
+        string kind PK
+        string measure
+        string units
+        array rel_days
+        array rows
+        array values
+        string row_order
+        object provenance
+        string from_event_window_obs FK "nullable"
+        string from_security FK "nullable"
+    }
+    json_implied_vs_realised["implied#95;vs#95;realised.json"] {
+        string kind PK
+        array points
+        object summary
+        object provenance
+        string from_event_measures FK "nullable"
+        string from_results FK "nullable"
+    }
+    json_tests["tests.json"] {
+        string kind PK
+        array rows
+        object provenance
+        string from_results FK "nullable"
+    }
+    json_drivers["drivers.json"] {
+        string kind PK
+        array models
+        object provenance
+        string from_results FK "nullable"
+    }
+    json_validation["validation.json"] {
+        string kind PK
+        array vx
+        object vendor_vs_ours
+        object vol_history_maturity
+        object leak
+        object realised_vs_yahoo
+        object provenance
+        string from_results FK "nullable"
+    }
+    security ||--|{ ticker_alias : "R1 known as"
+    security ||--o{ events : "R2 announces"
+    security ||--o{ eps : "R3 reports"
+    security ||--o{ iv_daily : "R5 has"
+    session ||--o| market_daily : "R6 has"
+    session ||--o{ iv_daily : "R8 on"
+    session |o--o{ events : "R9a day 0"
+    session |o--o{ events : "R9b day -1"
+    session ||--o{ event_window_obs : "R10 on"
+    iv_daily ||--o{ chain_expiry : "R11 (1/2) expiries of snapshot"
+    iv_daily ||--o{ chain_expiry : "R11 (2/2) expiries of snapshot"
+    chain_expiry |o--o| iv_daily : "R12a front expiry (composite)"
+    chain_expiry |o--o| iv_daily : "R12b cm30 low (composite)"
+    chain_expiry |o--o| iv_daily : "R12c cm30 high (composite)"
+    chain_expiry |o--o| iv_daily : "R12d event expiry 1 (composite)"
+    chain_expiry |o--o| iv_daily : "R12e event expiry 2 (composite)"
+    events |o--o| eps : "R13 reports period"
+    events ||--|| event_measures : "R15 summarised by"
+    events ||--o| timing_check : "R16 checked by"
+    events ||--o{ event_window_obs : "R17 rel#95;day -60..+10"
+    events |o--o{ iv_daily : "R19a next event"
+    events |o--o{ iv_daily : "R19b prev event"
+    events |o--o{ chain_expiry : "R20 next event"
+    events ||--o| event_measures_vx : "R21 cboe5 member"
+    events |o--o{ json_meta : "feeds"
+    events |o--o{ json_sample_funnel : "feeds"
+    event_measures |o--o{ json_sample_funnel : "feeds"
+    timing_check |o--o{ json_sample_funnel : "feeds (aggregate only)"
+    event_window_obs |o--o{ json_event_paths : "feeds"
+    results |o--o{ json_event_paths : "feeds"
+    event_measures |o--o{ json_heatmap : "feeds"
+    results |o--o{ json_heatmap : "feeds"
+    event_window_obs |o--o{ json_terrain : "feeds"
+    security |o--o{ json_terrain : "feeds"
+    event_measures |o--o{ json_implied_vs_realised : "feeds"
+    results |o--o{ json_implied_vs_realised : "feeds"
+    results |o--o{ json_tests : "feeds"
+    results |o--o{ json_drivers : "feeds"
+    results |o--o{ json_validation : "feeds"
