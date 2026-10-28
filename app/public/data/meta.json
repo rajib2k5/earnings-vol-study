@@ -43,8 +43,8 @@
     "project": "earnings-vol-study",
     "title": "Earnings and implied volatility: an event study"
   },
-  "generated_at": "2026-10-28T15:46:59Z",
+  "generated_at": "2026-10-28T19:44:25Z",
   "kind": "meta",
   "schema_version": "0.1.0",
-  "source_commit": "uncommitted"
+  "source_commit": "6e4ef9d"
 }
