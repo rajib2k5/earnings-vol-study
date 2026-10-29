@@ -3675,7 +3675,7 @@
       "n_done": 20
     },
     "provenance": {
-      "code_commit": "fca9972",
+      "code_commit": "d6d5ea4",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
@@ -3684,8 +3684,8 @@
       "sample_label": "daily"
     }
   },
-  "generated_at": "2026-10-29T23:09:58Z",
+  "generated_at": "2026-10-29T23:33:36Z",
   "kind": "heatmap",
   "schema_version": "0.4.0",
-  "source_commit": "fca9972"
+  "source_commit": "d6d5ea4"
 }
