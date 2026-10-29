@@ -1,7 +1,7 @@
 /**
- * The `provenance` object that both `meta.json` and `sample_funnel.json` carry (schema 0.2.0): which
- * parameters, code and upstream data versions produced the file. One validator, so the two files
- * cannot drift apart. Exactly these keys:
+ * The `provenance` object that `meta.json`, `sample_funnel.json` and `iv_measures.json` carry (schema
+ * 0.3.0): which parameters, code and upstream data versions produced the file. One validator, so the
+ * files cannot drift apart. Exactly these keys:
  *   params_hash    non-empty string, hash of the study parameters
  *   code_commit    non-empty string, git commit of the Python code
  *   sample_label   non-empty string, which sample the numbers describe

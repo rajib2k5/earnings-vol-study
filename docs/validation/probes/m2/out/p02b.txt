@@ -1,0 +1,5 @@
+lower strike 100: C=0.005 P=0.01 |C-P| float=0.005
+upper strike 105: C=0.01 P=0.015 |C-P| float=0.004999999999999999  (decimal: equal)
+strikes chosen by the code: [95.0, 97.5, 102.5, 105.0]; F = 99.999
+ADR rule (tie to the lower strike) would choose: [95.0, 97.5, 100.0, 102.5]
+RESULT REFUTED (tie went to the higher strike)

@@ -49,6 +49,12 @@
 >   8,174,225 rows). A daily-era month took 41 s at the median and 51 s at most, a Mon/Wed/Fri month 6.4 s. That is
 >   under the 2-minute-per-month line, so the batching stays.
 
+> **Milestone 2, 2026-10-29.** The measures layer is built (`chain_expiry`, `iv_daily` and the new `event_iv`; the
+> layer table below names the modules). `chain_expiry` stays local (17.0 MB, and its `df` is a FRED value); `iv_daily`
+> (4.7 MB) and `event_iv` are committed. Under the owner's data decision of 2026-10-29 (§7) the registry can name the
+> class-R columns a committed table keeps; milestone 2 keeps one, `timing_check.gap_verdict_yf`. The JSON contract is
+> at 0.3.0. Walkthrough: `docs/milestones/02-iv-measures.md`.
+
 > **Revised after the milestone-1 review** ([ledger](../validation/m1-ledger.md), 2026-10-29).
 >
 > - **The layer table lacked `session_snapshot`**, which `measures` writes at milestone 1. It is now listed.
@@ -119,7 +125,7 @@ What has to be true:
 |---|---|---|---|
 | `ingest` | `dolt.py`, `prices.py`, `fred.py`, `cboe.py`, `edgar.py` (accepted 2026-10-28; runs only once the owner sets the `SEC_EDGAR_USER_AGENT` contact string), `universe.py` | Dolt clones, yfinance, FRED, CBOE, SEC EDGAR submissions JSON (one per security; only if approved), S&P 500 list | `raw/…` downloads, `cache/…` extracts |
 | `events` | `calendar.py` (NYSE sessions), `market.py`, `events.py`, `timing.py`, `eps.py` | raw and cache extracts (calendar, EPS, Yahoo prices, FRED, S&P list, and the SEC EDGAR 8-K filing index only if the owner approves EDGAR); the committed press-release look-up record `data/manual/press_release_checks.csv` (ADR 0002 §3, data model §1.3) | `session`, `market_daily`, `security`, `ticker_alias`, `events`, `eps`, `timing_check` |
-| `measures` | `black.py`, `chain.py`, `termstructure.py`, `realised.py`; at milestone 1 `snapshots.py`, `forward.py`, `snapshot_close.py` | option and vol-history extracts, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0, to classify spanning expiries) | `session_snapshot` (milestone 1: which sessions have a usable snapshot; milestone 2 folds it into `iv_daily`, data model §3.6), `chain_expiry`, `iv_daily` |
+| `measures` | `black.py`, `chain.py`, `termstructure.py`, `realised.py`; at milestone 1 `snapshots.py`, `forward.py`, `snapshot_close.py`; at milestone 2 `black.py`, `chain.py`, `termstructure.py`, `tables.py`, `event_iv.py` (the planned `realised.py` became part of `event_iv.py`) and `report.py` | option extracts, `session_snapshot`, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0, to classify spanning expiries) | `session_snapshot` (milestone 1: which sessions have a usable snapshot), `chain_expiry`, `iv_daily`, `event_iv` (milestone 2: the IV columns of `event_measures`, data model §3.11a) |
 | `panel` | `panel.py`, `abnormal.py`, `eligibility.py` | `iv_daily`, `chain_expiry`, `events`, `eps`, `security` (`cboe_vx_index`), `session`, `market_daily`, Yahoo and VX\* extracts (local `_yf`/`_cboe` columns) | `event_window_obs`, `event_measures`, `event_measures_vx` |
 | `stats` | `eventtests.py`, `regress.py`, `multiple.py`, `validate.py` | `event_measures`, `event_measures_vx`, `event_window_obs`, `events`, `eps`, `security`, and for validation `iv_daily`, `chain_expiry` and the VX\* extract | `results` |
 | `export` | `contract.py` (exists), `export.py`; runner `tools/export_app_data.py` (exists) | everything above | JSON views, `data/derived/` |
@@ -141,7 +147,10 @@ all its inputs:
 - The price-scaled surprises (`price_ref`, `surprise_scaled`, `abs_surprise_scaled_w`, `sue_hist`) move from `eps` to
   `event_measures`. They need the day −1 option forward from `measures`. `eps` keeps the raw EPS, consensus and match.
 - `realised.py` stays in `measures` as a function library. `panel` calls it to fill `event_measures.realized_ret_0`,
-  which is a leftward import.
+  which is a leftward import. *Milestone 2:* by the rule above, the per-event IV columns (E at day −1, the crushes,
+  `realized_ret_0`, `abs_move_cand_max`) are written by `measures` itself, which has all their inputs (`iv_daily`,
+  `chain_expiry`, `events`), into `event_iv` (`measures/event_iv.py`). The order in `measures` is `chain_expiry` →
+  `iv_daily` → `event_iv`. `panel` takes the columns over into `event_measures` at milestone 3.
 
 Rules:
 
@@ -258,32 +267,56 @@ defined in a notebook. The sync test fails if a committed notebook differs from 
 | Monte Carlo calibration | a test statistic has the right size | under H0 with partial date clustering (ADR 0005 §5), the 5% rejection rate must fall inside the binomial 99% band. Seeded RNG. The primary statistics also pass gate G1 at the real event design (ADR 0005 §5). |
 | Mutation check | the tests above notice breakage | each test module's docstring lists the mutations it must catch (swap T1/T2, calendar clock instead of sessions, all-strike forward instead of the 4-strike rule, flip BMO/AMC, drop √(2/π), day-0 clusters for a ramp measure). At each milestone review, apply them by hand and confirm that the module's tests go red. |
 | Contract | exporter ↔ app agreement | existing `test_contract.py` and `contract.test.ts`, plus one key-set test per view |
-| Structure / guards | layering, read-only Dolt, licence classes | import graph and declared-reads tests, fingerprint integration test, "no `_yf`/`_cboe` column in `data/derived` or JSON" test, "class R ⇔ suffix" test over the schema registry's value columns, "no exported cell under 10 events or 10 dates" test, and the export disclosure (row-space) test (§7) |
+| Structure / guards | layering, read-only Dolt, licence classes | import graph and declared-reads tests, fingerprint integration test, "no `_yf`/`_cboe` column in `data/derived` or JSON except one a committed table names in `keep_restricted`" test (since the owner's decision of 2026-10-29, §7), "class R ⇔ suffix" test over the schema registry's value columns, "no exported cell under 10 events or 10 dates" test, and the export disclosure (row-space) test (§7) |
 
 Rules (from the owner's global standards): no test greps source text. No test helper re-implements the thing
 under test. A new assertion is seen to fail before it passes. Coverage is not evidence.
 
 ### 7. Licensing
 
-> **Owner decision, 2026-10-29 (data policy).** Keep the strict rule. No new commit may hold a real vendor
+> **Owner decision, 2026-10-29 (real data; replaces the two notes below and every "default taken: strict"
+> note).** The repository is a public portfolio. It commits the real data that the app and the docs need: the
+> exported app JSON; small derived per-event, per-company and per-session tables in `data/derived/`, including
+> class-R columns built from Yahoo, Cboe, FRED, Kaggle or OptionsDX data; and real values quoted in the docs. It
+> never commits bulk raw files: vendor downloads, the yfinance Parquet, the Dolt clones and mirrors, the cache, or raw
+> `option_chain` rows. Each committed data file stays under about 10 MB and never reaches 50 MB.
+> `tests/test_repo_data_files.py` checks both rules on every run, and `DATA.md` gives each source's terms.
+> *After the milestone-2 review (claim 15b)* the check also refuses compressed archives anywhere, and any file in
+> `data/derived/` or `app/public/data/` that is not on the allow-lists below (by name, and by its columns or its
+> `kind`), so a re-serialised raw month or a local-only table is refused without the local vendor folder too.
+> Tests keep their hand-worked made-up values. Public history stays as it is. `tools/licensing/scan_real_rows.py`
+> is kept as a tool, but is no longer a push gate.
+
+> **Owner decision, 2026-10-29 (data policy), replaced the same day by the note above.** Keep the strict rule. No new commit may hold a real vendor
 > value or a vendor data file: no Yahoo, Cboe (including VIX via FRED), Kaggle or OptionsDX values. Tests use
 > made-up values, and DoltHub rows are preferred made up there too. Public history stays as it is: commit `3636e98`
 > holds two quoted Yahoo values (ADR 0002 and `research/prototypes/worked.py`, both AAPL around 2025-10-30). They are
 > left in place, with no rewrite and no force-push. Before every push, `tools/licensing/scan_real_rows.py` must report
 > 0 lines flagged.
+>
+> **Owner decision, 2026-10-29 (DoltHub tables), replaced the same day by the first note.** Small derived DoltHub tables may be committed, as the original
+> plan said. They are per-event and per-company tables in `data/derived/`, under CC BY-SA 4.0 with the attribution
+> and licence notice (`data/derived/LICENSE`, `README.md`). Raw `option_chain` rows are never committed. Every
+> Yahoo, Cboe or FRED column (class R) is dropped before a table is written. The strict rule still covers Yahoo,
+> Cboe, FRED and OptionsDX/Kaggle values.
 
 - **Code:** MIT (root `LICENSE`).
-- **`data/derived/`:** CC BY-SA 4.0 with attribution (`data/derived/README.md`, `LICENSE`). Only tables derived from
-  DoltHub, plus small reference tables, may go there: `security`, `ticker_alias`, `session`, `events`, `eps`,
-  `iv_daily` for the universe, `event_window_obs`, `event_measures` and `results`. The S&P 500 sector list in
-  `security` is taken from Wikipedia, which is CC BY-SA and so compatible. `session` is the public NYSE calendar.
-  Size budget: under 20 MB in total.
+- **`data/derived/`:** CC BY-SA 4.0 with attribution (`data/derived/README.md`, `LICENSE`), except the two
+  Yahoo-derived columns named there (`timing_check.gap_verdict_yf`, `security.in_universe`), which fall under Yahoo's
+  terms. *Allow-list (revised after the milestone-2 review):* a table goes there only if the schema registry marks it
+  committed, and only with its committed columns: at milestone 2 `security`, `ticker_alias`, `session`, `events`, `eps`,
+  `timing_check` (the verdict only), `session_snapshot`, `iv_daily` and `event_iv`; later `event_window_obs`,
+  `event_measures` and `results`. Besides the tables: `README.md`, `LICENSE` and the milestone-0
+  `earnings_calendar_30_large_caps.json`. `tools/licensing/check_data_files.py` (rule 6) enforces the list. The S&P 500
+  sector list in `security` is taken from Wikipedia, which is CC BY-SA and so compatible. `session` is the public NYSE
+  calendar. Size budget: under 20 MB in total.
 - **The rule, column by column.** Each column has a licensing class (data-model §2.1):
   - **U**: DoltHub, FRED `DTB3`, Wikipedia or calendar lineage only. Keys and counts of available observations are
     U. Committed.
   - **R**: a numeric value of a Yahoo or CBOE series for one date or one event, or any transform that keeps its
     magnitude (log, change, gap, z-score, residual). It also covers **any column that can be combined with committed
-    columns to compute such values**. Never committed. *Example:* `e_abn_cboe` = Δln cm30 − β·Δln VIX. If it were
+    columns to compute such values**. Not committed, except a column a committed table names in `keep_restricted`
+    (owner decision of 2026-10-29; at milestone 2 only `timing_check.gap_verdict_yf`). *Example:* `e_abn_cboe` = Δln cm30 − β·Δln VIX. If it were
     committed next to `d_ln_cm30` and `beta_vix`, it would give back Δln VIX exactly. So it is class R, and so is
     every market-adjusted per-event measure. *Second example, found by the adversarial review:* the per-event baseline
     sd `s_abn` gives one quadratic equation per event in the unknown VIX changes. With ≈ 880 events against ≈ 660
@@ -312,8 +345,9 @@ under test. A new assertion is seen to fail before it passes. Coverage is not ev
 - **Column-provenance suffixes make the rule mechanical.** Every class-R column ends in `_yf` (Yahoo) or `_cboe`
   (CBOE). **That includes VIX**: FRED's `VIXCLS` is a CBOE index republished by FRED, so it is CBOE data. A
   market-adjusted measure is therefore `crush_cboe`, and its mean-adjusted twin `crush_mean_adj` is committed. The
-  writer for `data/derived/` and the JSON exporter drop suffixed columns. Two tests guard this. One asserts that no
-  suffixed column survives in the output. The other asserts, over the schema registry's value columns, that a column
+  writer for `data/derived/` and the JSON exporter drop suffixed columns, except one a committed table names in
+  `keep_restricted` (owner decision of 2026-10-29; at milestone 2 only `timing_check.gap_verdict_yf`). Two tests
+  guard this. One asserts that no other suffixed column survives in the output. The other asserts, over the schema registry's value columns, that a column
   is class R exactly when it has a suffix, so a forgotten suffix fails as loudly as a stray one. Examples:
   `gap_z_d_yf`, `ln_mcap_yf`, `aliv_cboe`, `s_abn_cboe`.
 - **Owner decision (a licence-interpretation call; not legal advice).** The default is strict for numbers and
@@ -336,7 +370,9 @@ under test. A new assertion is seen to fail before it passes. Coverage is not ev
   above, and a disclosure test rather than a rule of thumb. Per-security and other fine-grained views use
   mean-adjusted values. *This line is a
   judgement call, not legal advice. The owner decides whether it is acceptable for a public repository.*
-- **App JSON inherits CC BY-SA.** The per-view files are derived from DoltHub. `meta.json` gets a
+- **App JSON inherits CC BY-SA**, except `sample_funnel.json`'s `share_gap_contradicts`, which is built from the
+  Yahoo-derived `gap_verdict_yf` and falls under Yahoo's terms (the attribution in `meta.json` says so). The per-view
+  files are otherwise derived from DoltHub. `meta.json` gets a
   `data_licence` field saying so (needs a contract bump).
 
 ## Consequences

@@ -1,0 +1,13 @@
+hold-out expiries: 3135 bracket_linear rows from months [np.str_('2021-04'), np.str_('2021-07'), np.str_('2022-09'), np.str_('2023-11'), np.str_('2025-11'), np.str_('2026-03'), np.str_('2026-05'), np.str_('2026-07')]
+  one_sided: methods {'quadratic': 2605, 'none': 504, 'bracket_linear': 26}
+    bracket_linear  n=   26 error vs bracket IV (vol pts): median +0.090, median |.| 0.380, p95 |.| 1.185, max |.| 1.31, >1pt 11.5%
+    quadratic       n= 2605 error vs bracket IV (vol pts): median +0.155, median |.| 0.276, p95 |.| 1.568, max |.| 7.26, >1pt 10.8%
+  wide: methods {'bracket_linear': 3055, 'none': 49, 'quadratic': 31}
+    bracket_linear  n= 3055 error vs bracket IV (vol pts): median +0.034, median |.| 0.130, p95 |.| 0.795, max |.| 4.93, >1pt 3.5%
+    quadratic       n=   31 error vs bracket IV (vol pts): median -0.146, median |.| 0.310, p95 |.| 2.317, max |.| 3.28, >1pt 22.6%
+decimal-tie rows re-solved with the exact tie forward: n=109, IV change (vol pts) median |.| 0.0365, max |.| 2.9874
+iv_daily rows whose front expiry is a quadratic atom: 153
+iv_daily rows whose cm30_lo expiry is a quadratic atom: 121
+iv_daily rows whose cm30_hi expiry is a quadratic atom: 77
+iv_daily rows whose ev1 expiry is a quadratic atom: 27
+iv_daily rows whose ev2 expiry is a quadratic atom: 25

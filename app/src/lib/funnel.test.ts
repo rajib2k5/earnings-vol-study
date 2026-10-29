@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { loadSampleFunnel, parseSampleFunnel, SAMPLE_FUNNEL_URL } from './funnel'
-import { FUNNEL_DATA_FIXTURE, FUNNEL_FIXTURE } from '../test/funnelFixture'
+import { FUNNEL_DATA_FIXTURE, FUNNEL_FIXTURE, FUNNEL_NULL_DATA_FIXTURE } from '../test/funnelFixture'
 import { PROVENANCE_FIXTURE } from '../test/metaFixture'
 
 type Path = (string | number)[]
@@ -74,6 +74,10 @@ describe('parseSampleFunnel: accepts the exporter shape', () => {
     expect(r.data.steps).not.toBe(input.steps)
     expect(r.data.by_sample).not.toBe(input.by_sample)
     expect(r.data.timing_status_counts).not.toBe(input.timing_status_counts)
+    expect(r.data.by_move_tercile).not.toBe(input.by_move_tercile)
+    expect(r.data.by_move_tercile?.[0]).not.toBe(input.by_move_tercile[0])
+    expect(r.data.by_move_tercile?.[0].timing_status_counts).not.toBe(input.by_move_tercile[0].timing_status_counts)
+    expect(r.data.evar_nonpositive).not.toBe(input.evar_nonpositive)
   })
 })
 
@@ -169,31 +173,153 @@ describe('parseSampleFunnel: timing_status_by_sample and by_sample', () => {
   })
 })
 
-describe('parseSampleFunnel: the milestone-2 fields are null for now', () => {
-  it('accepts null for by_move_tercile and evar_nonpositive', () => {
-    const r = parseSampleFunnel(FUNNEL_DATA_FIXTURE)
+describe('parseSampleFunnel: by_move_tercile', () => {
+  const ROW_KEYS = 'sample, tercile, n_events, timing_status_counts, share_gap_contradicts, n_gap_check_changed, mean_abs_move, n_crush, mean_crush_mean_adj'
+  it('accepts null (not computed) and keeps the status text', () => {
+    const r = parseSampleFunnel(FUNNEL_NULL_DATA_FIXTURE)
     if (!r.ok) throw new Error(r.error)
     expect(r.data.by_move_tercile).toBeNull()
-    expect(r.data.evar_nonpositive).toBeNull()
+    expect(r.data.by_move_tercile_status).toBe('not_computed: fixture terciles need the fixture forwards')
+  })
+  it('accepts the filled array and returns the rows as written, in order', () => {
+    const r = parseSampleFunnel(FUNNEL_DATA_FIXTURE)
+    if (!r.ok) throw new Error(r.error)
+    expect(r.data.by_move_tercile).toEqual(FUNNEL_DATA_FIXTURE.by_move_tercile)
+    expect(r.data.by_move_tercile?.map((x) => `${x.sample}-${x.tercile}`)).toEqual(['daily-1', 'mixed-2', 'coarse-3'])
+  })
+  it('accepts an empty array (a computed field with no rows)', () => {
+    const r = parseSampleFunnel(edited(['by_move_tercile'], []))
+    if (!r.ok) throw new Error(r.error)
+    expect(r.data.by_move_tercile).toEqual([])
+  })
+  it('accepts each of the three terciles and each of the three samples', () => {
+    for (const tercile of [1, 2, 3]) expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'tercile'], tercile)).ok, String(tercile)).toBe(true)
+    for (const sample of ['daily', 'mixed', 'coarse']) expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'sample'], sample)).ok, sample).toBe(true)
+  })
+  it('accepts the edges of every range: share 0 and 1, n_crush equal to n_events or 0, null means', () => {
+    expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'share_gap_contradicts'], 0)).ok).toBe(true)
+    expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'share_gap_contradicts'], 1)).ok).toBe(true)
+    expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'share_gap_contradicts'], null)).ok).toBe(true)
+    expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'n_crush'], 40)).ok).toBe(true) // equal to n_events (40)
+    expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'n_crush'], 0)).ok).toBe(true)
+    expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'mean_abs_move'], null)).ok).toBe(true)
+    expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'mean_crush_mean_adj'], null)).ok).toBe(true)
+    expect(parseSampleFunnel(edited(['by_move_tercile', 0, 'mean_abs_move'], -0.5)).ok).toBe(true) // any finite number
   })
   it.each<[string, unknown, string]>([
-    ['an empty array', [], 'an array'],
-    ['an array of tercile rows', [{ tercile: 1, n_events: 3 }], 'an array'],
-    ['an object', {}, 'an object'],
-    ['a number', 0, 'number 0'],
-    ['a string', 'none', '"none"'],
-  ])('rejects %s for by_move_tercile and evar_nonpositive, saying it is reserved for milestone 2', (_what, value, shown) => {
-    expect(errorOf(edited(['by_move_tercile'], value))).toBe(`by_move_tercile must be null at schema 0.2.0 (an array is reserved for milestone 2), got ${shown}`)
-    expect(errorOf(edited(['evar_nonpositive'], value))).toBe(`evar_nonpositive must be null at schema 0.2.0 (an array is reserved for milestone 2), got ${shown}`)
+    ['an object', {}, 'by_move_tercile must be null or an array, got an object'],
+    ['a number', 0, 'by_move_tercile must be null or an array, got number 0'],
+    ['a string', 'none', 'by_move_tercile must be null or an array, got "none"'],
+  ])('rejects %s instead of an array', (_what, value, message) => {
+    expect(errorOf(edited(['by_move_tercile'], value))).toBe(message)
   })
   it('does not treat a missing key as null', () => {
     expect(errorOf(edited(['by_move_tercile'], undefined))).toContain('missing key(s): by_move_tercile')
+  })
+  it.each<[string, Path, unknown, string]>([
+    ['a row is a string', ['by_move_tercile', 1], 'x', 'by_move_tercile[1] must be an object, got "x"'],
+    ['a row is null', ['by_move_tercile', 0], null, 'by_move_tercile[0] must be an object, got null'],
+    ['a row is an array', ['by_move_tercile', 2], [1, 2], 'by_move_tercile[2] must be an object, got an array'],
+    ['a row lacks a key', ['by_move_tercile', 1, 'n_crush'], undefined, `by_move_tercile[1] has missing key(s): n_crush (expected exactly: ${ROW_KEYS})`],
+    ['a row lacks share_gap_contradicts (null is not the same as missing)', ['by_move_tercile', 0, 'share_gap_contradicts'], undefined, 'by_move_tercile[0] has missing key(s): share_gap_contradicts'],
+    ['a row has an extra key', ['by_move_tercile', 0, 'note'], 'x', `by_move_tercile[0] has unexpected key(s): note (expected exactly: ${ROW_KEYS})`],
+    ['sample is "none" (no day 0, so no move)', ['by_move_tercile', 0, 'sample'], 'none', 'by_move_tercile[0].sample must be one of daily, mixed, coarse, got "none"'],
+    ['sample is unknown', ['by_move_tercile', 1, 'sample'], 'weekly', 'by_move_tercile[1].sample must be one of daily, mixed, coarse, got "weekly"'],
+    ['sample is upper case', ['by_move_tercile', 0, 'sample'], 'Daily', 'by_move_tercile[0].sample must be one of'],
+    ['sample is a number', ['by_move_tercile', 2, 'sample'], 1, 'by_move_tercile[2].sample must be one of daily, mixed, coarse, got number 1'],
+    ['tercile is 0', ['by_move_tercile', 0, 'tercile'], 0, 'by_move_tercile[0].tercile must be 1, 2 or 3, got number 0'],
+    ['tercile is 4', ['by_move_tercile', 0, 'tercile'], 4, 'by_move_tercile[0].tercile must be 1, 2 or 3, got number 4'],
+    ['tercile is fractional', ['by_move_tercile', 1, 'tercile'], 1.5, 'by_move_tercile[1].tercile must be 1, 2 or 3, got number 1.5'],
+    ['tercile is a string', ['by_move_tercile', 1, 'tercile'], '2', 'by_move_tercile[1].tercile must be 1, 2 or 3, got "2"'],
+    ['tercile is null', ['by_move_tercile', 1, 'tercile'], null, 'by_move_tercile[1].tercile must be 1, 2 or 3, got null'],
+    ['n_events is negative', ['by_move_tercile', 0, 'n_events'], -1, 'by_move_tercile[0].n_events must be a non-negative integer, got number -1'],
+    ['n_events is a string', ['by_move_tercile', 0, 'n_events'], '40', 'by_move_tercile[0].n_events must be a non-negative integer, got "40"'],
+    ['n_events is fractional', ['by_move_tercile', 2, 'n_events'], 2.5, 'by_move_tercile[2].n_events must be a non-negative integer, got number 2.5'],
+    ['a timing status is missing', ['by_move_tercile', 1, 'timing_status_counts', 'inferred'], undefined, 'by_move_tercile[1].timing_status_counts has missing key(s): inferred'],
+    ['an eighth timing status', ['by_move_tercile', 0, 'timing_status_counts', 'pending'], 3, 'by_move_tercile[0].timing_status_counts has unexpected key(s): pending'],
+    ['a timing count is negative', ['by_move_tercile', 2, 'timing_status_counts', 'ambiguous'], -3, 'by_move_tercile[2].timing_status_counts.ambiguous must be a non-negative integer, got number -3'],
+    ['timing_status_counts is null', ['by_move_tercile', 0, 'timing_status_counts'], null, 'by_move_tercile[0].timing_status_counts must be an object, got null'],
+    ['share is above 1', ['by_move_tercile', 0, 'share_gap_contradicts'], 1.5, 'by_move_tercile[0].share_gap_contradicts must be a number from 0 to 1, or null, got number 1.5'],
+    ['share is below 0', ['by_move_tercile', 0, 'share_gap_contradicts'], -0.1, 'by_move_tercile[0].share_gap_contradicts must be a number from 0 to 1, or null, got number -0.1'],
+    ['share is NaN', ['by_move_tercile', 1, 'share_gap_contradicts'], NaN, 'by_move_tercile[1].share_gap_contradicts must be a number from 0 to 1, or null, got number NaN'],
+    ['share is a string', ['by_move_tercile', 0, 'share_gap_contradicts'], '0.25', 'by_move_tercile[0].share_gap_contradicts must be a number from 0 to 1, or null, got "0.25"'],
+    ['n_gap_check_changed is negative', ['by_move_tercile', 0, 'n_gap_check_changed'], -1, 'by_move_tercile[0].n_gap_check_changed must be a non-negative integer, got number -1'],
+    ['n_gap_check_changed is fractional', ['by_move_tercile', 0, 'n_gap_check_changed'], 0.5, 'by_move_tercile[0].n_gap_check_changed must be a non-negative integer, got number 0.5'],
+    ['n_gap_check_changed is null', ['by_move_tercile', 2, 'n_gap_check_changed'], null, 'by_move_tercile[2].n_gap_check_changed must be a non-negative integer, got null'],
+    ['mean_abs_move is NaN', ['by_move_tercile', 0, 'mean_abs_move'], NaN, 'by_move_tercile[0].mean_abs_move must be a finite number or null, got number NaN'],
+    ['mean_abs_move is Infinity', ['by_move_tercile', 1, 'mean_abs_move'], Infinity, 'by_move_tercile[1].mean_abs_move must be a finite number or null, got number Infinity'],
+    ['mean_abs_move is a string', ['by_move_tercile', 0, 'mean_abs_move'], '0.01', 'by_move_tercile[0].mean_abs_move must be a finite number or null, got "0.01"'],
+    ['n_crush is negative', ['by_move_tercile', 0, 'n_crush'], -1, 'by_move_tercile[0].n_crush must be a non-negative integer, got number -1'],
+    ['n_crush is fractional', ['by_move_tercile', 0, 'n_crush'], 2.5, 'by_move_tercile[0].n_crush must be a non-negative integer, got number 2.5'],
+    ['n_crush is above n_events', ['by_move_tercile', 0, 'n_crush'], 41, 'by_move_tercile[0].n_crush must be at most n_events (40), got number 41'],
+    ['n_crush is above n_events in a later row', ['by_move_tercile', 2, 'n_crush'], 21, 'by_move_tercile[2].n_crush must be at most n_events (20), got number 21'],
+    ['mean_crush_mean_adj is NaN', ['by_move_tercile', 0, 'mean_crush_mean_adj'], NaN, 'by_move_tercile[0].mean_crush_mean_adj must be a finite number or null, got number NaN'],
+    ['mean_crush_mean_adj is -Infinity', ['by_move_tercile', 1, 'mean_crush_mean_adj'], -Infinity, 'by_move_tercile[1].mean_crush_mean_adj must be a finite number or null, got number -Infinity'],
+    ['mean_crush_mean_adj is a string', ['by_move_tercile', 2, 'mean_crush_mean_adj'], 'x', 'by_move_tercile[2].mean_crush_mean_adj must be a finite number or null, got "x"'],
+  ])('rejects: %s', (_what, path, value, message) => {
+    expect(errorOf(edited(path, value))).toContain(message)
+  })
+  it('names the first bad row when several are bad', () => {
+    const input = edited(['by_move_tercile', 2, 'tercile'], 9) as Record<string, unknown>
+    ;((input.by_move_tercile as Record<string, unknown>[])[1]).n_events = -5
+    expect(errorOf(input)).toBe('by_move_tercile[1].n_events must be a non-negative integer, got number -5')
   })
   it.each(['by_move_tercile_status', 'evar_nonpositive_status'])('requires %s to be a non-empty string', (key) => {
     expect(errorOf(edited([key], ''))).toBe(`${key} must be a non-empty string, got ""`)
     expect(errorOf(edited([key], '   '))).toContain(`${key} must be a non-empty string`)
     expect(errorOf(edited([key], null))).toBe(`${key} must be a non-empty string, got null`)
     expect(errorOf(edited([key], 7))).toBe(`${key} must be a non-empty string, got number 7`)
+  })
+})
+
+describe('parseSampleFunnel: evar_nonpositive', () => {
+  const KEYS_TEXT = 'n_events, n_identified, n, share'
+  it('accepts null (not computed) and keeps the status text', () => {
+    const r = parseSampleFunnel(FUNNEL_NULL_DATA_FIXTURE)
+    if (!r.ok) throw new Error(r.error)
+    expect(r.data.evar_nonpositive).toBeNull()
+    expect(r.data.evar_nonpositive_status).toBe('not_computed: fixture variance is a later measure')
+  })
+  it('accepts the filled object and returns the share exactly as given (not n / n_identified)', () => {
+    const r = parseSampleFunnel(FUNNEL_DATA_FIXTURE)
+    if (!r.ok) throw new Error(r.error)
+    expect(r.data.evar_nonpositive).toEqual({ n_events: 200, n_identified: 190, n: 5, share: 0.125 })
+  })
+  it('accepts the edges: n = n_identified = n_events, n = 0, share 0 and 1', () => {
+    expect(parseSampleFunnel(edited(['evar_nonpositive'], { n_events: 9, n_identified: 9, n: 9, share: 1 })).ok).toBe(true)
+    expect(parseSampleFunnel(edited(['evar_nonpositive'], { n_events: 9, n_identified: 9, n: 0, share: 0 })).ok).toBe(true)
+  })
+  it('accepts a null share only when nothing was identified (n_identified is 0)', () => {
+    const r = parseSampleFunnel(edited(['evar_nonpositive'], { n_events: 12, n_identified: 0, n: 0, share: null }))
+    if (!r.ok) throw new Error(r.error)
+    expect(r.data.evar_nonpositive).toEqual({ n_events: 12, n_identified: 0, n: 0, share: null })
+  })
+  it.each<[string, unknown, string]>([
+    ['a string', 'none', 'evar_nonpositive must be null or an object, got "none"'],
+    ['an array', [], 'evar_nonpositive must be null or an object, got an array'],
+    ['a number', 0, 'evar_nonpositive must be null or an object, got number 0'],
+  ])('rejects %s instead of an object', (_what, value, message) => {
+    expect(errorOf(edited(['evar_nonpositive'], value))).toBe(message)
+  })
+  it('does not treat a missing key as null', () => {
+    expect(errorOf(edited(['evar_nonpositive'], undefined))).toContain('missing key(s): evar_nonpositive')
+  })
+  it.each<[string, Path, unknown, string]>([
+    ['it lacks share', ['evar_nonpositive', 'share'], undefined, `evar_nonpositive has missing key(s): share (expected exactly: ${KEYS_TEXT})`],
+    ['it has an extra key', ['evar_nonpositive', 'note'], 'x', `evar_nonpositive has unexpected key(s): note (expected exactly: ${KEYS_TEXT})`],
+    ['n_events is negative', ['evar_nonpositive', 'n_events'], -1, 'evar_nonpositive.n_events must be a non-negative integer, got number -1'],
+    ['n_identified is a string', ['evar_nonpositive', 'n_identified'], '190', 'evar_nonpositive.n_identified must be a non-negative integer, got "190"'],
+    ['n is fractional', ['evar_nonpositive', 'n'], 2.5, 'evar_nonpositive.n must be a non-negative integer, got number 2.5'],
+    ['n_identified is above n_events', ['evar_nonpositive', 'n_identified'], 201, 'evar_nonpositive.n_identified must be at most n_events (200), got number 201'],
+    ['n is above n_identified', ['evar_nonpositive', 'n'], 191, 'evar_nonpositive.n must be at most n_identified (190), got number 191'],
+    ['n_events drops below n_identified', ['evar_nonpositive', 'n_events'], 189, 'evar_nonpositive.n_identified must be at most n_events (189), got number 190'],
+    ['share is above 1', ['evar_nonpositive', 'share'], 1.01, 'evar_nonpositive.share must be a number from 0 to 1, or null, got number 1.01'],
+    ['share is below 0', ['evar_nonpositive', 'share'], -0.01, 'evar_nonpositive.share must be a number from 0 to 1, or null, got number -0.01'],
+    ['share is NaN', ['evar_nonpositive', 'share'], NaN, 'evar_nonpositive.share must be a number from 0 to 1, or null, got number NaN'],
+    ['share is a string', ['evar_nonpositive', 'share'], '0.1', 'evar_nonpositive.share must be a number from 0 to 1, or null, got "0.1"'],
+    ['share is null but 190 events were identified', ['evar_nonpositive', 'share'], null, 'evar_nonpositive.share may be null only when n_identified is 0, but n_identified is 190'],
+  ])('rejects: %s', (_what, path, value, message) => {
+    expect(errorOf(edited(path, value))).toContain(message)
   })
 })
 
@@ -276,8 +402,8 @@ describe('loadSampleFunnel', () => {
     if (!r.ok) expect(r.error).toContain('is not valid JSON')
   })
   it('passes envelope violations through (here: the previous schema version)', async () => {
-    const r = await loadSampleFunnel('data/sample_funnel.json', serving({ ...FUNNEL_FIXTURE, schema_version: '0.1.0' }))
-    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.1.0": this app only understands "0.2.0"' })
+    const r = await loadSampleFunnel('data/sample_funnel.json', serving({ ...FUNNEL_FIXTURE, schema_version: '0.2.0' }))
+    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.2.0": this app only understands "0.3.0"' })
   })
   it('refuses a valid envelope of another kind, naming both kinds', async () => {
     const r = await loadSampleFunnel('data/sample_funnel.json', serving({ ...FUNNEL_FIXTURE, kind: 'meta' }))

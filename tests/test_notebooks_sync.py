@@ -19,7 +19,7 @@ def test_notebook_on_disk_is_in_sync(builder):
 
 
 def test_every_notebook_is_built_and_checked(builder):
-    assert list(builder.NOTEBOOKS) == ["00_scaffold_tour", "01_events"]
+    assert list(builder.NOTEBOOKS) == ["00_scaffold_tour", "01_events", "02_iv_measures"]
     for name in builder.NOTEBOOKS:
         assert builder.check(builder.NOTEBOOK_DIR / f"{name}.ipynb", name), name
 
@@ -73,12 +73,12 @@ def test_main_check_exit_codes(builder, monkeypatch, tmp_path, capsys):
     assert "01_events" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize("name", ["00_scaffold_tour", "01_events"])
+@pytest.mark.parametrize("name", ["00_scaffold_tour", "01_events", "02_iv_measures"])
 def test_build_is_deterministic(builder, name):
     assert builder.render(name) == builder.render(name)
 
 
-@pytest.mark.parametrize("name, n_cells", [("00_scaffold_tour", 7), ("01_events", 7)])
+@pytest.mark.parametrize("name, n_cells", [("00_scaffold_tour", 7), ("01_events", 7), ("02_iv_measures", 11)])
 def test_notebook_has_no_outputs_and_fixed_ids_and_metadata(builder, name, n_cells):
     nb = nbformat.reads(builder.render(name), as_version=4)
     assert (nb.nbformat, nb.nbformat_minor) == (4, 5)
@@ -124,6 +124,24 @@ def test_events_notebook_cells_run(builder, monkeypatch, tmp_path):
     assert "'not_checked'" in printed[2]
     # The survivorship caveat is printed with the counts (milestone-1 review, claim 14).
     assert any(line.startswith("Caveat: Survivorship:") for line in printed[2].splitlines())
+
+
+def test_iv_notebook_cells_run(builder, monkeypatch, tmp_path):
+    monkeypatch.setenv("VOL_DATA_DIR", str(tmp_path))   # it must not need the cache
+    printed = run_cells(builder, "02_iv_measures")
+    # Black-76: F 100, K 110, w 0.04, DF 0.99 -> 4.249091 (tests/test_iv_atom.py works it by hand).
+    assert printed[0].splitlines() == ["call 4.249091", "w back from the price 0.0400000000",
+                                       "a call above Black76(w = 4) has no root: None"]
+    # The clock: 11 and 20 sessions (Thanksgiving closed), 15 and 29 calendar days.
+    assert printed[1].splitlines() == ["2025-10-30 -> 2025-11-14 11 sessions, 15 calendar days",
+                                       "2025-10-30 -> 2025-11-28 20 sessions, 29 calendar days"]
+    # ADR 0003's oracle and its calendar-clock contrast.
+    assert printed[2].splitlines()[0] == "E = 0.00088284, sigma_d^2 = 2.3667e-04 per session"
+    assert "implied move sqrt(E) = 2.9713%" in printed[2] and "E = 0.00120404" in printed[2]
+    # The leak: clean-only 0.2245 against blind 0.2340 (tests/test_termstructure.py works both).
+    assert printed[3].strip() == "extrap_clean cm30 0.2245, blind 0.2340"
+    # The committed event_iv has the AAPL event (read from data/derived, not the cache).
+    assert printed[4].startswith("E 0.000")
 
 
 def test_notebook_code_cells_run(builder, monkeypatch, tmp_path):

@@ -1,0 +1,4 @@
+AAPL:2025-10-30 E=0.00088307 sqrtE=2.9716% crush30=-0.1137 front=-0.1787 realised=-0.3114%
+front-fixed crush median -0.300 (n=264); dsigma median -0.0017 (n=261); |r0|/implied median 0.815, >1 40.1% (n=332)
+sqrtE quantiles (n=344): p10 3.27%, p25 4.47%, p50 6.45%, p75 8.78%, p90 11.10%
+30-day crush (n=348): mean -0.2005 median -0.1885 p10 -0.3425 p90 -0.0632

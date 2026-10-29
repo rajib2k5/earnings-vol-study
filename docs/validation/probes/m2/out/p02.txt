@@ -1,0 +1,23 @@
+rows: stored non-stale 181597 recomputed 181597
+status agreement: 181597 of 181597
+status_ind  no_atm  no_forward      ok
+status                                
+no_atm        2307           0       0
+no_forward       0        1542       0
+ok               0           0  177748
+forward vs independent (code tie rule): n=180055 max|diff|=0.000e+00
+forward vs independent (exact decimal ties to lower strike): rows differing >1e-9: 89, tie selections differing: 109, max|diff| 0.5633, max rel 4.30e-03
+bracket_linear w_atm: n=177455 max rel diff 1.451e-13; strike_lo/hi equal: 177455
+atm_method stored x independent:
+method          bracket_linear  none  quadratic
+atm_method                                     
+bracket_linear          177455     0          0
+none                         0  3849          0
+quadratic                    0     0        293
+quadratic rows 293: max rel diff to independent 1.784e-13
+  flags: 165 no_bracket, 128 wide_bracket; strikes in the fit on one side of k=0 only: 166
+  n strikes in fit:  {4.0: 178, 5.0: 64, 6.0: 20, 7.0: 15, 8.0: 6, 9.0: 2, 10.0: 3, 11.0: 2, 12.0: 3}
+  quadratic IV minus nearest strike IV (vol pts): median +0.04, p5 -1.69, p95 +1.36, |.|>2: 20, |.|>5: 3
+  quadratic IV minus 1/abs spread IV (vol pts): median +0.00, p5 -0.35, p95 +0.65, |.|>2: 1, |.|>5: 0
+  quadratic IV minus unweighted IV (vol pts): median +0.00, p5 -0.49, p95 +0.40, |.|>2: 3, |.|>5: 1
+  one-sided quadratic rows: 166; extrapolated IV minus nearest-strike IV: median +0.05, max |.| 5.26, min |k| of the fit's strikes median 0.0031

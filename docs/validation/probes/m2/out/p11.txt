@@ -1,0 +1,12 @@
+n = 53083
+vendor - ours, calendar clock from the session date : mean -0.163 median -0.113 median|.| 0.174 p95|.| 0.936 below 72.5%
+vendor - ours, calendar clock from the snapshot date: mean -0.175 median -0.116 median|.| 0.176 p95|.| 0.991 below 72.8%
+vendor - ours, session clock (252)                  : mean +0.701 median +0.562 median|.| 0.856 p95|.| 3.273 below 28.3%
+snapshot_date - session_date (days): {0: 52562, 1: 480, 3: 41}
+vendor implied T*365 / tau_cal: median 1.0074; T*252 / tau_sessions: median 0.9619
+slope of (vendor - ours_cal) on the clock ratio tau_cal*252/(tau*365): +0.17 vol pts per unit; corr +0.025
+slope of (vendor - ours_session) on the clock ratio tau_cal*252/(tau*365): -16.42 vol pts per unit; corr -0.818
+  clock ratio [0, 0.95): n=27105 vendor-cal -0.115 vendor-session +1.335
+  clock ratio [0.95, 1.0): n=12527 vendor-cal -0.112 vendor-session +0.331
+  clock ratio [1.0, 1.05): n=7532 vendor-cal -0.118 vendor-session -0.275
+  clock ratio [1.05, 9): n=5919 vendor-cal -0.105 vendor-session -1.153

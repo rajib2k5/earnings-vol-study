@@ -1,7 +1,8 @@
 Licence for the files in data/derived/
 
 Everything in this folder is licensed under the Creative Commons
-Attribution-ShareAlike 4.0 International licence (CC BY-SA 4.0).
+Attribution-ShareAlike 4.0 International licence (CC BY-SA 4.0), EXCEPT the
+two columns named under "Not under CC BY-SA" below.
 
   Legal code: https://creativecommons.org/licenses/by-sa/4.0/legalcode
   Summary:    https://creativecommons.org/licenses/by-sa/4.0/
@@ -13,18 +14,46 @@ International"):
   - https://www.dolthub.com/repositories/post-no-preference/earnings
   - https://www.dolthub.com/repositories/post-no-preference/options
 
+and, for the company names, GICS sectors and CIKs in security.parquet, from
+Wikipedia, "List of S&P 500 companies", revision 1382178819 (CC BY-SA 4.0).
+
 Attribution: the original data is from DoltHub, repositories
-post-no-preference/earnings and post-no-preference/options. We selected
-and filtered it (see the code in src/ and tools/ that makes each file). We
-changed the data; DoltHub and the original authors do not endorse the
-changes.
+post-no-preference/earnings and post-no-preference/options, and from
+Wikipedia. We selected and filtered it (see the code in src/ and tools/ that
+makes each file). We changed the data; DoltHub, Wikipedia and the original
+authors do not endorse the changes.
 
 ShareAlike: if you remix or build on these files, you must share your
 version under CC BY-SA 4.0 (or a compatible licence) as well.
 
+Not under CC BY-SA (owner decision of 2026-10-29: real values the app and the
+docs need may be committed). These two columns are derived from Yahoo Finance
+prices and fall under Yahoo's terms of service, not under CC BY-SA:
+
+  - timing_check.parquet, column gap_verdict_yf: the verdict of the Yahoo
+    overnight price gap on the timing label in use (supports, contradicts,
+    quiet). The app's sample_funnel.json carries a share built from it.
+  - security.parquet, column in_universe: which 50 companies the study keeps,
+    chosen by a one-time Yahoo market-cap rank (the rank itself is not here).
+
+FRED: no column here is a FRED value. The IVs, variances and moves in
+iv_daily.parquet and event_iv.parquet are computed from the DoltHub option
+quotes with FRED's DTB3 rate as an input (the discount factor and the carry);
+they stay under CC BY-SA as above. DTB3 is public domain; FRED asks for this
+citation: Board of Governors of the Federal Reserve System (US), 3-Month
+Treasury Bill Secondary Market Rate, Discount Basis [DTB3], retrieved from
+FRED, Federal Reserve Bank of St. Louis; https://fred.stlouisfed.org/series/DTB3,
+2026-10-29.
+
+Cboe: no Cboe value is in this folder or anywhere else in this repository.
+security.parquet's cboe_vx_index only names the Cboe index that exists for a
+company (VXAPL and four others); it holds no index value.
+
+The timing labels (events.parquet) are not derived from Yahoo data: they come
+from the DoltHub calendar and from company press releases. A Yahoo price gap
+only decides which events are looked up or read a second time (data model
+§2.1, class F).
+
 The licence of the rest of this repository (the code) is the MIT licence in
 the LICENSE file at the root of the repository. It does not apply to this
-folder.
-
-CBOE and Yahoo Finance data are NOT in this folder or anywhere else in this
-repository, so this licence says nothing about them. See README.md.
+folder. The root DATA.md says what each source's terms restrict.

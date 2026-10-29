@@ -1,0 +1,13 @@
+C1 cm30 class split removed: KILLED (rc=1) 1 failed, 16 passed, 4 warnings in 2.90s | FAILED tests/test_termstructure.py::test_cm30_far_from_the_event_never_borrows_event_variance
+C2 spans with > instead of >=: KILLED (rc=1) 1 failed, 26 passed, 8 warnings in 1.19s | FAILED tests/test_iv_pipeline.py::test_chain_rows_skip_dead_expiries_and_mark_spans_and_staleness
+C3 baseline without the cm30 rule: KILLED (rc=1) 1 failed, 46 passed, 12 warnings in 1.44s | FAILED tests/test_baseline_funnel.py::test_funnel_steps_hand_counted - Assert...
+C4 quadratic unweighted: SURVIVED (rc=0) 68 passed, 12 warnings in 50.57s
+C5 front_fixed extrapolates: KILLED (rc=1) 1 failed, 30 passed, 8 warnings in 1.64s | FAILED tests/test_iv_pipeline.py::test_front_fixed_never_extrapolates - asser...
+R1 forward ties to the HIGHER strike: SURVIVED (rc=0) 68 passed, 12 warnings in 46.31s
+R2 T1* allows tau = 4 at day 0: KILLED (rc=1) 1 failed, 28 passed, 8 warnings in 1.05s | FAILED tests/test_iv_pipeline.py::test_event_row_falls_back_to_day_minus_2_and_interpolates_the_front_expiry
+R3 evar_m2 read at day -3: KILLED (rc=1) 1 failed, 28 passed, 8 warnings in 1.44s | FAILED tests/test_iv_pipeline.py::test_event_row_falls_back_to_day_minus_2_and_interpolates_the_front_expiry
+R4 sigma_d fallback from the two LONGEST clean: SURVIVED (rc=0) 68 passed, 12 warnings in 41.60s
+R5 quadratic window 3 sd instead of 2: SURVIVED (rc=0) 68 passed, 12 warnings in 38.04s
+R6 two_component drops E: KILLED (rc=1) 1 failed, 18 passed, 4 warnings in 1.39s | FAILED tests/test_termstructure.py::test_cm30_two_component_and_flat_sigma - ...
+R7 quadratic w_ref = nearest strike always: SURVIVED (rc=0) 68 passed, 12 warnings in 24.40s
+all files restored (SHA-256 checked)

@@ -67,6 +67,37 @@ windows:
 iv:
   # ADR 0003 §b: the event-aware constant-maturity IV covers 21 sessions.
   cm30_horizon_sessions: 21
+  # Milestone 2: the rest of ADR 0003 §0 and §b (measures/chain.py,
+  # measures/termstructure.py).
+  # §0 step 1, the quote filter: 0 < bid < ask, mid >= min_mid,
+  # (ask - bid)/mid <= max_rel_spread; after the forward, |ln(K/F)| <=
+  # max_abs_log_moneyness and the no-arbitrage bounds.
+  min_mid: 0.05
+  max_rel_spread: 0.5
+  max_abs_log_moneyness: 0.5
+  # §0 step 2: the forward is the median F_K of the forward_strikes strikes
+  # with the smallest |C - P|; flag fwd_dispersion above this share of F.
+  forward_strikes: 4
+  forward_dispersion_flag: 0.005
+  # §0 step 3: Brent's method for w on [w_min, w_max]; no root there means the
+  # strike is invalid (iv_no_root), never a wider interval.
+  w_min: 1.0e-8
+  w_max: 4.0
+  # §0 step 4: the bracket may be at most bracket_max_sd standard deviations
+  # (sqrt(w)) wide; otherwise a quadratic in k through the valid strikes with
+  # |k| <= quadratic_max_sd * sqrt(w), w the bracket's linear w, weighted by
+  # 1/(relative spread), needs at least quadratic_min_strikes strikes with at
+  # least one on each side of k = 0 (milestone-2 review: never extrapolated).
+  bracket_max_sd: 1.5
+  quadratic_max_sd: 2.0
+  quadratic_min_strikes: 4
+  # §0 step 5: an expiry is usable only with at least this many sessions to go.
+  tau_min_sessions: 5
+  # §b step 2-3: extrapolate (or use one expiry's flat sigma) at most this many
+  # sessions beyond the nearest expiry.
+  cm30_max_extrap_sessions: 10
+  # §c straddle cross-check: flag straddle_gap above this many vol (decimal) points.
+  straddle_flag: 0.005
 
 eps_match:
   # ADR 0002 §3, data model §3.8 (revised after the milestone-1 review and

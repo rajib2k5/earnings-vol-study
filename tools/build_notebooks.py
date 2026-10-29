@@ -20,6 +20,9 @@
 #   notebooks/00_scaffold_tour.ipynb   milestone 0: config and the envelope
 #   notebooks/01_events.ipynb          milestone 1: sessions, day 0, the EPS
 #                                      match and the sample funnel
+#   notebooks/02_iv_measures.ipynb     milestone 2: Black-76, the session clock,
+#                                      E and the implied move, the event-aware
+#                                      30-day IV, and the committed measures
 # =============================================================================
 
 import argparse
@@ -178,10 +181,10 @@ def build_events_notebook() -> nbformat.NotebookNode:
             "from earnings_vol.export import funnel\n"
             "\n"
             "derived = params.ROOT / \"data\" / \"derived\"\n"
-            "t = {n: store.read_table(derived / f\"{n}.parquet\", schema.REGISTRY[n])\n"
-            "     for n in (\"events\", \"eps\", \"session\", \"session_snapshot\")}\n"
-            "f = funnel.funnel_data(t[\"events\"], t[\"session_snapshot\"], t[\"eps\"], t[\"session\"],\n"
-            "                       params.load(), provenance={})\n"
+            "t = {n: store.read_table(derived / f\"{n}.parquet\", store.committed_schema(schema.REGISTRY[n]))\n"
+            "     for n in (\"events\", \"eps\", \"session\", \"iv_daily\", \"event_iv\", \"timing_check\")}\n"
+            "f = funnel.funnel_data(t[\"events\"], t[\"iv_daily\"], t[\"eps\"], t[\"session\"], t[\"event_iv\"],\n"
+            "                       t[\"timing_check\"], params.load(), provenance={})\n"
             "for s in f[\"steps\"]:\n"
             "    print(f\"{s['n_events']:5d}  {s['label']}\")\n"
             "print(f[\"timing_status_counts\"])\n"
@@ -191,8 +194,104 @@ def build_events_notebook() -> nbformat.NotebookNode:
     ])
 
 
+def build_iv_notebook() -> nbformat.NotebookNode:
+    """notebooks/02_iv_measures.ipynb: milestone 2, from made-up numbers and the committed tables."""
+    return _finish([
+        new_markdown_cell(
+            "# Milestone 2: IV measures\n\n"
+            "This notebook imports `earnings_vol` and defines no logic of its own. The walkthrough is "
+            "`docs/milestones/02-iv-measures.md`; the decisions are ADR 0003.\n\n"
+            "To rebuild the tables from the option-chain extracts (it needs the local cache):\n\n"
+            "```\n"
+            "uv run python -m earnings_vol.events.run\n"
+            "uv run python -m earnings_vol.measures.run --only snapshots\n"
+            "uv run python -m earnings_vol.measures.run --only iv\n"
+            "uv run python tools/export_app_data.py\n"
+            "```\n\n"
+            f"Contract schema version: `{contract.SCHEMA_VERSION}`."
+        ),
+        new_markdown_cell(
+            "## 1. Black-76 on the parity forward (ADR 0003 §0 step 3)\n"
+            "The price depends on sigma and T only through the total variance w = sigma^2 T, so a price pins "
+            "down w and no day count enters. A made-up call: F = 100, K = 110, w = 0.04, DF = 0.99."
+        ),
+        new_code_cell(
+            "from earnings_vol.measures import black\n"
+            "\n"
+            "price = float(black.black76(100.0, 110.0, 0.04, 0.99, True))\n"
+            "print(f\"call {price:.6f}\")\n"
+            "print(f\"w back from the price {black.implied_w(price, 100.0, 110.0, 0.99, True):.10f}\")\n"
+            "print(\"a call above Black76(w = 4) has no root:\", black.implied_w(70.0, 100.0, 100.0, 1.0, True))\n"
+        ),
+        new_markdown_cell(
+            "## 2. The clock: NYSE sessions to expiry (ADR 0003 §0 step 5)\n"
+            "Sessions in (snapshot, expiry]: the expiry counts, the snapshot session does not. Thanksgiving "
+            "2025 is closed and the half day after it counts as 1."
+        ),
+        new_code_cell(
+            "from datetime import date\n"
+            "\n"
+            "from earnings_vol.events import calendar\n"
+            "from earnings_vol.measures import chain\n"
+            "\n"
+            "eras = {\"weekly_from\": \"2019-02-09\", \"mwf_from\": \"2020-01-06\",\n"
+            "        \"daily_from\": \"2024-09-11\", \"data_end\": \"2026-10-26\"}\n"
+            "sessions = calendar.Sessions(calendar.build_session_table(date(2025, 1, 1), date(2025, 12, 31), eras)\n"
+            "                             [\"session_date\"].tolist())\n"
+            "for exp in (date(2025, 11, 14), date(2025, 11, 28)):\n"
+            "    print(\"2025-10-30 ->\", exp, chain.tau_sessions(date(2025, 10, 30), exp, sessions), \"sessions,\",\n"
+            "          (exp - date(2025, 10, 30)).days, \"calendar days\")\n"
+        ),
+        new_markdown_cell(
+            "## 3. Event variance and the implied move (ADR 0003 §c)\n"
+            "The AAPL worked example's two ATM total variances on day -1 (2025-10-30), both expiries spanning "
+            "the 2025-10-31 day 0: w1 = 0.0034862510 at 11 sessions, w2 = 0.0056163135 at 20. "
+            "E = (w1 tau2 - w2 tau1) / (tau2 - tau1)."
+        ),
+        new_code_cell(
+            "from earnings_vol.measures import termstructure\n"
+            "\n"
+            "e, s2 = termstructure.event_variance(0.0034862510, 11, 0.0056163135, 20)\n"
+            "moves = termstructure.implied_moves(e, s2)\n"
+            "print(f\"E = {e:.8f}, sigma_d^2 = {s2:.4e} per session\")\n"
+            "print(f\"implied move sqrt(E) = {moves['implied_move']:.4%}, \"\n"
+            "      f\"expected |r0| = {moves['implied_abs_move_total']:.4%}\")\n"
+            "print(f\"calendar clock instead: E = {termstructure.event_variance(0.0034862510, 15, 0.0056163135, 29)[0]:.8f}\")\n"
+        ),
+        new_markdown_cell(
+            "## 4. The event-aware 30-day IV (ADR 0003 §b)\n"
+            "Made-up two-component variances, sigma_d^2 = 0.0002 per session and E = 0.002, 25 sessions before "
+            "day 0: clean expiries at 10 and 19 sessions, a spanning one at 30. The event-aware IV uses the "
+            "clean class only; the blind one interpolates across the event and leaks E * 2/11 into the horizon."
+        ),
+        new_code_cell(
+            "xs = [termstructure.Expiry(date(2026, 2, 13), 10, 0.0020, chain.annualised_iv(0.0020, 10), False),\n"
+            "      termstructure.Expiry(date(2026, 2, 27), 19, 0.0038, chain.annualised_iv(0.0038, 19), False),\n"
+            "      termstructure.Expiry(date(2026, 3, 13), 30, 0.0080, chain.annualised_iv(0.0080, 30), True)]\n"
+            "day, _ = termstructure.day_measures(xs, sessions_to_event=25)\n"
+            "print(day[\"cm30_method\"], f\"cm30 {day['cm30_iv']:.4f}, blind {day['cm30_blind_iv']:.4f}\")\n"
+        ),
+        new_markdown_cell(
+            "## 5. The committed measures\n"
+            "`data/derived/event_iv.parquet` holds one row per event (E, the implied move, the crushes, the "
+            "realised move); `iv_daily.parquet` one row per company and session. The AAPL event of the worked "
+            "example, read with the pipeline's DTB3 rate and its full chain."
+        ),
+        new_code_cell(
+            "from earnings_vol import params, schema, store\n"
+            "\n"
+            "derived = params.ROOT / \"data\" / \"derived\"\n"
+            "eiv = store.read_table(derived / \"event_iv.parquet\", schema.EVENT_IV).set_index(\"event_id\")\n"
+            "r = eiv.loc[\"AAPL:2025-10-30\"]\n"
+            "print(f\"E {r.evar_m1:.8f}, sqrt(E) {r.implied_move_m1:.4%}, cm30 crush {r.crush_mean_adj:.4f}, \"\n"
+            "      f\"front crush {r.crush_front_fixed:.4f}, realised {r.realized_ret_0:.4%}\")\n"
+            "print(eiv[\"implied_move_status\"].value_counts().to_dict())\n"
+        ),
+    ])
+
+
 # name -> builder. The file is notebooks/<name>.ipynb.
-NOTEBOOKS = {"00_scaffold_tour": build_notebook, "01_events": build_events_notebook}
+NOTEBOOKS = {"00_scaffold_tour": build_notebook, "01_events": build_events_notebook, "02_iv_measures": build_iv_notebook}
 
 
 def render(name: str = "00_scaffold_tour") -> str:

@@ -1,5 +1,5 @@
 /**
- * Loads and checks `data/sample_funnel.json` (kind "sample_funnel", schema 0.2.0): how many
+ * Loads and checks `data/sample_funnel.json` (kind "sample_funnel", schema 0.3.0): how many
  * earnings events survive each filtering step, written by the Python exporter. The app only draws
  * these counts; it never recomputes them. Like `meta.ts`, `fetch` is injected so tests never touch
  * the network, and nothing here throws or coerces.
@@ -9,18 +9,17 @@
  *   timing_status_counts       the 7 timing statuses, each a count
  *   timing_status_by_sample    per sample: { sample, timing_status_counts }
  *   by_sample                  per sample: { sample, n_events }
- *   by_move_tercile            null at 0.2.0 (see below)
- *   by_move_tercile_status     string saying why it is null
- *   evar_nonpositive           null at 0.2.0 (see below)
- *   evar_nonpositive_status    string saying why it is null
+ *   by_move_tercile            null (not computed) or an array of per-sample, per-tercile rows
+ *   by_move_tercile_status     string saying how it was computed, or why it is null
+ *   evar_nonpositive           null (not computed) or { n_events, n_identified, n, share }
+ *   evar_nonpositive_status    string saying how it was computed, or why it is null
  *   lookups                    { n_done, complete }
  *   caveats                    array of strings, shown next to the numbers
  *   provenance                 same object as in meta.json (see `provenance.ts`)
  */
-import { SCHEMA_VERSION } from './contract'
 import { loadEnvelope } from './meta'
 import { parseProvenance, type Provenance } from './provenance'
-import { fail, isNonNegInt, isObject, isText, keyProblem, show, type Parsed } from './validate'
+import { fail, isFiniteNumber, isNonNegInt, isObject, isText, isUnitInterval, keyProblem, show, type Parsed } from './validate'
 
 export const SAMPLE_FUNNEL_URL = 'data/sample_funnel.json'
 export const SAMPLE_FUNNEL_KIND = 'sample_funnel'
@@ -34,6 +33,10 @@ export const TIMING_STATUSES = ['confirmed', 'corrected', 'inferred', 'date_corr
 export type TimingStatus = (typeof TIMING_STATUSES)[number]
 export type TimingStatusCounts = Record<TimingStatus, number>
 
+/** The samples that have move terciles ("none" has no day 0, so no move). */
+export const TERCILE_SAMPLE_NAMES = ['daily', 'mixed', 'coarse'] as const
+export type TercileSampleName = (typeof TERCILE_SAMPLE_NAMES)[number]
+
 export interface FunnelStep {
   step: string
   label: string
@@ -43,19 +46,40 @@ export interface FunnelStep {
   reason: string | null
 }
 
+/** One row of `by_move_tercile`: the events of one sample in one tercile of the implied move. */
+export interface MoveTercileRow {
+  sample: TercileSampleName
+  tercile: 1 | 2 | 3
+  n_events: number
+  timing_status_counts: TimingStatusCounts
+  /** Share of events whose Yahoo gap check contradicts the timing label, or null when not available. */
+  share_gap_contradicts: number | null
+  n_gap_check_changed: number
+  mean_abs_move: number | null
+  /** How many events of the row have a crush (at most `n_events`). */
+  n_crush: number
+  mean_crush_mean_adj: number | null
+}
+
+/** `evar_nonpositive`: how many events have a non-positive event variance E at day -1. */
+export interface EvarNonpositive {
+  n_events: number
+  n_identified: number
+  n: number
+  /** As given by the exporter; null only when `n_identified` is 0. */
+  share: number | null
+}
+
 export interface SampleFunnel {
   steps: FunnelStep[]
   timing_status_counts: TimingStatusCounts
   timing_status_by_sample: { sample: SampleName; timing_status_counts: TimingStatusCounts }[]
   by_sample: { sample: SampleName; n_events: number }[]
-  /**
-   * Always null at schema 0.2.0: the move terciles need milestone 2. An array is reserved for
-   * milestone 2 and is rejected until the contract version that defines it.
-   */
-  by_move_tercile: null
+  /** Null while not computed (the status string says why); at 0.3.0 the exporter fills it. */
+  by_move_tercile: MoveTercileRow[] | null
   by_move_tercile_status: string
-  /** Always null at schema 0.2.0, same rule as `by_move_tercile`. */
-  evar_nonpositive: null
+  /** Null while not computed, same rule as `by_move_tercile`. */
+  evar_nonpositive: EvarNonpositive | null
   evar_nonpositive_status: string
   lookups: { n_done: number; complete: boolean }
   caveats: string[]
@@ -81,8 +105,22 @@ const STEP_KEYS = ['step', 'label', 'n_events', 'n_removed', 'reason'] as const
 const TIMING_BY_SAMPLE_KEYS = ['sample', 'timing_status_counts'] as const
 const BY_SAMPLE_KEYS = ['sample', 'n_events'] as const
 const LOOKUPS_KEYS = ['n_done', 'complete'] as const
+const TERCILE_ROW_KEYS = [
+  'sample',
+  'tercile',
+  'n_events',
+  'timing_status_counts',
+  'share_gap_contradicts',
+  'n_gap_check_changed',
+  'mean_abs_move',
+  'n_crush',
+  'mean_crush_mean_adj',
+] as const
+const EVAR_KEYS = ['n_events', 'n_identified', 'n', 'share'] as const
 
 const isSampleName = (x: unknown): x is SampleName => typeof x === 'string' && (SAMPLE_NAMES as readonly string[]).includes(x)
+const isTercileSampleName = (x: unknown): x is TercileSampleName => typeof x === 'string' && (TERCILE_SAMPLE_NAMES as readonly string[]).includes(x)
+const isTercile = (x: unknown): x is 1 | 2 | 3 => x === 1 || x === 2 || x === 3
 
 function parseSteps(input: unknown): Parsed<FunnelStep[]> {
   if (!Array.isArray(input) || input.length === 0) return fail(`steps must be a non-empty array, got ${show(input)}`)
@@ -148,6 +186,57 @@ function parseBySample(input: unknown): Parsed<SampleFunnel['by_sample']> {
   return { ok: true, data: rows }
 }
 
+/** `by_move_tercile`: null, or an array (possibly empty) of rows with exactly `TERCILE_ROW_KEYS`. */
+function parseByMoveTercile(input: unknown): Parsed<MoveTercileRow[] | null> {
+  if (input === null) return { ok: true, data: null }
+  if (!Array.isArray(input)) return fail(`by_move_tercile must be null or an array, got ${show(input)}`)
+  const rows: MoveTercileRow[] = []
+  for (const [i, row] of input.entries()) {
+    const at = `by_move_tercile[${i}]`
+    if (!isObject(row)) return fail(`${at} must be an object, got ${show(row)}`)
+    const problem = keyProblem(at, row, TERCILE_ROW_KEYS)
+    if (problem) return fail(problem)
+    const { sample, tercile, n_events, share_gap_contradicts, n_gap_check_changed, mean_abs_move, n_crush, mean_crush_mean_adj } = row
+    if (!isTercileSampleName(sample)) return fail(`${at}.sample must be one of ${TERCILE_SAMPLE_NAMES.join(', ')}, got ${show(sample)}`)
+    if (!isTercile(tercile)) return fail(`${at}.tercile must be 1, 2 or 3, got ${show(tercile)}`)
+    if (!isNonNegInt(n_events)) return fail(`${at}.n_events must be a non-negative integer, got ${show(n_events)}`)
+    const counts = parseTimingCounts(row.timing_status_counts, `${at}.timing_status_counts`)
+    if (!counts.ok) return counts
+    if (share_gap_contradicts !== null && !isUnitInterval(share_gap_contradicts)) {
+      return fail(`${at}.share_gap_contradicts must be a number from 0 to 1, or null, got ${show(share_gap_contradicts)}`)
+    }
+    if (!isNonNegInt(n_gap_check_changed)) return fail(`${at}.n_gap_check_changed must be a non-negative integer, got ${show(n_gap_check_changed)}`)
+    if (mean_abs_move !== null && !isFiniteNumber(mean_abs_move)) return fail(`${at}.mean_abs_move must be a finite number or null, got ${show(mean_abs_move)}`)
+    if (!isNonNegInt(n_crush)) return fail(`${at}.n_crush must be a non-negative integer, got ${show(n_crush)}`)
+    if (n_crush > n_events) return fail(`${at}.n_crush must be at most n_events (${n_events}), got number ${n_crush}`)
+    if (mean_crush_mean_adj !== null && !isFiniteNumber(mean_crush_mean_adj)) {
+      return fail(`${at}.mean_crush_mean_adj must be a finite number or null, got ${show(mean_crush_mean_adj)}`)
+    }
+    rows.push({ sample, tercile, n_events, timing_status_counts: counts.data, share_gap_contradicts, n_gap_check_changed, mean_abs_move, n_crush, mean_crush_mean_adj })
+  }
+  return { ok: true, data: rows }
+}
+
+/** `evar_nonpositive`: null, or an object with exactly `EVAR_KEYS` and n <= n_identified <= n_events. */
+function parseEvarNonpositive(input: unknown): Parsed<EvarNonpositive | null> {
+  if (input === null) return { ok: true, data: null }
+  if (!isObject(input)) return fail(`evar_nonpositive must be null or an object, got ${show(input)}`)
+  const problem = keyProblem('evar_nonpositive', input, EVAR_KEYS)
+  if (problem) return fail(problem)
+  const { n_events, n_identified, n, share } = input
+  if (!isNonNegInt(n_events)) return fail(`evar_nonpositive.n_events must be a non-negative integer, got ${show(n_events)}`)
+  if (!isNonNegInt(n_identified)) return fail(`evar_nonpositive.n_identified must be a non-negative integer, got ${show(n_identified)}`)
+  if (!isNonNegInt(n)) return fail(`evar_nonpositive.n must be a non-negative integer, got ${show(n)}`)
+  if (n_identified > n_events) return fail(`evar_nonpositive.n_identified must be at most n_events (${n_events}), got number ${n_identified}`)
+  if (n > n_identified) return fail(`evar_nonpositive.n must be at most n_identified (${n_identified}), got number ${n}`)
+  if (share === null) {
+    if (n_identified !== 0) return fail(`evar_nonpositive.share may be null only when n_identified is 0, but n_identified is ${n_identified}`)
+  } else if (!isUnitInterval(share)) {
+    return fail(`evar_nonpositive.share must be a number from 0 to 1, or null, got ${show(share)}`)
+  }
+  return { ok: true, data: { n_events, n_identified, n, share } }
+}
+
 /**
  * Check the `data` object of a `kind: "sample_funnel"` envelope: exactly the keys above, each of
  * the right type. Nothing throws and nothing is coerced; a failure comes back as
@@ -167,12 +256,14 @@ export function parseSampleFunnel(input: unknown): SampleFunnelResult {
   const bySample = parseBySample(input.by_sample)
   if (!bySample.ok) return bySample
 
-  // Milestone 2 will define what an array looks like here; until the contract version that does
-  // (a bump from 0.2.0), the only valid value is null and the *_status string says why.
-  const { by_move_tercile, by_move_tercile_status, evar_nonpositive, evar_nonpositive_status, lookups, caveats } = input
-  if (by_move_tercile !== null) return fail(`by_move_tercile must be null at schema ${SCHEMA_VERSION} (an array is reserved for milestone 2), got ${show(by_move_tercile)}`)
+  // Each of the two milestone-2 fields is either null (not computed, and its *_status string says
+  // why) or filled; both are valid, so the page can show whichever the file has.
+  const { by_move_tercile_status, evar_nonpositive_status, lookups, caveats } = input
+  const terciles = parseByMoveTercile(input.by_move_tercile)
+  if (!terciles.ok) return terciles
   if (!isText(by_move_tercile_status)) return fail(`by_move_tercile_status must be a non-empty string, got ${show(by_move_tercile_status)}`)
-  if (evar_nonpositive !== null) return fail(`evar_nonpositive must be null at schema ${SCHEMA_VERSION} (an array is reserved for milestone 2), got ${show(evar_nonpositive)}`)
+  const evar = parseEvarNonpositive(input.evar_nonpositive)
+  if (!evar.ok) return evar
   if (!isText(evar_nonpositive_status)) return fail(`evar_nonpositive_status must be a non-empty string, got ${show(evar_nonpositive_status)}`)
 
   if (!isObject(lookups)) return fail(`lookups must be an object, got ${show(lookups)}`)
@@ -196,9 +287,9 @@ export function parseSampleFunnel(input: unknown): SampleFunnelResult {
       timing_status_counts: timing.data,
       timing_status_by_sample: timingBySample.data,
       by_sample: bySample.data,
-      by_move_tercile: null,
+      by_move_tercile: terciles.data,
       by_move_tercile_status,
-      evar_nonpositive: null,
+      evar_nonpositive: evar.data,
       evar_nonpositive_status,
       lookups: { n_done: lookups.n_done, complete: lookups.complete },
       caveats: [...caveats],

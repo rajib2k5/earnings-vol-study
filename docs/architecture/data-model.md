@@ -1,8 +1,9 @@
 # Data model
 
-- **Status:** milestone 1. `security`, `ticker_alias`, `session`, `market_daily`, `events`, `eps`, `timing_check` and
-  the new `session_snapshot` are built (schema registry: `src/earnings_vol/schema.py`); the other tables are designed,
-  not yet built. Revised 2026-10-28 after the milestone-0 reviews, and on 2026-10-29 at milestone 1 (note below).
+- **Status:** milestone 2. `security`, `ticker_alias`, `session`, `market_daily`, `events`, `eps`, `timing_check`,
+  `session_snapshot`, and since milestone 2 `chain_expiry`, `iv_daily` and `event_iv` are built (schema registry:
+  `src/earnings_vol/schema.py`); the other tables are designed, not yet built. Revised 2026-10-28 after the milestone-0
+  reviews, and on 2026-10-29 at milestones 1 and 2 (notes below).
 - **Date:** 2026-10-28
 - **Decisions behind it:** [ADR 0001](../adr/0001-overall-architecture.md) (layers, cache, licensing),
   [0002](../adr/0002-day-zero-convention.md) (day 0, timing), [0003](../adr/0003-iv-measures.md) (IV measures),
@@ -68,6 +69,35 @@ If code and this file disagree, one of them is a bug.
 > - **Owner decisions recorded** in §6 (items 2, 3, 6, 7) with their dates.
 > - **Contract 0.2.0** (§4): `meta` gains `sample`, `params`, `files`, `provenance`; `sample_funnel` is built, with
 >   `by_move_tercile` and `evar_nonpositive` null until milestone 2 and a status string saying why.
+
+> **Milestone 2, 2026-10-29: what building the IV tables changed.**
+>
+> - **Built:** `chain_expiry` (§3.5, local), `iv_daily` (§3.6, committed, 4.7 MB) and a new table `event_iv`
+>   (§3.11a, committed): the IV columns of `event_measures`, built early by the measures layer, as `session_snapshot`
+>   was at milestone 1. Milestone 3 folds them into `event_measures`. New relationship R24 (§5).
+> - **`chain_expiry` nullability.** `forward` is null for `no_forward` and `stale` rows, and the ATM columns
+>   (`strike_lo` … `w_atm`, `iv_atm`, `forward_dispersion`) are null unless an ATM was found; the table said
+>   `float64` without null. `next_event_id` and `spans_next_event` are class F (they depend on day 0).
+> - **Owner decision, 2026-10-29 (data).** Real Yahoo, Cboe and FRED values that the app or the docs need may be
+>   committed. The registry names them per table (`Table.keep_restricted`); `store.write_derived` keeps exactly those
+>   and drops every other class-R column. Milestone 2 keeps one: `timing_check.gap_verdict_yf`, for the funnel's
+>   `share_gap_contradicts` (§2.1, §3.9). Every other class-R column stays local.
+> - **Contract 0.3.0** (§4): `sample_funnel.by_move_tercile` and `evar_nonpositive` are filled, the funnel has a new
+>   `iv_usable` step, and `iv_measures.json` is new.
+> - **Not built:** `iv_daily.vendor_iv_current` is null everywhere: `volatility_history` was not extracted (it is
+>   ADR 0003's third validation check only).
+
+> **Revised after the milestone-2 review** ([ledger](../validation/m2-ledger.md)).
+>
+> - **Licence notices (claim 15a).** §1.3, §2 and §2.1 now say that two Yahoo-derived columns are committed under
+>   Yahoo's terms, not CC BY-SA: `timing_check.gap_verdict_yf` and `security.in_universe`. `data/derived/LICENSE` and
+>   `README.md` name every column derived from Yahoo, Cboe or FRED data. §6 item 8 is a new owner question: Cboe's
+>   terms may restrict using Cboe data to verify other data, which bears on the VX\* validation.
+> - **Method (ADR 0003's review note).** `spans_next_event` classes an expiry on an AMC announcement day as spanning
+>   (§3.5); `ev_exp1` and `ev_exp2` are the two shortest *usable* spanning expiries (§3.6); `w_atm` is never extrapolated
+>   from one side of the money (§3.5).
+> - **Corrections.** `n_strikes_valid` counts strikes with a root, not strikes passing the quote filter (§3.5);
+>   `chain_expiry` stays local because of its size, not because of FRED's rate (§3.5).
 
 ---
 
@@ -174,7 +204,7 @@ CREATE TABLE `volatility_history` (
 
 | Source | Fields used | Licence posture |
 |---|---|---|
-| Yahoo Finance via `yfinance` | daily `Open, High, Low, Close, Volume, Dividends, Stock Splits`; shares outstanding | local only; columns suffixed `_yf` |
+| Yahoo Finance via `yfinance` | daily `Open, High, Low, Close, Volume, Dividends, Stock Splits`; shares outstanding | local only; columns suffixed `_yf`. *Since the owner's decision of 2026-10-29* two labels made from them are committed, under Yahoo's terms and not CC BY-SA: `timing_check.gap_verdict_yf` and `security.in_universe` (`data/derived/LICENSE`) |
 | FRED `DTB3` | 3-month T-bill rate | US government data; may be committed |
 | FRED `VIXCLS` | VIX close | **CBOE index**, so treated as CBOE data: suffix `_cboe`, never committed |
 | CBOE VX\* CSVs | `VXAPL, VXAZN, VXGOG, VXGS, VXIBM` daily closes | never committed; suffix `_cboe` |
@@ -203,9 +233,13 @@ CREATE TABLE `volatility_history` (
   through Dolt's CSV output (ADR 0001 §3) is turned into a real null by the extract parser and never reaches a table.
 - **Flags:** `flags` is a `string` of `|`-separated codes, sorted, `''` if none (e.g. `fwd_dispersion|interpolated`).
 - **Source suffixes:** `_yf` = from Yahoo, `_cboe` = from CBOE (including VIX). Any column with these suffixes is
-  **dropped** before writing `data/derived/` or app JSON (ADR 0001 §7). §2.1 says which columns need a suffix.
-- **Committed?** marks whether the table goes to `data/derived/` (CC BY-SA 4.0). Every table also exists in
-  `$VOL_DATA_DIR/earnings-vol-study/cache/stage/<params_hash>/`.
+  **dropped** before writing `data/derived/` or app JSON (ADR 0001 §7), except one a committed table names in
+  `keep_restricted` (owner decision of 2026-10-29; at milestone 2 only `timing_check.gap_verdict_yf`). §2.1 says which
+  columns need a suffix.
+- **Committed?** marks whether the table goes to `data/derived/` (CC BY-SA 4.0, except the two Yahoo-derived columns
+  `timing_check.gap_verdict_yf` and `security.in_universe`, which fall under Yahoo's terms; `data/derived/LICENSE`).
+  Only a table marked committed may be there, with its committed columns (`tools/licensing/check_data_files.py`, rule
+  6). Every table also exists in `$VOL_DATA_DIR/earnings-vol-study/cache/stage/<params_hash>/`.
 - **FKs are checked in the stage cache.** Where the parent table is not committed (`chain_expiry`, the parent of
   `iv_daily`'s R12 FKs), the committed copy of the child keeps the column as plain information.
 
@@ -216,7 +250,7 @@ ADR 0001 §7 states the rule. In short, each column has one of four classes:
 | Class | Meaning | Committed? | Suffix |
 |---|---|---|---|
 | **U** | Lineage is DoltHub, FRED `DTB3`, Wikipedia, `exchange_calendars` or our own parameters only. Keys and counts of available observations are U even in a local-only table. | yes | none |
-| **R** | A **numeric value** of a Yahoo or CBOE series for one date or one event, or any transform that keeps its magnitude (log, change, gap, z-score, residual). Also **any column that can be combined with committed columns to compute such values**, including a per-event statistic, if there are enough of them to solve for the dates involved (see `s_abn` below). | **never** | `_yf` / `_cboe`, required |
+| **R** | A **numeric value** of a Yahoo or CBOE series for one date or one event, or any transform that keeps its magnitude (log, change, gap, z-score, residual). Also **any column that can be combined with committed columns to compute such values**, including a per-event statistic, if there are enough of them to solve for the dates involved (see `s_abn` below). | **never**, except a column a committed table names in `keep_restricted` (owner decision of 2026-10-29; at milestone 2 only `timing_check.gap_verdict_yf`, under Yahoo's terms) | `_yf` / `_cboe`, required |
 | **S** | A statistic estimated from many restricted observations. It is committed only if the **export disclosure test** below shows that no single-date VIX change can be solved for from everything exported. Counting equations against unknowns is not enough. | yes, if the test passes | none; listed below |
 | **F** | A **categorical label** derived with restricted data, from which no numeric value can be computed. It is either a fact that Yahoo prices only helped check (the announcement timing), or a coarse label with at most 5 levels (VIX tercile, threshold flag), or a one-time cross-sectional rank of firms. A finer label on a per-date series, such as a daily VIX rank, is R. | yes, by default (**owner decision**) | none; listed below |
 
@@ -242,9 +276,10 @@ Columns with Yahoo or CBOE lineage are listed below. Every column not listed her
 | `market_daily.vix_close_cboe`, `ln_vix_cboe` | R | no | the index itself |
 | `timing_check` value columns, all `*_yf`, including `rel_day_max_outside_yf` | R | no | Yahoo gaps and their z-scores. The location of the largest outside gap is a detail of the evidence, not a fact about the company. |
 | `events.timing_used`, and what follows from it: `day0_session`, `day_m1_session`, every `rel_day` | **F** under the default (no EDGAR); U only under ADR 0002's EDGAR rule once it runs | yes | When a company announced is a fact, taken from documents: the press release and the calendar label, plus the SEC 8-K acceptance time once EDGAR runs (accepted 2026-10-28, gated on the owner's contact string) (ADR 0002 §3). **Settled after the review (ledger N10):** no label is ever set by Yahoo gaps alone. A NULL label is filled only from a document, and without one the event is `ambiguous`. So the class-F "fact that Yahoo prices only helped check" rationale holds for every committed label. Under the EDGAR rule Yahoo would play no part at all. |
+| `timing_check.gap_verdict_yf` | R | **yes, since 2026-10-29** (owner decision: real values the app needs may be committed) | The verdict of the Yahoo gap on the label in use. The sample funnel's `share_gap_contradicts` per move tercile is built from it. It is the only class-R column committed at milestone 2 (`schema.TIMING_CHECK.keep_restricted`). |
 | `events.timing_status`, `timing_source`, `gap_check_changed`, `edgar_accession`, `edgar_accepted_utc` | `timing_status`, `timing_source` and `gap_check_changed` (added after the delta review) are **F** under the default (no EDGAR), because a Yahoo gap can trigger the second reading or the `coarse` look-up that sets them; all four are U under the EDGAR rule (with the caveat above) | yes | Under the default, which labels got a second reading, and which `coarse` events got a look-up, depends on a Yahoo gap trigger, so `timing_status` carries one Yahoo-derived bit per event (F, as before). Under the EDGAR rule they would record calendar-vs-document agreement only. The two `edgar_*` columns exist only once EDGAR runs (accepted 2026-10-28, gated on the owner's contact string). |
 | `event_measures.vix_regime` | F | yes (owner decision) | It is a three-level bin of VIX on day −1, with the cut points taken over the sample. It reveals order, not values. |
-| `security.in_universe` | F if the milestone-1 rule ranks by Yahoo market cap; U otherwise | yes | an in/out label of 499 firms on one date. *Revised after the milestone-1 review:* the rank behind it (`universe_rank`, 497 firms) is a per-row Yahoo-derived number, so it is not committed; it stays in the local `cache/universe.parquet` (§3.1). |
+| `security.in_universe` | F if the milestone-1 rule ranks by Yahoo market cap; U otherwise | yes; *since 2026-10-29* stated to fall under Yahoo's terms, not CC BY-SA (`data/derived/LICENSE`) | an in/out label of 499 firms on one date. *Revised after the milestone-1 review:* the rank behind it (`universe_rank`, 497 firms) is a per-row Yahoo-derived number, so it is not committed; it stays in the local `cache/universe.parquet` (§3.1). |
 | `event_window_obs.e_abn_cboe`, `aliv_cboe` | R | no | Were they committed, $\Delta\ln\text{VIX}_t = (\texttt{d\_ln\_cm30} - \texttt{e\_abn\_cboe})/\beta_s$ would follow. Without $\beta_s$, cross-firm ratios still give the series up to a single scale factor. |
 | `event_window_obs.ln_vx_cboe`, `e_abn_vx_cboe`; the `_cboe` columns of `event_measures_vx` | R | no | VX\* values and their transforms |
 | `event_measures.runup_cboe`, `crush_cboe`, `persist_1_cboe`, `persist_5_cboe`, `persist_10_cboe`, `dsigma_d_cboe`, `crush_two_session_cboe`, `sa_*_cboe` | R | no | For example, `crush_cboe` $= \Delta x_0 - \beta_s\Delta m_0$, and $\Delta x_0$ follows from the committed `iv_daily.cm30_iv`, so $\Delta\ln\text{VIX}$ on every day-0 date could be recovered. |
@@ -406,30 +441,32 @@ VIX. Committed: no (it has `_cboe` columns). `r_*` may be split out and committe
 | `tau_sessions` | int16 | | sessions in (session_date, expiration] |
 | `tau_cal_days` | int16 | | calendar days |
 | `df` | float64 | | $e^{-r\,\tau_{cal}/365}$, r = `market_daily.r_cont` |
-| `forward` | float64 | | median parity forward $K + (C_{mid}-P_{mid})/DF$ from `bid`, `ask` |
+| `forward` | float64, null | | median parity forward $K + (C_{mid}-P_{mid})/DF$ from `bid`, `ask`; null for `no_forward` and `stale` |
 | `forward_n_strikes` | int16 | | strikes used for the forward (≤ 4) |
-| `forward_dispersion` | float64 | | (max − min) $F_K$ / F |
-| `n_strikes_valid` | int16 | | strikes passing the quote filter |
-| `strike_lo`, `strike_hi` | float64 | | ATM bracket strikes |
-| `k_lo`, `k_hi` | float64 | | ln(K/F) of the bracket strikes |
-| `rel_spread_lo`, `rel_spread_hi` | float64 | | (ask−bid)/mid of the OTM quotes at the bracket strikes |
-| `w_atm` | float64 | | ATM total implied variance (Black-76, OTM side, linear in k) |
-| `iv_atm` | float64 | | $\sqrt{252\,w/\tau}$ |
+| `forward_dispersion` | float64, null | | (max − min) $F_K$ / F |
+| `n_strikes_valid` | int16 | | strikes valid for the ATM step: the out-of-the-money quote passes the quote filter, \|ln(K/F)\| ≤ 0.5, the no-arbitrage bounds, and Black-76 has a root in [1e-8, 4] (`chain.py`; *corrected after the milestone-2 review*: this said "passing the quote filter") |
+| `strike_lo`, `strike_hi` | float64, null | | ATM bracket strikes (also kept when the bracket was too wide and the quadratic was used) |
+| `k_lo`, `k_hi` | float64, null | | ln(K/F) of the bracket strikes |
+| `rel_spread_lo`, `rel_spread_hi` | float64, null | | (ask−bid)/mid of the OTM quotes at the bracket strikes |
+| `w_atm` | float64, null | | ATM total implied variance (Black-76, OTM side, linear in k; or, for a bracket wider than 1.5 sd, the weighted quadratic, which needs a valid strike on each side of k = 0); null unless `status = ok` |
+| `iv_atm` | float64, null | | $\sqrt{252\,w/\tau}$ |
 | `atm_method` | enum {`bracket_linear`,`quadratic`,`none`} | | |
-| `vendor_iv_atm` | float64, null | | `option_chain.vol` interpolated the same way (validation only) |
-| `straddle_atm` | float64, null | | C+P mid interpolated to k = 0 |
+| `vendor_iv_atm` | float64, null | | `option_chain.vol` of the OTM quotes at the bracket strikes, interpolated linearly in k the same way (validation only; `bracket_linear` rows only) |
+| `straddle_atm` | float64, null | | C+P mid at the bracket strikes interpolated linearly in k to 0 (both legs must pass the quote filter at both strikes). C+P has a kink at K = F, so this overstates the ATM straddle a little and `iv_straddle` sits above `iv_atm` (measured at milestone 2: 36,104 `straddle_gap` flags among 177,582 `ok` rows) |
 | `iv_straddle` | float64, null | | IV inverted from `straddle_atm` |
 | `next_event_id` | string, null | FK → `events` | the security's next event with day0 > session_date. For a `timing_ambiguous` event (null day 0), its **effective day 0** is next(D), the later candidate. Ambiguous events therefore still split expiries into clean and spanning. |
-| `spans_next_event` | bool, null | | expiration ≥ that event's day0 (effective day 0 for an ambiguous event) |
+| `spans_next_event` | bool, null | | `as_of(expiration)` ≥ the first session on or after that event's announcement date D. That is day 0 for a BMO event or a release on a non-session day, and D itself, one session before day 0, for an AMC event or an event without a label: an expiry on D is exercised after the release (decision until 5:30 p.m. ET), so it is classed spanning, conservatively (ADR 0003 §b, *revised after the milestone-2 review*) |
 | `status` | enum {`ok`,`no_atm`,`no_forward`,`stale`} | | `stale` = the session's snapshot is a `stale_repeat` (ADR 0002 §1). Its rows are kept so the decision can be audited, and no measure uses them. |
-| `flags` | string | | e.g. `fwd_dispersion`, `wide_bracket`, `few_strikes` |
+| `flags` | string | | `fwd_dispersion`, `few_strikes` (forward from fewer than 4 strikes), `iv_no_root`, `wide_bracket`, `no_bracket`, `straddle_gap` |
 
 Keys: `(security_id, session_date)` is a composite FK to `iv_daily`'s primary key. Every `chain_expiry` row therefore
 belongs to exactly one `iv_daily` row, and the security and session follow from it (R11). Cardinality: about 3.3 rows
 per (security, session) that has a snapshot, and **none** when `iv_daily.snapshot_status = missing`. That gives
 3.3 × ≈ 61,400 observed (security, session) pairs ≈ **200k rows** (arithmetic in §3.6). Committed: **no**. It can be
-rebuilt from Dolt, and at about 30 columns it would take a large share of the 20 MB budget (Parquet size not yet
-measured; measure at milestone 2).
+rebuilt from Dolt. *Measured at milestone 2:* 181,597 rows (3.14 per observed pair) in a 17.0 MB Parquet file. It
+stays local (`cache/stage/<hash>/chain_expiry.parquet`) because of its size, above the 10 MB line. *Corrected after the
+milestone-2 review:* this said "`df` is a FRED value, so it stays local"; FRED's `DTB3` may be committed (§1.3), and the
+committed `iv_daily` is computed with the same discount factor.
 
 ### 3.6 `iv_daily`: one row per (security, session)
 
@@ -451,8 +488,8 @@ measured; measure at milestone 2).
 | `cm30_exp_lo`, `cm30_exp_hi` | date32, null | each FK (3/3) → `chain_expiry`, R12b / R12c | expiries used |
 | `cm30_blind_iv` | float64, null | | event-blind interpolation (validation and leak measure) |
 | `sigma_d_iv` | float64, null | | ex-event ("diffusive") IV: $\sigma_{d,\text{ann}} = \sqrt{252\,(w_2-w_1)/(\tau_2-\tau_1)}$, the forward variance between two same-class expiries expressed as an **annualised volatility**. Per-session variance = `sigma_d_iv²/252`. |
-| `event_var` | float64, null | | **E, signed** (needs at least 2 spanning expiries) |
-| `ev_exp1`, `ev_exp2` | date32, null | each FK (3/3) → `chain_expiry`, R12d / R12e | the two spanning expiries |
+| `event_var` | float64, null | | **E, signed** (needs at least 2 usable spanning expiries) |
+| `ev_exp1`, `ev_exp2` | date32, null | each FK (3/3) → `chain_expiry`, R12d / R12e | the two shortest **usable** (`ok`, τ ≥ 5) spanning expiries. A shorter spanning expiry without an ATM w (`no_atm`, `no_forward`) is skipped, and the next usable one is T2 (*documented after the milestone-2 review*; ADR 0003 §c, "Which expiries") |
 | `ev_tau1`, `ev_tau2` | int16, null | | |
 | `ev_w1`, `ev_w2` | float64, null | | their `w_atm` |
 | `implied_move` | float64, null | | √E if E > 0 |
@@ -461,7 +498,7 @@ measured; measure at milestone 2).
 | `implied_move_status` | enum {`ok`,`nonpositive_event_variance`,`not_identified`} | | |
 | `ts_slope` | float64, null | | ln(σ_T1/σ_T2) of the two shortest valid expiries |
 | `forward_front` | float64, null | | `chain_expiry.forward` of the front expiry. For display only: the realised move and `price_ref` read `chain_expiry` directly, because they need the same expiry on two days and its `df`. |
-| `vendor_iv_current` | float64, null | | `volatility_history.iv_current` (validation) |
+| `vendor_iv_current` | float64, null | | `volatility_history.iv_current` (validation). *Milestone 2:* null everywhere; `volatility_history` is not extracted yet. |
 | `flags` | string | | |
 
 **The five "expiry used" FKs (R12a–e).** Each one is the triple (`security_id`, `session_date`, *role column*) →
@@ -493,7 +530,17 @@ The row count is an upper bound, because a security with shorter option coverage
 is approximate in both directions and is not counted here; milestone 1 counts it. Missing single days (such as
 2024-11-12) lower it. Extra weekday snapshots (such as Tue 2020-06-09) raise it, as do non-session snapshots that map
 to an otherwise unobserved session and pass the `stale_repeat` test.
-Committed: yes.
+Committed: yes. *Measured at milestone 2 (re-measured after the review's fixes):* 85,650 rows, 57,749 with an `ok`
+snapshot; 57,087 of those have a `cm30_iv` and 19,601 an `event_var`. The Parquet file is 4.7 MB
+(`data/derived/iv_daily.parquet`), under the 10 MB per-file limit of the owner's data decision.
+
+How the columns are computed is ADR 0003 and `docs/milestones/02-iv-measures.md`. Choices the ADR left open and the
+code fixes: the next event of a session is the first event (duplicate rows aside) whose effective day 0 is after it, and
+the previous one the last on or before it; an expiry spans that event when the session it settles on,
+`as_of(expiration)`, is on or after the first session on or after the announcement date (day 0, or the AMC
+announcement day itself: §3.5, `spans_next_event`); only `ok` expiries with τ ≥ 5 enter the measures; `sigma_d_iv` is
+taken from E's two spanning expiries, else from the two shortest clean ones; `implied_abs_move_total` needs E > 0 and a non-negative
+forward variance (else null, with `negative_forward_variance` in `flags`).
 
 ### 3.6a `session_snapshot`: is a usable snapshot there? (milestone 1)
 
@@ -506,7 +553,8 @@ Committed: yes.
 
 The first four columns of `iv_daily`, built at milestone 1 from the option-chain extract because the funnel's baseline
 step needs the observed sessions. Same coverage as `iv_daily` (2020-01-02 → the data end, every session, observed or
-not). At milestone 2 `iv_daily` takes these columns over, and this table can be dropped. Class U. Committed: yes.
+not). At milestone 2 `iv_daily` takes these columns over (the funnel reads them there) and this table feeds
+`iv_daily` (which snapshot belongs to which session); it can be dropped at milestone 3. Class U. Committed: yes.
 
 ### 3.7 `events`: one row per announcement
 
@@ -624,8 +672,10 @@ tercile of `event_measures.abs_move_cand_max` (revised after the delta review; t
 | `gap_verdict_yf` | enum {`supports`,`contradicts`,`quiet`}, null | | the gap's verdict on `timing_used`, with ADR 0002 §3's thresholds (4, 3×). Class R. |
 | `outside_flag_yf` | bool, null | | a session in [D−3, D+4], other than the candidates, with z ≥ 6 and ≥ 3× the candidates' maximum. Class R. |
 
-Committed: **no**. All its value columns are class R; the key `event_id` is U. Only the resulting `events.timing_used` / `timing_status` (class F under the default, U only under ADR 0002's EDGAR rule once it runs; §2.1) are
-committed.
+Committed: **only `event_id` and `gap_verdict_yf`** since milestone 2 (owner decision of 2026-10-29; the registry's
+`keep_restricted`). All its value columns are class R; the key `event_id` is U. Before milestone 2 only the resulting
+`events.timing_used` / `timing_status` (class F under the default, U only under ADR 0002's EDGAR rule once it runs;
+§2.1) were committed.
 
 ### 3.10 `event_window_obs`: one row per (event, rel_day), from rel_day −60 to +10
 
@@ -704,6 +754,34 @@ all `eligible_*` false. The `panel` layer reads `iv_daily`, `chain_expiry`, `eve
 
 Each table is written once, at the end.
 
+### 3.11a `event_iv`: the IV columns of `event_measures`, built early (milestone 2)
+
+One row per event (1:1 with `events`, R24), written by the measures layer after `iv_daily`
+(`src/earnings_vol/measures/event_iv.py`). The names are those of §3.11, so milestone 3 can take the columns over.
+
+| Column | Type | Key | Meaning |
+|---|---|---|---|
+| `event_id` | string | **PK**, FK → `events` (R24) | |
+| `pre_session`, `post_session` | date32, null | | the two ends of the crush: the last observed session at day −1 or day −2, the first at day 0 or +1 (ADR 0004 §4); null without a day 0 or an end |
+| `crush_span_sessions` | int16, null | | sessions from `pre_session` to `post_session` (§3.11) |
+| `evar_m1` | float64, null | | E at `pre_session` (signed), only when that session's next event is this event |
+| `evar_m2` | float64, null | | E at day −2 itself |
+| `implied_move_m1`, `implied_abs_move_total_m1`, `implied_move_status`, `sigma_d_m1`, `cm30_m1`, `ts_slope_m1` | | | `iv_daily` at `pre_session` (§3.11); `implied_move_status` is null without a pre session |
+| `cm30_0` | float64, null | | `iv_daily.cm30_iv` at `post_session` |
+| `crush_mean_adj` | float64, null | | ln `cm30_0` − ln `cm30_m1`: the mean adjustment of a one-step change is nothing (ADR 0004 §2) |
+| `dsigma_d_mean_adj` | float64, null | | ½ ln(σ_d²(post)/σ_d²(pre)), the forward variance between E's two expiries on both days |
+| `front_fixed_expiry` | date32, null | | T1\*: the shortest `ok` expiry at pre with τ ≥ 5 at day 0 (ADR 0003 §a) |
+| `front_fixed_iv_m1`, `front_fixed_iv_0` | float64, null | | its IV at pre and post; at post interpolated in τ (never extrapolated) among that day's usable expiries of T1\*'s class when T1\* is not listed |
+| `front_fixed_interpolated` | bool | | T1\* was not listed at post |
+| `crush_front_fixed` | float64, null | | ln `front_fixed_iv_0` − ln `front_fixed_iv_m1` |
+| `realized_ret_0` | float64, null | | ADR 0003 §e: ln(F_post/F_pre) + r Δcal/365 on the shortest expiry with a forward on both days and τ ≥ 5 at post; r of the pre session |
+| `abs_ret_over_implied` | float64, null | | \|`realized_ret_0`\| / `implied_abs_move_total_m1` (E > 0 only) |
+| `abs_move_cand_max` | float64, null | | §3.11: the larger parity-forward move over the two candidate day-0 sessions of `announce_date_used`; each start the last observed session at its target or one before, each end the first observed at its target or one after; null if a leg cannot be measured. Class U |
+| `flags` | string | | `pre_is_m2`, `post_is_p1`, `next_event_differs` |
+
+Class F apart from `abs_move_cand_max` (U): every other column depends on day 0. Committed: yes (174 KB at
+milestone 2). Not built here, because they need the baseline or the market adjustment: everything else of §3.11.
+
 ### 3.12 `event_measures_vx`: the `cboe5` sample on the CBOE VX\* series (local only)
 
 | Column | Type | Key | Meaning |
@@ -766,8 +844,8 @@ A fit left at statsmodels' default `use_t=False` breaks it, because its p-values
 ## 4. Python → app JSON contract
 
 Every file is `app/public/data/<kind>.json` and uses the fixed envelope (`schema_version`, `kind`, `generated_at`,
-`source_commit`, `data`). The per-view files below arrive with **schema_version 0.2.0**, and the bump is coordinated
-with `app/src/lib/contract.ts`. Every `data` object carries:
+`source_commit`, `data`). The per-view files below arrive with **schema_version 0.2.0** (milestone 1) and are at
+**0.3.0** since milestone 2; each bump is coordinated with `app/src/lib/contract.ts`. Every `data` object carries:
 
 ```
 provenance: { params_hash: string, code_commit: string, sample_label: string,
@@ -779,8 +857,9 @@ values are `null`, never NaN. Arrays indexed by `rel_days` have the same length 
 
 | File (`kind`) | `data` fields | Built from |
 |---|---|---|
-| `meta` (0.2.0, milestone 1) | `project`, `milestone`, `title`, `data_sources[] {name, uses, url, licence, committed}` (`uses` = the tables or series taken from the source), `data_licence {name, url, applies_to[], attribution}` (`applies_to` names the sources the licence covers; `attribution` is the text the About page shows), `sample {label, day0_from, day0_to, n_events, n_securities}` (`n_events` = the last funnel step), `params {event_window, baseline, baseline_exclusion, cm30_horizon_sessions, clock}`, `files[]` (kinds available), `provenance`. Written by `tools/export_app_data.py` and checked by `parseMetaData` in `app/src/lib/meta.ts`, which requires exactly these keys. | `tools/export_app_data.py` constants; `params.yaml`; the committed `data/derived/` tables |
-| `sample_funnel` | `steps[] {step, label, n_events, n_removed, reason}`, `timing_status_counts {confirmed, corrected, inferred, date_corrected, no_document, not_checked, ambiguous}`, `timing_status_by_sample[] {sample, timing_status_counts}`, `by_move_tercile[] {sample, tercile, n_events, timing_status_counts, share_gap_contradicts, n_gap_check_changed, mean_crush_mean_adj}` or null, `by_move_tercile_status`, `evar_nonpositive {n, share}` or null, `evar_nonpositive_status`, `by_sample[] {sample, n_events}`, `lookups {n_done, complete}`, `caveats[]`, `provenance`. *Milestone 1 (0.2.0):* the steps are `calendar_events`, `timing_known` (which also removes `duplicate_row` rows, *since the milestone-1 delta review*), `daily_range`, `crush_observed`, `baseline_minimum` (`export/funnel.py`); `by_move_tercile` and `evar_nonpositive` are null, with a status string, until milestone 2 computes their inputs; the app accepts only null for them at 0.2.0. | `events` (`exclusion_reason`, `sample`, `timing_status`, `gap_check_changed`), `event_measures` (`eligible_*`, `ineligible_reason`, `abs_move_cand_max` for the terciles, `crush_mean_adj`), and `timing_check.gap_verdict_yf` for `share_gap_contradicts`. That share is an aggregate of a class-R input, so it falls under the §2.1 export rules. `by_move_tercile` is ADR 0002 §3's outcome-dependence check, per date sample, because `coarse` has a different look-up rule. *Revised after the delta review:* `unverified` is split into `no_document` and `not_checked`; the terciles are of `abs_move_cand_max`, not \|`realized_ret_0`\| (ledger N7); `sample` and `n_gap_check_changed` are new. |
+| `meta` (0.3.0; 0.2.0 at milestone 1) | `project`, `milestone`, `title`, `data_sources[] {name, uses, url, licence, committed}` (`uses` = the tables or series taken from the source), `data_licence {name, url, applies_to[], attribution}` (`applies_to` names the sources the licence covers; `attribution` is the text the About page shows), `sample {label, day0_from, day0_to, n_events, n_securities}` (`n_events` = the last funnel step), `params {event_window, baseline, baseline_exclusion, cm30_horizon_sessions, clock}`, `files[]` (kinds available), `provenance`. Written by `tools/export_app_data.py` and checked by `parseMetaData` in `app/src/lib/meta.ts`, which requires exactly these keys. | `tools/export_app_data.py` constants; `params.yaml`; the committed `data/derived/` tables |
+| `sample_funnel` | `steps[] {step, label, n_events, n_removed, reason}`, `timing_status_counts {confirmed, corrected, inferred, date_corrected, no_document, not_checked, ambiguous}`, `timing_status_by_sample[] {sample, timing_status_counts}`, `by_move_tercile[] {sample, tercile, n_events, timing_status_counts, share_gap_contradicts, n_gap_check_changed, mean_crush_mean_adj}` or null, `by_move_tercile_status`, `evar_nonpositive {n, share}` or null, `evar_nonpositive_status`, `by_sample[] {sample, n_events}`, `lookups {n_done, complete}`, `caveats[]`, `provenance`. *Milestone 1 (0.2.0):* the steps are `calendar_events`, `timing_known` (which also removes `duplicate_row` rows, *since the milestone-1 delta review*), `daily_range`, `crush_observed`, `baseline_minimum` (`export/funnel.py`); `by_move_tercile` and `evar_nonpositive` are null, with a status string, until milestone 2 computes their inputs; the app accepts only null for them at 0.2.0. | `events` (`exclusion_reason`, `sample`, `timing_status`, `gap_check_changed`), `event_measures` (`eligible_*`, `ineligible_reason`, `abs_move_cand_max` for the terciles, `crush_mean_adj`), and `timing_check.gap_verdict_yf` for `share_gap_contradicts`. That share is an aggregate of a class-R input, so it falls under the §2.1 export rules. `by_move_tercile` is ADR 0002 §3's outcome-dependence check, per date sample, because `coarse` has a different look-up rule. *Revised after the delta review:* `unverified` is split into `no_document` and `not_checked`; the terciles are of `abs_move_cand_max`, not \|`realized_ret_0`\| (ledger N7); `sample` and `n_gap_check_changed` are new. *Milestone 2 (0.3.0):* a step `iv_usable` (a `cm30_iv` on day −1 and day 0) comes before `baseline_minimum`, whose clean sessions now need a `cm30_iv` (ADR 0004 §1 rule 2); `by_move_tercile` rows add `mean_abs_move` and `n_crush`, and their `share_gap_contradicts` is among the events with a gap verdict; `evar_nonpositive` is `{n_events, n_identified, n, share}` over the events of the last step (E at day −1, `n` of them ≤ 0); the inputs are `iv_daily`, `event_iv` (in place of `event_measures` until milestone 3) and the committed `timing_check.gap_verdict_yf`. |
+| `iv_measures` (0.3.0, milestone 2) | `sample {label, n_events}`, `implied_move {units, n_identified, n_nonpositive, n, sqrt_mean_evar, quantiles {p10, p25, p50, p75, p90} or null, bin_edges[], counts[]}` (√E at day −1 of the primary events with E > 0; `sqrt_mean_evar` = √(mean E) over all events with an E, signed), `crush {units, n, mean, quantiles, bin_edges[], counts[]}` (`crush_mean_adj`), `caveats[]`, `provenance`. `len(bin_edges) = len(counts) + 1`, `sum(counts) = n`. | `event_iv` for the events of the funnel's last step (`export/iv_view.py`) |
 | `event_paths` | `rel_days[]` (−10…10), `series[] {measure, adjustment, units, subgroup_key, subgroup_value, n[], mean[], ci_lo[], ci_hi[]}`, `per_event[] {event_id, ticker, sector, day0, timing_used, values[]}` (`aliv_mean_adj` of cm30, for animated paths) | `event_window_obs`, `results` (`aliv_path`). Market-adjusted `series[]` exist only for `all` and `timing` (§2.1 export rules); other subgroups' series are mean-adjusted. A suppressed rel_day is `null`, and its `n` is not shown. |
 | `heatmap` | `grids[] {id, title, measure, units, row_labels[], row_keys[], col_labels[], values[][], n[][], q[][] or null}`. Grid `company_by_season`: rows = securities (sector order), cols = seasons, value = `crush_mean_adj` (one event per cell, so per-event data). Grid `sector_by_regime`: rows = sectors, cols = `vix_regime`, value = mean **mean-adjusted** crush with BH q. For the one-session crush the two adjustments must agree within 10% (ADR 0004). | `event_measures`, `results` |
 | `terrain` | `measure`, `units`, `rel_days[]`, `rows[] {security_id, ticker, sector, n_events}`, `values[][]` (rows × rel_days, mean `aliv_mean_adj`, null where missing), `row_order` (text) | `event_window_obs` aggregated per security. A per-security mean covers ≈ 7 dates, so it is treated as per-event data and uses mean-adjusted values (§2.1). Matches `app/src/lib/terrain.ts` `values[company][eventDay]`. |
@@ -830,6 +909,7 @@ drawn.
 | R21 | `events` | `event_measures_vx` | `event_id` → `event_id` | 1 : 0..1 | local only; the `cboe5` members |
 | R22 | `security` | `session_snapshot` | `security_id` → `security_id` | 1 : 0..* | milestone 1; folded into `iv_daily` at milestone 2 |
 | R23 | `session` | `session_snapshot` | `session_date` → `session_date` | 1 : 0..* | milestone 1 |
+| R24 | `events` | `event_iv` | `event_id` → `event_id` | 1 : 1 | milestone 2; folded into `event_measures` (R15) at milestone 3 |
 | — | `results` | — | — | — | aggregates; keyed by names, no FK |
 
 Relationships-only sketch (the full attribute ERD is generated from §3 and the table above):
@@ -856,6 +936,7 @@ erDiagram
   EVENTS |o--o{ CHAIN_EXPIRY : "next event of"
   SECURITY ||--o{ SESSION_SNAPSHOT : "observed on"
   SESSION ||--o{ SESSION_SNAPSHOT : has
+  EVENTS ||--|| EVENT_IV : "IV measures of"
 ```
 
 ---
@@ -898,3 +979,10 @@ erDiagram
    override.** Until then every other event keeps the calendar label as `not_checked`, the build invariant is reported
    and not enforced (`params.yaml`: `timing.lookups_complete: false`), and the labels are marked provisional in the
    manifests, the funnel and the app.
+8. **Owner question for the milestone that plans the VX\* validation (added after the milestone-2 review).** Cboe's
+   terms may restrict using Cboe data to verify other data: in the review's paraphrase (Channel A §G4), the website
+   terms of use (last updated 2022-11-16) bar using the materials to verify or correct other data or information.
+   ADR 0003's validation item 1 compares our `cm30_blind_iv` with the VX\* indices, and ADR 0001 §7 plans to export
+   statistics such as a correlation with VXAPL. Whether the VX\* downloads fall under those website terms or under a separate data
+   agreement, and whether that comparison is allowed, is not settled. **Not built; the owner decides before that
+   milestone plans it.** Nothing in this repository uses Cboe data yet.

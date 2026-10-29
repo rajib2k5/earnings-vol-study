@@ -22,6 +22,13 @@
 #                  Committed by default (owner decision, data model §6 item 3).
 #   enum      the allowed values of an "enum" column. Never a NULL member.
 #
+# CLASS R IN A COMMITTED TABLE (owner decision, 2026-10-29)
+#   The owner allowed real Yahoo, Cboe and FRED values in the committed tables
+#   the app or the docs need. A table names such columns in keep_restricted;
+#   store.write_derived keeps exactly those and still drops every other class-R
+#   column. Milestone 2 keeps one: timing_check.gap_verdict_yf, for the sample
+#   funnel's share of gap contradictions by move tercile.
+#
 # THE RULE THE TESTS ENFORCE
 #   Over value columns (keys excluded), a column is class R exactly when its
 #   name ends in _yf or _cboe. A forgotten suffix and a stray suffix both fail.
@@ -49,6 +56,13 @@ ERAS = ("none", "weekly", "mwf", "daily")
 MATCH_STATUS = ("matched", "orphan", "pre_calendar", "ticker_conflict")
 GAP_VERDICT = ("supports", "contradicts", "quiet")
 SNAPSHOT_STATUS = ("ok", "stale_repeat", "missing")
+# Milestone 2 (data model §3.5, §3.6): the values measures/chain.py and
+# measures/termstructure.py may write.
+ATM_METHODS = ("bracket_linear", "quadratic", "none")
+CHAIN_STATUS = ("ok", "no_atm", "no_forward", "stale")
+CM30_METHODS = ("interp_clean", "interp_spanning", "extrap_clean", "extrap_spanning", "two_component",
+                "flat_sigma", "none")
+IMPLIED_MOVE_STATUS = ("ok", "nonpositive_event_variance", "not_identified")
 
 
 @dataclass(frozen=True)
@@ -75,6 +89,14 @@ class Table:
     columns: tuple[Column, ...]
     committed: bool                      # does a copy go to data/derived/?
     unique: tuple[tuple[str, ...], ...] = field(default=())   # extra unique keys
+    keep_restricted: tuple[str, ...] = ()  # class-R columns the committed copy keeps (see the header)
+
+    def __post_init__(self):
+        bad = [n for n in self.keep_restricted if n not in self.names or self.column(n).licence != "R"]
+        if bad:
+            raise ValueError(f"{self.name}: keep_restricted names {bad}, which are not class-R columns")
+        if self.keep_restricted and not self.committed:
+            raise ValueError(f"{self.name}: keep_restricted needs a committed table")
 
     @property
     def primary_key(self) -> tuple[str, ...]:
@@ -94,7 +116,7 @@ class Table:
         return tuple(c for c in self.columns if not c.key)
 
     def restricted(self) -> tuple[str, ...]:
-        """Names of the class-R columns: they never leave this machine."""
+        """Names of the class-R columns: they leave this machine only if named in keep_restricted."""
         return tuple(c.name for c in self.columns if c.licence == "R")
 
 
@@ -199,7 +221,7 @@ TIMING_CHECK = Table("timing_check", (
     C("rel_day_max_outside_yf", "int16", nullable=True, licence="R"),
     C("gap_verdict_yf", "enum", nullable=True, licence="R", enum=GAP_VERDICT),
     C("outside_flag_yf", "bool", nullable=True, licence="R"),
-), committed=False)
+), committed=True, keep_restricted=("gap_verdict_yf",))   # milestone 2: the verdict only (owner, 2026-10-29)
 
 # --- milestone 1: the first columns of iv_daily (data model §3.6), built early ---
 SESSION_SNAPSHOT = Table("session_snapshot", (
@@ -209,8 +231,107 @@ SESSION_SNAPSHOT = Table("session_snapshot", (
     C("snapshot_status", "enum", enum=SNAPSHOT_STATUS),
 ), committed=True)
 
+# --- milestone 2: data model §3.5, the atom (local only) ------------------------
+# A column that depends on day 0 (through the next event or the clean/spanning
+# split) is class F, like events.day0_session: it is committable exactly when
+# the timing label is (data model §2.1).
+CHAIN_EXPIRY = Table("chain_expiry", (
+    C("security_id", "string", key=True),
+    C("session_date", "date32", key=True),
+    C("expiration", "date32", key=True),
+    C("snapshot_date", "date32"),
+    C("tau_sessions", "int16"),
+    C("tau_cal_days", "int16"),
+    C("df", "float64"),                                # from FRED DTB3: local only
+    C("forward", "float64", nullable=True),            # null iff status no_forward or stale
+    C("forward_n_strikes", "int16"),
+    C("forward_dispersion", "float64", nullable=True),
+    C("n_strikes_valid", "int16"),
+    C("strike_lo", "float64", nullable=True),
+    C("strike_hi", "float64", nullable=True),
+    C("k_lo", "float64", nullable=True),
+    C("k_hi", "float64", nullable=True),
+    C("rel_spread_lo", "float64", nullable=True),
+    C("rel_spread_hi", "float64", nullable=True),
+    C("w_atm", "float64", nullable=True),              # null unless status ok
+    C("iv_atm", "float64", nullable=True),
+    C("atm_method", "enum", enum=ATM_METHODS),
+    C("vendor_iv_atm", "float64", nullable=True),
+    C("straddle_atm", "float64", nullable=True),
+    C("iv_straddle", "float64", nullable=True),
+    C("next_event_id", "string", nullable=True, licence="F"),
+    C("spans_next_event", "bool", nullable=True, licence="F"),
+    C("status", "enum", enum=CHAIN_STATUS),
+    C("flags", "string"),
+), committed=False)
+
+# --- milestone 2: data model §3.6 ------------------------------------------------
+IV_DAILY = Table("iv_daily", (
+    C("security_id", "string", key=True),
+    C("session_date", "date32", key=True),
+    C("snapshot_date", "date32", nullable=True),
+    C("snapshot_status", "enum", enum=SNAPSHOT_STATUS),
+    C("next_event_id", "string", nullable=True, licence="F"),
+    C("sessions_to_next_event", "int16", nullable=True, licence="F"),
+    C("prev_event_id", "string", nullable=True, licence="F"),
+    C("sessions_since_prev_event", "int16", nullable=True, licence="F"),
+    C("front_expiry", "date32", nullable=True),
+    C("front_tau", "int16", nullable=True),
+    C("front_atm_iv", "float64", nullable=True),
+    C("cm30_iv", "float64", nullable=True, licence="F"),
+    C("cm30_method", "enum", licence="F", enum=CM30_METHODS),
+    C("cm30_exp_lo", "date32", nullable=True, licence="F"),
+    C("cm30_exp_hi", "date32", nullable=True, licence="F"),
+    C("cm30_blind_iv", "float64", nullable=True),
+    C("sigma_d_iv", "float64", nullable=True, licence="F"),
+    C("event_var", "float64", nullable=True, licence="F"),
+    C("ev_exp1", "date32", nullable=True, licence="F"),
+    C("ev_exp2", "date32", nullable=True, licence="F"),
+    C("ev_tau1", "int16", nullable=True, licence="F"),
+    C("ev_tau2", "int16", nullable=True, licence="F"),
+    C("ev_w1", "float64", nullable=True, licence="F"),
+    C("ev_w2", "float64", nullable=True, licence="F"),
+    C("implied_move", "float64", nullable=True, licence="F"),
+    C("implied_abs_move", "float64", nullable=True, licence="F"),
+    C("implied_abs_move_total", "float64", nullable=True, licence="F"),
+    C("implied_move_status", "enum", licence="F", enum=IMPLIED_MOVE_STATUS),
+    C("ts_slope", "float64", nullable=True),
+    C("forward_front", "float64", nullable=True),      # display only (data model §3.6)
+    C("vendor_iv_current", "float64", nullable=True),
+    C("flags", "string", licence="F"),
+), committed=True)
+
+# --- milestone 2: the IV columns of event_measures (data model §3.11a) -----------
+EVENT_IV = Table("event_iv", (
+    C("event_id", "string", key=True),
+    C("pre_session", "date32", nullable=True, licence="F"),
+    C("post_session", "date32", nullable=True, licence="F"),
+    C("crush_span_sessions", "int16", nullable=True, licence="F"),
+    C("evar_m1", "float64", nullable=True, licence="F"),
+    C("evar_m2", "float64", nullable=True, licence="F"),
+    C("implied_move_m1", "float64", nullable=True, licence="F"),
+    C("implied_abs_move_total_m1", "float64", nullable=True, licence="F"),
+    C("implied_move_status", "enum", nullable=True, licence="F", enum=IMPLIED_MOVE_STATUS),
+    C("sigma_d_m1", "float64", nullable=True, licence="F"),
+    C("cm30_m1", "float64", nullable=True, licence="F"),
+    C("cm30_0", "float64", nullable=True, licence="F"),
+    C("ts_slope_m1", "float64", nullable=True, licence="F"),
+    C("crush_mean_adj", "float64", nullable=True, licence="F"),
+    C("dsigma_d_mean_adj", "float64", nullable=True, licence="F"),
+    C("front_fixed_expiry", "date32", nullable=True, licence="F"),
+    C("front_fixed_iv_m1", "float64", nullable=True, licence="F"),
+    C("front_fixed_iv_0", "float64", nullable=True, licence="F"),
+    C("front_fixed_interpolated", "bool", licence="F"),
+    C("crush_front_fixed", "float64", nullable=True, licence="F"),
+    C("realized_ret_0", "float64", nullable=True, licence="F"),
+    C("abs_ret_over_implied", "float64", nullable=True, licence="F"),
+    C("abs_move_cand_max", "float64", nullable=True),   # label-free: class U (data model §3.11)
+    C("flags", "string", licence="F"),
+), committed=True)
+
 REGISTRY: dict[str, Table] = {t.name: t for t in (
     SECURITY, TICKER_ALIAS, SESSION, MARKET_DAILY, EVENTS, EPS, TIMING_CHECK, SESSION_SNAPSHOT,
+    CHAIN_EXPIRY, IV_DAILY, EVENT_IV,
 )}
 
 

@@ -3,7 +3,10 @@
 # (R1-R23; R4, R7 and R14 are retired and not drawn). Milestone 1 added session_snapshot (R22, R23),
 # security.cik, events.announce_date_used and nullable timing_check value columns. The milestone-1
 # review removed security.universe_rank (a Yahoo-derived rank; data-model 3.1) and put cik in the
-# code's column order.
+# code's column order. Milestone 2 built chain_expiry and iv_daily (the value columns of
+# chain_expiry that are null without a forward or an ATM are drawn nullable, as the registry has
+# them), added event_iv (R24: the IV columns of event_measures, built early by the measures layer)
+# and iv_measures.json, and points the funnel's lineage at iv_daily, event_iv and timing_check.
 #
 # Kit limits that shaped this file (also listed in docs/architecture/README.md):
 #  - the kit rejects self-referencing foreign keys, so events.prev_event_id / next_event_id
@@ -27,6 +30,7 @@
 # table(s) it is exported from, and carry no cardinality meaning. At milestone 1 meta.json and
 # sample_funnel.json are written at schema 0.2.0 with the keys drawn here; the other view files do
 # not exist yet. (The _planned type suffix that marked meta.json's not-yet-written keys is gone.)
+# Milestone 2 writes all three at schema 0.3.0; iv_measures.json is new.
 # events.edgar_accession / edgar_accepted_utc: SEC EDGAR is accepted (2026-10-28), gated on the
 # owner's contact string. The client refuses to run until SEC_EDGAR_USER_AGENT is set, so both columns
 # stay null until then. A column cannot carry a note in the kit, so the events entity label says it.
@@ -72,18 +76,18 @@ entities:
       - {name: tau_sessions, type: int16}
       - {name: tau_cal_days, type: int16}
       - {name: df, type: float64}
-      - {name: forward, type: float64}
+      - {name: forward, type: float64, nullable: true}
       - {name: forward_n_strikes, type: int16}
-      - {name: forward_dispersion, type: float64}
+      - {name: forward_dispersion, type: float64, nullable: true}
       - {name: n_strikes_valid, type: int16}
-      - {name: strike_lo, type: float64}
-      - {name: strike_hi, type: float64}
-      - {name: k_lo, type: float64}
-      - {name: k_hi, type: float64}
-      - {name: rel_spread_lo, type: float64}
-      - {name: rel_spread_hi, type: float64}
-      - {name: w_atm, type: float64}
-      - {name: iv_atm, type: float64}
+      - {name: strike_lo, type: float64, nullable: true}
+      - {name: strike_hi, type: float64, nullable: true}
+      - {name: k_lo, type: float64, nullable: true}
+      - {name: k_hi, type: float64, nullable: true}
+      - {name: rel_spread_lo, type: float64, nullable: true}
+      - {name: rel_spread_hi, type: float64, nullable: true}
+      - {name: w_atm, type: float64, nullable: true}
+      - {name: iv_atm, type: float64, nullable: true}
       - {name: atm_method, type: enum}
       - {name: vendor_iv_atm, type: float64, nullable: true}
       - {name: straddle_atm, type: float64, nullable: true}
@@ -125,6 +129,33 @@ entities:
       - {name: ts_slope, type: float64, nullable: true}
       - {name: forward_front, type: float64, nullable: true}
       - {name: vendor_iv_current, type: float64, nullable: true}
+      - {name: flags, type: string}
+  - id: event_iv
+    label: "event_iv (milestone 2: the IV columns of event_measures)"
+    columns:
+      - {name: event_id, type: string, pk: true, fk: events.event_id}
+      - {name: pre_session, type: date32, nullable: true}
+      - {name: post_session, type: date32, nullable: true}
+      - {name: crush_span_sessions, type: int16, nullable: true}
+      - {name: evar_m1, type: float64, nullable: true}
+      - {name: evar_m2, type: float64, nullable: true}
+      - {name: implied_move_m1, type: float64, nullable: true}
+      - {name: implied_abs_move_total_m1, type: float64, nullable: true}
+      - {name: implied_move_status, type: enum, nullable: true}
+      - {name: sigma_d_m1, type: float64, nullable: true}
+      - {name: cm30_m1, type: float64, nullable: true}
+      - {name: cm30_0, type: float64, nullable: true}
+      - {name: ts_slope_m1, type: float64, nullable: true}
+      - {name: crush_mean_adj, type: float64, nullable: true}
+      - {name: dsigma_d_mean_adj, type: float64, nullable: true}
+      - {name: front_fixed_expiry, type: date32, nullable: true}
+      - {name: front_fixed_iv_m1, type: float64, nullable: true}
+      - {name: front_fixed_iv_0, type: float64, nullable: true}
+      - {name: front_fixed_interpolated, type: bool}
+      - {name: crush_front_fixed, type: float64, nullable: true}
+      - {name: realized_ret_0, type: float64, nullable: true}
+      - {name: abs_ret_over_implied, type: float64, nullable: true}
+      - {name: abs_move_cand_max, type: float64, nullable: true}
       - {name: flags, type: string}
   - id: session_snapshot
     columns:
@@ -341,8 +372,19 @@ entities:
       - {name: caveats, type: array}
       - {name: provenance, type: object}
       - {name: from_events, type: string, fk: events.event_id, nullable: true}
-      - {name: from_event_measures, type: string, fk: event_measures.event_id, nullable: true}
+      - {name: from_iv_daily, type: string, fk: iv_daily.security_id, nullable: true}
+      - {name: from_event_iv, type: string, fk: event_iv.event_id, nullable: true}
       - {name: from_timing_check, type: string, fk: timing_check.event_id, nullable: true}
+  - id: json_iv_measures
+    label: "iv_measures.json"
+    columns:
+      - {name: kind, type: string, pk: true}
+      - {name: sample, type: object}
+      - {name: implied_move, type: object}
+      - {name: crush, type: object}
+      - {name: caveats, type: array}
+      - {name: provenance, type: object}
+      - {name: from_event_iv, type: string, fk: event_iv.event_id, nullable: true}
   - id: json_event_paths
     label: "event_paths.json"
     columns:
@@ -439,12 +481,15 @@ relations:
   - {from: event_measures_vx.event_id, to: events.event_id, cardinality: "0..1", label: "R21 cboe5 member"}
   - {from: session_snapshot.security_id, to: security.security_id, cardinality: "0..*", label: "R22 observed on"}
   - {from: session_snapshot.session_date, to: session.session_date, cardinality: "0..*", label: "R23 has"}
+  - {from: event_iv.event_id, to: events.event_id, cardinality: "1..1", label: "R24 IV measures of"}
 
   # JSON files: lineage links, not stored foreign keys (README notes)
   - {from: json_meta.from_events, to: events.event_id, cardinality: "0..*", label: feeds}
   - {from: json_sample_funnel.from_events, to: events.event_id, cardinality: "0..*", label: feeds}
-  - {from: json_sample_funnel.from_event_measures, to: event_measures.event_id, cardinality: "0..*", label: feeds}
+  - {from: json_sample_funnel.from_iv_daily, to: iv_daily.security_id, cardinality: "0..*", label: feeds}
+  - {from: json_sample_funnel.from_event_iv, to: event_iv.event_id, cardinality: "0..*", label: feeds}
   - {from: json_sample_funnel.from_timing_check, to: timing_check.event_id, cardinality: "0..*", label: "feeds (aggregate only)"}
+  - {from: json_iv_measures.from_event_iv, to: event_iv.event_id, cardinality: "0..*", label: "feeds (aggregate only)"}
   - {from: json_event_paths.from_event_window_obs, to: event_window_obs.event_id, cardinality: "0..*", label: feeds}
   - {from: json_event_paths.from_results, to: results.result_id, cardinality: "0..*", label: feeds}
   - {from: json_heatmap.from_event_measures, to: event_measures.event_id, cardinality: "0..*", label: feeds}

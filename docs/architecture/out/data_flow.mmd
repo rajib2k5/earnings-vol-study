@@ -25,12 +25,14 @@ flowchart TB
     t_chain[("chain_expiry\nforward, w_atm, tau")]
     t_iv[("iv_daily\ncm30_iv, event_var, sigma_d_iv")]
     t_snap[("session_snapshot\nsnapshot_status (milestone 1)")]
+    t_eiv[("event_iv\nevar_m1, crush_mean_adj, abs_move_cand_max")]
     t_ewo[("event_window_obs\nrel_day, aliv_mean_adj, in_baseline")]
     t_em[("event_measures\ncrush, runup, persist, price_ref, eligible_*")]
     t_vx[("event_measures_vx\ncboe5 members, local only")]
     t_results[("results\nstatistic, estimand, n_clusters_firm, p_holm")]
     j_meta[/"meta.json"/]
     j_funnel[/"sample_funnel.json"/]
+    j_ivm[/"iv_measures.json"/]
     j_paths[/"event_paths.json"/]
     j_heat[/"heatmap.json"/]
     j_terrain[/"terrain.json"/]
@@ -65,6 +67,10 @@ flowchart TB
     t_chain -->|"w_atm, forward, tau"| t_iv
     t_events -->|"next / prev event"| t_iv
     s_vol -.->|"iv_current"| t_iv
+    t_snap -->|"snapshot_status, snapshot_date"| t_iv
+    t_iv -->|"E, cm30 at day -1 and day 0"| t_eiv
+    t_chain -->|"T1*, forwards (realised move)"| t_eiv
+    t_events -->|"day 0, day -1, announce_date_used"| t_eiv
     s_chain -->|"date, act_symbol"| t_snap
     t_alias -->|"security_id"| t_snap
     t_session -->|"session_date"| t_snap
@@ -99,9 +105,10 @@ flowchart TB
     s_vx -.->|"VX* closes (stats only)"| t_results
     t_events -->|"n_events"| j_meta
     t_events -->|"timing_status, gap_check_changed, exclusion_reason, sample"| j_funnel
-    t_em -->|"eligible_*, abs_move_cand_max terciles, crush_mean_adj"| j_funnel
+    t_eiv -->|"abs_move_cand_max terciles, crush_mean_adj, evar_m1"| j_funnel
     t_timing -.->|"gap_verdict_yf share by tercile"| j_funnel
-    t_snap -->|"observed sessions (baseline step)"| j_funnel
+    t_iv -->|"observed sessions with cm30 (IV and baseline steps)"| j_funnel
+    t_eiv -->|"implied_move_m1, crush_mean_adj (histograms)"| j_ivm
     t_ewo -->|"per-event aliv_mean_adj"| j_paths
     t_results -->|"aliv_path"| j_paths
     t_em -->|"crush_mean_adj by season"| j_heat
@@ -116,9 +123,9 @@ flowchart TB
     classDef source fill:#E0F2FE,stroke:#0284C7,color:#0F172A
     class s_cal,s_eps,s_est,s_chain,s_vol source
     classDef store fill:#FEF3C7,stroke:#D97706,color:#0F172A
-    class s_mirror,t_security,t_alias,t_session,t_market,t_timing,t_events,t_eps,t_chain,t_iv,t_snap,t_ewo,t_em,t_vx,t_results store
+    class s_mirror,t_security,t_alias,t_session,t_market,t_timing,t_events,t_eps,t_chain,t_iv,t_snap,t_eiv,t_ewo,t_em,t_vx,t_results store
     classDef output fill:#D1FAE5,stroke:#059669,color:#0F172A
-    class j_meta,j_funnel,j_paths,j_heat,j_terrain,j_ivr,j_tests,j_drivers,j_valid output
+    class j_meta,j_funnel,j_ivm,j_paths,j_heat,j_terrain,j_ivr,j_tests,j_drivers,j_valid output
     classDef external fill:#F1F5F9,stroke:#475569,color:#0F172A
     class s_sp,s_xnys,s_fred,s_yf,s_vx,s_pr,s_edgar external
     linkStyle 11 stroke:#94A3B8
@@ -126,15 +133,15 @@ flowchart TB
     linkStyle 17 stroke:#94A3B8
     linkStyle 18 stroke:#94A3B8
     linkStyle 26 stroke:#94A3B8
-    linkStyle 38 stroke:#94A3B8
-    linkStyle 39 stroke:#94A3B8
-    linkStyle 45 stroke:#94A3B8
-    linkStyle 46 stroke:#94A3B8
-    linkStyle 47 stroke:#94A3B8
-    linkStyle 48 stroke:#94A3B8
+    linkStyle 42 stroke:#94A3B8
+    linkStyle 43 stroke:#94A3B8
     linkStyle 49 stroke:#94A3B8
+    linkStyle 50 stroke:#94A3B8
+    linkStyle 51 stroke:#94A3B8
     linkStyle 52 stroke:#94A3B8
+    linkStyle 53 stroke:#94A3B8
     linkStyle 56 stroke:#94A3B8
-    linkStyle 57 stroke:#94A3B8
-    linkStyle 58 stroke:#94A3B8
+    linkStyle 60 stroke:#94A3B8
+    linkStyle 61 stroke:#94A3B8
     linkStyle 62 stroke:#94A3B8
+    linkStyle 66 stroke:#94A3B8

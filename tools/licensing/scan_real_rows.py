@@ -18,11 +18,16 @@ flagged when:
 4. it holds an integer of 6 or more digits (separators ``,``, ``_`` or space allowed) equal to an
    undated raw integer (a market cap) or to a raw file's size.
 
-DoltHub-derived rows are not raw here: they may be committed under CC BY-SA 4.0 with attribution.
+Limits: it reads text files only, so it does not look inside Parquet or other binary files, and it
+indexes only the Yahoo, FRED and Cboe raw files. It does not index DoltHub data, which the owner allows
+in small derived tables under CC BY-SA 4.0 (decision of 2026-10-29, ADR 0001 §7).
 Rule 3 can flag a coincidence; the fix is the same: pick another made-up number.
 
 It prints only ``file:line`` and a count, never the matched text. Exit 0 clean, 1 something
-flagged, 2 no raw data. It is not a test, because CI has no raw data; run it before every push.
+flagged, 2 no raw data. Since the owner decision of 2026-10-29 (ADR 0001 §7), real values may be committed, so
+this is no longer a push gate. It remains a way to find where real values sit, for example in tests, which keep
+made-up values. The push gate is now ``tools/licensing/check_data_files.py``: no raw vendor file and no oversized
+data file.
 """
 
 from __future__ import annotations

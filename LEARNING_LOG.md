@@ -6,20 +6,25 @@ The index of what this project teaches, one milestone at a time. Each milestone 
 [`docs/milestones/`](docs/milestones/). The goal is that the owner can explain the architecture and the code, at a low
 level, in an interview.
 
-Last updated: 2026-10-29 (milestone 1), after the milestone-1 review and its delta review.
+Last updated: 2026-10-29 (milestone 2), after the milestone-2 review and its fixes.
 
 ## Milestones
 
 | # | Milestone | Status | Page | Checkpoint | Pairs | Re-asks | Explain-it-back |
 |---|---|---|---|---|---|---|---|
 | 0 | Scaffold and design | done, pending owner review | [`docs/milestones/00-scaffold-and-design.md`](docs/milestones/00-scaffold-and-design.md) | queued, 0 of 14 answered | | | |
-| 1 | Universe and events | done, pending owner review (timing labels provisional: 20 of 473 required press-release look-ups done) | [`docs/milestones/01-universe-and-events.md`](docs/milestones/01-universe-and-events.md) | | | | |
-| 2 | IV measures | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
+| 1 | Universe and events | done, pending owner review (timing labels provisional: 20 of 473 required press-release look-ups done) | [`docs/milestones/01-universe-and-events.md`](docs/milestones/01-universe-and-events.md) | queued, 0 of 14 answered | | | |
+| 2 | IV measures | done, pending owner review and the adversarial review (timing labels still provisional) | [`docs/milestones/02-iv-measures.md`](docs/milestones/02-iv-measures.md) | | | | |
 | 3 | Event study | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
 | 4 | Drivers | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
 | 5 | Report | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
 
 The milestone names come from the [PR/FAQ](docs/prfaq.md).
+
+## Queued checkpoints
+
+- Milestone 00 (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 0" to resume it.
+- Milestone 01 (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 1" to resume it.
 
 ## Missed topics
 
@@ -43,7 +48,7 @@ None yet.
 | [`docs/architecture/README.md`](docs/architecture/README.md) | The architecture diagrams. |
 | [`docs/architecture/data-model.md`](docs/architecture/data-model.md) | Every table, key, licence class, and the Python to app JSON contract. |
 | [`research/prototypes/README.md`](research/prototypes/README.md) | The throwaway scripts behind numbers quoted in the ADRs (event spacing, the AAPL worked example, the leak range, the KP and real-design size simulations, why IV levels must not be summed). Not tested to the package's standard. |
-| [`data/derived/README.md`](data/derived/README.md) | The committed derived data: six Parquet tables from milestone 1 (`session`, `security`, `ticker_alias`, `events`, `eps`, `session_snapshot`) plus `earnings_calendar_30_large_caps.json` (a DoltHub extract that the spacing script reads), and the CC BY-SA 4.0 terms. |
+| [`data/derived/README.md`](data/derived/README.md) | The committed derived data: nine Parquet tables, six from milestone 1 (`session`, `security`, `ticker_alias`, `events`, `eps`, `session_snapshot`) and three from milestone 2 (`iv_daily`, `event_iv`, `timing_check` with its gap verdict only), plus `earnings_calendar_30_large_caps.json` (a DoltHub extract that the spacing script reads); the CC BY-SA 4.0 terms, and the two Yahoo-derived columns that fall under Yahoo's terms instead. |
 
 ## My predictions
 

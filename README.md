@@ -9,10 +9,13 @@ React app only checks and draws those files. Every design choice is written down
 **Not financial advice.** This is research for learning. It describes the past, ignores transaction costs and covers
 large, liquid US stocks only.
 
-**Status:** Milestone 1: universe and events (done, pending the owner's review). The pipeline now chooses the 50
-companies, builds their 1,353 earnings announcements with the session each one reached the option market (day 0), the
-before/after-market label and its status, matches each announcement to its EPS period, and counts how many events
-survive each sample rule (the app's Sample page draws the counts). No implied volatility is computed yet, so there are
+**Status:** Milestone 2: IV measures (done, pending the owner's review). Milestone 1 chose the 50 companies, built
+their 1,353 earnings announcements with the session each one reached the option market (day 0), the
+before/after-market label and its status, and matched each announcement to its EPS period. Milestone 2 recomputes
+implied volatility from the DoltHub bid/ask quotes (Black-76 on the put-call-parity forward): per company and session
+the event-aware 30-day IV, the event variance and the implied move; per announcement the 30-day and front-expiry
+crushes and the realised move. The primary sample holds 347 events; the app's Sample page draws the funnel, and its IV
+measures page draws how the implied move and the crush are distributed. No statistical test has run yet, so there are
 no results. **The timing labels are provisional**: 20 press releases were looked up and timed, and the rest keep the
 calendar's labels until SEC EDGAR filing times can be read. EDGAR is accepted as the timing source (2026-10-28), but
 its client runs only once the owner's contact string is set; until then the rule in force is the company's press
@@ -54,18 +57,19 @@ earnings-vol-study/
 │   ├── store.py                the writer: checks a table against the registry, writes Parquet and a manifest
 │   ├── ingest/                 Dolt (through a private mirror), Wikipedia, Yahoo, FRED; the gated EDGAR client
 │   ├── events/                 sessions, market_daily, security, events, eps, timing_check
-│   ├── measures/               session_snapshot, the parity forward, the snapshot-is-the-close check
-│   ├── panel/                  the clean baseline (the rest arrives at milestone 2)
-│   └── export/                 the sample funnel
+│   ├── measures/               session_snapshot, Black-76 on the parity forward, chain_expiry, iv_daily, event_iv
+│   ├── panel/                  the clean baseline (the rest arrives at milestone 3)
+│   └── export/                 the sample funnel and the IV-measures view
 ├── tools/
-│   ├── export_app_data.py      writes app/public/data/meta.json and sample_funnel.json
+│   ├── export_app_data.py      writes app/public/data/meta.json, sample_funnel.json and iv_measures.json
 │   ├── build_notebooks.py      generates the notebooks from src/
 │   ├── diagrams/               vendored local diagram toolkit (build.py + diagram_kit/); also public at github.com/rajib2k5/vol-diagram-kit
 │   └── blender/                3D hero-render script
 ├── tests/                      pytest tests for src/ and tools/
 ├── notebooks/                  generated notebooks (never edited by hand)
 │   ├── 00_scaffold_tour.ipynb
-│   └── 01_events.ipynb
+│   ├── 01_events.ipynb
+│   └── 02_iv_measures.ipynb
 ├── data/derived/               small derived tables, CC BY-SA 4.0
 │   ├── README.md               what is here, and the licence terms
 │   ├── LICENSE                 CC BY-SA 4.0 notice
@@ -128,7 +132,7 @@ npm run verify                                   # inside app/: lint + tests + c
 
 `uv run python tools/build_notebooks.py` (without `--check`) rewrites the notebooks. Never edit them by hand.
 
-### Rebuilding the data (milestone 1)
+### Rebuilding the data (milestones 1 and 2)
 
 This needs the `dolt` binary (2.6.1 was used), the two shared DoltHub clones in `$VOL_DATA_DIR/dolthub/` (`earnings`
 and `options`; `cd $VOL_DATA_DIR/dolthub && dolt clone post-no-preference/<name>`), about 10 GB of disk for the mirrors,
@@ -138,14 +142,14 @@ on the development machine.
 ```bash
 uv run python -m earnings_vol.ingest.run --chain-from 2020-01-01   # mirrors, then universe, calendar, EPS, prices, FRED, option chains
 uv run python -m earnings_vol.events.run                           # session, market_daily, security, ticker_alias, events, eps, timing_check
-uv run python -m earnings_vol.measures.run                         # session_snapshot, and the snapshot-is-the-close check
-uv run python tools/export_app_data.py                             # meta.json and sample_funnel.json for the app
+uv run python -m earnings_vol.measures.run                         # session_snapshot, the close check, chain_expiry, iv_daily, event_iv
+uv run python tools/export_app_data.py                             # meta.json, sample_funnel.json, iv_measures.json for the app
 ```
 
 `ingest.run --only mirrors|universe|small|prices|fred|chain` runs one step. Nothing calls SEC EDGAR yet: its client
 (`src/earnings_vol/ingest/edgar.py`) refuses to run until the environment variable `SEC_EDGAR_USER_AGENT` holds a real
 contact, and no request has been made. The commits read from DoltHub are pinned in `params.yaml`, so a re-run reads the
-same data. The milestone 1 page lists the exact commands and what each one measured.
+same data. The milestone pages list the exact commands and what each one measured.
 
 ## Data
 
@@ -159,17 +163,20 @@ same data. The milestone 1 page lists the exact commands and what each one measu
   `post-no-preference/earnings` and `post-no-preference/options`. Both declare *Attribution-ShareAlike 4.0
   International*. Attribution: "Contains data from the DoltHub repositories post-no-preference/earnings and
   post-no-preference/options, licensed under CC BY-SA 4.0. Changes: selected and filtered by this project."
-- **CBOE and Yahoo are never committed.** CBOE single-stock volatility indices, the VIX (FRED's `VIXCLS` is a CBOE
-  index, so it counts as CBOE data) and Yahoo Finance prices (via `yfinance`) are downloaded to your own machine and
-  used there. Every column computed from them from a per-date or per-event value carries a `_yf` or `_cboe` suffix and
-  is dropped before anything is committed or exported. Only aggregates that pass a disclosure test and coarse labels
-  may leave the machine (ADR 0001 §7, data model §2.1).
+- **CBOE, Yahoo and FRED.** CBOE single-stock volatility indices, the VIX (FRED's `VIXCLS` is a CBOE index) and
+  Yahoo Finance prices (via `yfinance`) are downloaded to your own machine and used there; raw downloads are never
+  committed. Every column computed from them carries a `_yf` or `_cboe` suffix. Until 2026-10-29 none of them left the
+  machine; since the owner's decision of that day, values the app or the docs need may be committed (see the root
+  [`DATA.md`](DATA.md) for each source's terms). At milestone 2 the only such column is
+  `timing_check.gap_verdict_yf` (ADR 0001 §7, data model §2.1).
 - **Wikipedia (CC BY-SA 4.0) and SEC EDGAR.** Company names, GICS sectors and CIKs come from a pinned revision of
   Wikipedia's "List of S&P 500 companies". The before/after-market labels come from documents: company press releases
   (looked up by hand and recorded in `data/manual/press_release_checks.csv`) and, once the owner's contact string is
   set, SEC EDGAR 8-K filing times (US government public data). No EDGAR request has been made yet.
 - **`data/derived/`** holds the committed part of each pipeline table (`security`, `ticker_alias`, `session`,
-  `events`, `eps`, `session_snapshot`); the writer drops every Yahoo or CBOE column first. They are licensed CC BY-SA
+  `events`, `eps`, `session_snapshot`, and since milestone 2 `iv_daily`, `event_iv` and `timing_check`); the writer
+  drops every Yahoo or CBOE column first, except those a table names in `keep_restricted` (only
+  `timing_check.gap_verdict_yf`, under the owner's decision of 2026-10-29; see the root `DATA.md`). They are licensed CC BY-SA
   4.0, not MIT. See [`data/derived/README.md`](data/derived/README.md). It also still holds
   `earnings_calendar_30_large_caps.json`, a DoltHub extract that `research/prototypes/spacing.py` reads.
 
@@ -177,10 +184,10 @@ Details and the JSON contract are in [`app/DATA.md`](app/DATA.md).
 
 ## Results
 
-No results yet. Measured numbers appear here from milestone 3, each re-measured by an independent verifier. Milestone 1
-measured sample sizes only: how many events survive each rule. They are on the app's Sample page and in the
-[milestone 1 page](docs/milestones/01-universe-and-events.md#61-the-sample-funnel-primary-daily); the primary
-sample is at most 350 events, an upper bound until milestone 2 removes sessions without a usable IV.
+No test results yet. Measured numbers appear here from milestone 3, each re-measured by an independent verifier.
+Milestones 1 and 2 measured the sample and the IV measures: the primary sample holds **347 events** (app's Sample
+page; [milestone 2 page](docs/milestones/02-iv-measures.md#61-the-sample-funnel-primary-daily)), and the app's IV
+measures page draws how the implied move and the 30-day crush are distributed over them.
 
 ## Screenshots
 
@@ -197,7 +204,8 @@ Added at the final milestone.
 - Prototypes: [`research/prototypes/`](research/prototypes/README.md), the throwaway scripts behind numbers in the ADRs.
   They are not part of the package and are not tested or reviewed.
 - Learning: [LEARNING_LOG.md](LEARNING_LOG.md), the [milestone 0 page](docs/milestones/00-scaffold-and-design.md), the
-  [milestone 1 page](docs/milestones/01-universe-and-events.md) and the concept notes in
+  [milestone 1 page](docs/milestones/01-universe-and-events.md), the
+  [milestone 2 page](docs/milestones/02-iv-measures.md) and the concept notes in
   [`docs/concepts/`](docs/concepts/).
 
 ## License

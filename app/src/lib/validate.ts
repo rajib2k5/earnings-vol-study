@@ -1,5 +1,5 @@
 /**
- * Small checks shared by the data validators (`meta.ts`, `funnel.ts`, `provenance.ts`). All pure:
+ * Small checks shared by the data validators (`meta.ts`, `funnel.ts`, `ivMeasures.ts`, `provenance.ts`). All pure:
  * nothing throws and nothing is coerced. A value either is the type asked for or it is not.
  */
 
@@ -12,6 +12,10 @@ export const isObject = (x: unknown): x is Record<string, unknown> => typeof x =
 export const isText = (x: unknown): x is string => typeof x === 'string' && x.trim().length > 0
 export const isNonNegInt = (x: unknown): x is number => typeof x === 'number' && Number.isInteger(x) && x >= 0
 export const isPositiveInt = (x: unknown): x is number => typeof x === 'number' && Number.isInteger(x) && x >= 1
+/** A real number: not NaN, not Infinity, not a numeric string. */
+export const isFiniteNumber = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x)
+/** A number from 0 to 1, both ends included (a share). NaN and Infinity fail the comparisons. */
+export const isUnitInterval = (x: unknown): x is number => typeof x === 'number' && x >= 0 && x <= 1
 /** `[a, b]` with both entries integers (negative is fine: session offsets are relative to day 0). */
 export const isIntPair = (x: unknown): x is [number, number] =>
   Array.isArray(x) && x.length === 2 && x.every((n) => typeof n === 'number' && Number.isInteger(n))

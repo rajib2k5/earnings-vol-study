@@ -7,7 +7,7 @@ export const PROVENANCE_FIXTURE = {
 }
 
 /**
- * Hand-built `data/meta.json` body for tests, in the shape the Python exporter writes (schema 0.2.0).
+ * Hand-built `data/meta.json` body for tests, in the shape the Python exporter writes (schema 0.3.0).
  * The names, URLs, licences and numbers are invented on purpose ("Fixture ..."): a page that still
  * showed a hard-coded copy of the real values would not match them.
  */
@@ -38,7 +38,7 @@ export const META_DATA_FIXTURE = {
 }
 
 export const META_FIXTURE = {
-  schema_version: '0.2.0',
+  schema_version: '0.3.0',
   kind: 'meta',
   generated_at: '2026-10-27T12:00:00Z',
   source_commit: 'abc1234',

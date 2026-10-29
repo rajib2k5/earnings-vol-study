@@ -1,0 +1,19 @@
+[10] funnel recomputed [1353, 1320, 366, 356, 354, 348]; sample_funnel.json [1353, 1320, 366, 356, 354, 348]; claimed [1353, 1320, 366, 356, 354, 348]
+[10] dropped at iv_usable: ['ABBV:2025-01-31', 'LIN:2025-02-06']
+[10] dropped at baseline: [('BRK.B:2025-05-03', (12, 11)), ('COST:2025-05-29', (7, 6)), ('COST:2026-05-28', (8, 7)), ('GS:2025-04-14', (0, 0)), ('MS:2025-07-16', (0, 0)), ('PM:2026-04-22', (19, 18))]
+[10] tercile rows mismatching: 0; sizes {'daily': [118, 118, 118], 'mixed': [14, 14, 14], 'coarse': [214, 213, 213]}
+   daily: duplicated abs_move_cand_max values 0
+   mixed: duplicated abs_move_cand_max values 0
+   coarse: duplicated abs_move_cand_max values 0
+[10] events without abs_move_cand_max: 285 by sample {'coarse': 228, 'none': 36, 'daily': 14, 'mixed': 7}; of which duplicate_row 1
+   dated after the last ok snapshot (2026-10-26): 28 (sample none: 28)
+   reasons by sample: {('none', 'no_common_forward_or_tau'): 4, ('none', 'no_snapshot'): 32, ('coarse', 'no_common_forward_or_tau'): 84, ('coarse', 'no_snapshot'): 144, ('mixed', 'no_common_forward_or_tau'): 7, ('daily', 'no_common_forward_or_tau'): 12, ('daily', 'no_snapshot'): 2}
+[11] P5: primary 348, with E 348, E<=0 4, json {'n': 4, 'n_events': 348, 'n_identified': 348, 'share': 0.0115}
+[11] P4 AAPL: n=6 values [2.97, 4.59, 4.68, 4.85, 5.39, 5.72] median 4.76%
+[11] P4 MSFT: n=7 values [3.72, 5.04, 5.25, 5.45, 6.06, 8.23, 8.25] median 5.45%
+[11] P4 whole sample: median of sqrt(E) over E>0 (344) 6.45%; median over all 348 with E<=0 as 0: 6.27%; sqrt(mean E) signed 7.58%; json {'p10': 0.03271, 'p25': 0.04468, 'p50': 0.06445, 'p75': 0.0878, 'p90': 0.11098} sqrt_mean_evar 0.07577
+[11] crush: n=348 mean -0.2005 median -0.1885; json mean -0.2005 q {'p10': -0.3425, 'p25': -0.2722, 'p50': -0.1885, 'p75': -0.1188, 'p90': -0.0632}
+[11] implied-move histogram equal to json: True
+[11] leak, sessions 22-60 before the next event: n=33801 mean +0.225 p95 1.37 equal 75.8%
+[11] leak, sessions 1-21 before: n=19045 mean -0.219
+[11] leak on clean ADR 0004 baselines of all events: n=25556 mean +0.286 equal 69.8%

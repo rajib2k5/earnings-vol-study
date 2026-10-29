@@ -4,7 +4,7 @@ import { MetaFooter } from './MetaFooter'
 
 // Hand-built fixture in the shape the Python exporter writes.
 const good = {
-  schema_version: '0.2.0',
+  schema_version: '0.3.0',
   kind: 'meta',
   generated_at: '2026-10-27T12:00:00Z',
   source_commit: 'abc1234',
@@ -18,7 +18,7 @@ describe('MetaFooter', () => {
     render(<MetaFooter fetchImpl={respond({ ok: true, status: 200, json: async () => good })} />)
     expect(screen.getByRole('status')).toHaveTextContent('Checking data contract')
     const footer = await screen.findByText(/source commit abc1234/)
-    expect(footer).toHaveTextContent('data contract 0.2.0 · milestone M0 · source commit abc1234 · generated 2026-10-27T12:00:00Z')
+    expect(footer).toHaveTextContent('data contract 0.3.0 · milestone M0 · source commit abc1234 · generated 2026-10-27T12:00:00Z')
   })
   it('shows "milestone unknown" when the file has no usable milestone', async () => {
     const f = respond({ ok: true, status: 200, json: async () => ({ ...good, data: { milestone: 'M0' } }) })
