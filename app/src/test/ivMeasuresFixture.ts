@@ -2,7 +2,7 @@ import { PROVENANCE_FIXTURE } from './metaFixture'
 
 /**
  * Hand-built `data/iv_measures.json` body for tests, in the shape the Python exporter writes
- * (schema 0.3.0). Every label, unit, count and caveat is invented ("Fixture ...") so a page that
+ * (schema 0.4.0). Every label, unit, count and caveat is invented ("Fixture ...") so a page that
  * still showed the real file's text, or computed anything itself, would not match. The counts are
  * small and round so the bar heights are easy to work out by hand:
  *   implied move [1, 4, 2]  -> 25%, 100%, 50%   (largest count 4)
@@ -33,7 +33,7 @@ export const IV_MEASURES_DATA_FIXTURE = {
 }
 
 export const IV_MEASURES_FIXTURE = {
-  schema_version: '0.3.0',
+  schema_version: '0.4.0',
   kind: 'iv_measures',
   generated_at: '2031-03-04T05:06:07Z',
   source_commit: 'fix1234',

@@ -9,22 +9,18 @@ React app only checks and draws those files. Every design choice is written down
 **Not financial advice.** This is research for learning. It describes the past, ignores transaction costs and covers
 large, liquid US stocks only.
 
-**Status:** Milestone 2: IV measures (done, pending the owner's review). Milestone 1 chose the 50 companies, built
-their 1,353 earnings announcements with the session each one reached the option market (day 0), the
-before/after-market label and its status, and matched each announcement to its EPS period. Milestone 2 recomputes
-implied volatility from the DoltHub bid/ask quotes (Black-76 on the put-call-parity forward): per company and session
-the event-aware 30-day IV, the event variance and the implied move; per announcement the 30-day and front-expiry
-crushes and the realised move. The primary sample holds 347 events; the app's Sample page draws the funnel, and its IV
-measures page draws how the implied move and the crush are distributed. No statistical test has run yet, so there are
-no results. **The timing labels are provisional**: 20 press releases were looked up and timed, and the rest keep the
-calendar's labels until SEC EDGAR filing times can be read. EDGAR is accepted as the timing source (2026-10-28), but
-its client runs only once the owner's contact string is set; until then the rule in force is the company's press
-release, then the calendar label ([ADR 0002](docs/adr/0002-day-zero-convention.md)). The universe is today's 50 largest
-S&P 500 members, so the sample has survivorship bias. The primary significance test is a t-test with two-way
-cluster-robust standard errors: by announcement date and company for the crush, and by earnings season and company for
-the run-up and persistence. Its size has been checked in simulations at the real design; the check on the real event
-set (gate G1) comes at milestone 3. BMP and the Kolari-Pynnönen family are reported as robustness
-([ADR 0005](docs/adr/0005-statistical-test-suite.md)).
+**Status:** Milestone 3: the event study (built, adversarially reviewed and fixed, pending the owner's review). Milestone 1
+chose the 50 companies and built their 1,353 earnings announcements with the session each reached the option market
+(day 0); milestone 2 recomputed implied volatility from the DoltHub bid/ask quotes. Milestone 3 measures abnormal IV
+around each announcement (log IV against its own clean baseline, adjusted for VIX with a beta per company) and tests
+the run-up, the crush, the persistence and the change in ordinary volatility on the primary sample of 347 events. The
+primary test is a t with two-way cluster-robust standard errors (announcement date × company for the one-session
+measures, season × company for the run-up and persistence), and its size was checked first on the real event set
+(gate G1: every primary passed). **The timing labels are provisional**: 20 press releases were looked up and timed,
+and the rest keep the calendar's labels until SEC EDGAR filing times can be read; EDGAR is accepted as the timing
+source (2026-10-28), but its client runs only once the owner's contact string is set
+([ADR 0002](docs/adr/0002-day-zero-convention.md)). The universe is today's 50 largest S&P 500 members, so the sample
+has survivorship bias.
 
 ## What the study answers
 
@@ -167,14 +163,17 @@ same data. The milestone pages list the exact commands and what each one measure
   Yahoo Finance prices (via `yfinance`) are downloaded to your own machine and used there; raw downloads are never
   committed. Every column computed from them carries a `_yf` or `_cboe` suffix. Until 2026-10-29 none of them left the
   machine; since the owner's decision of that day, values the app or the docs need may be committed (see the root
-  [`DATA.md`](DATA.md) for each source's terms). At milestone 2 the only such column is
-  `timing_check.gap_verdict_yf` (ADR 0001 §7, data model §2.1).
+  [`DATA.md`](DATA.md) for each source's terms). Committed: the Yahoo-derived labels `timing_check.gap_verdict_yf`
+  and `security.in_universe`, and since milestone 3 aggregates of VIX-adjusted values (the market-adjusted rows of
+  `results.parquet` and of the app's `tests.json` and `event_paths.json`), under Cboe's terms. The VIX series and every
+  per-event VIX-adjusted value stay local (ADR 0001 §7, data model §2.1).
 - **Wikipedia (CC BY-SA 4.0) and SEC EDGAR.** Company names, GICS sectors and CIKs come from a pinned revision of
   Wikipedia's "List of S&P 500 companies". The before/after-market labels come from documents: company press releases
   (looked up by hand and recorded in `data/manual/press_release_checks.csv`) and, once the owner's contact string is
   set, SEC EDGAR 8-K filing times (US government public data). No EDGAR request has been made yet.
 - **`data/derived/`** holds the committed part of each pipeline table (`security`, `ticker_alias`, `session`,
-  `events`, `eps`, `session_snapshot`, and since milestone 2 `iv_daily`, `event_iv` and `timing_check`); the writer
+  `events`, `eps`, `session_snapshot`, since milestone 2 `iv_daily`, `event_iv` and `timing_check`, and since
+  milestone 3 `event_window_obs`, `event_measures` and `results`); the writer
   drops every Yahoo or CBOE column first, except those a table names in `keep_restricted` (only
   `timing_check.gap_verdict_yf`, under the owner's decision of 2026-10-29; see the root `DATA.md`). They are licensed CC BY-SA
   4.0, not MIT. See [`data/derived/README.md`](data/derived/README.md). It also still holds
@@ -184,10 +183,25 @@ Details and the JSON contract are in [`app/DATA.md`](app/DATA.md).
 
 ## Results
 
-No test results yet. Measured numbers appear here from milestone 3, each re-measured by an independent verifier.
-Milestones 1 and 2 measured the sample and the IV measures: the primary sample holds **347 events** (app's Sample
-page; [milestone 2 page](docs/milestones/02-iv-measures.md#61-the-sample-funnel-primary-daily)), and the app's IV
-measures page draws how the implied move and the 30-day crush are distributed over them.
+Milestone 3, 2026-10-29, **provisional timing labels**, after the adversarial review's fixes
+([§9 of the milestone page](docs/milestones/03-event-study.md#9-fixes-after-review)). Daily sample (day 0 from
+2024-12-05), equal-weighted means of VIX-adjusted abnormal log IV; Holm over the seven declared hypotheses, with the
+three of milestone 4 entered as p = 1
+([milestone 3 page](docs/milestones/03-event-study.md#62-the-primary-family-h1h4-daily-market-adjusted)):
+
+| | Question | n | Estimate (log points) | p | Holm p |
+|---|---|---:|---:|---:|---:|
+| H1 | How much does the 30-day IV fall from day −1 to day 0? | 347 | −0.199 | 5.8e−23 | 4.1e−22 |
+| H2 | Is IV abnormally high at day −1? | 356 | +0.232 | 0.0078 (randomisation floor, G = 8) | 0.047; **with G = 7: 0.094, not rejected** |
+| H3 | Is IV back at its baseline at day +10? | 329 | +0.008 | 0.74 | 1 |
+| H4 | Did ordinary volatility (σ_d) change? | 262 | +0.003 | 0.78 | 1 |
+
+H2's Holm pass depends on the number of season clusters, not on the strength of the data: its p sits on the
+enumeration floor 2/2^G, so with the October 2026 tail merged into July (G = 7, as ADR 0005 expected) Holm would give
+0.094. The direction is not in doubt (all 8 season means are positive; the two-way t is 13.4). The crush is the event
+variance leaving the 30-day horizon; ordinary volatility does not change measurably, and IV is back at its baseline
+within ten sessions (a persistence effect below about 0.12 log points could go undetected). The app draws the results,
+the animated crush paths, a company × event-day heatmap and the 3D terrain.
 
 ## Screenshots
 
@@ -205,7 +219,8 @@ Added at the final milestone.
   They are not part of the package and are not tested or reviewed.
 - Learning: [LEARNING_LOG.md](LEARNING_LOG.md), the [milestone 0 page](docs/milestones/00-scaffold-and-design.md), the
   [milestone 1 page](docs/milestones/01-universe-and-events.md), the
-  [milestone 2 page](docs/milestones/02-iv-measures.md) and the concept notes in
+  [milestone 2 page](docs/milestones/02-iv-measures.md), the [milestone 3 page](docs/milestones/03-event-study.md) and
+  the concept notes in
   [`docs/concepts/`](docs/concepts/).
 
 ## License

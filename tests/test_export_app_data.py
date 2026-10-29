@@ -45,10 +45,12 @@ EXPECTED_DATA_SOURCES = [
     },
     {
         "name": "FRED VIXCLS (Cboe VIX)",
-        "uses": "the VIX close, for the market adjustment (local only)",
+        "uses": "the VIX close, for the market adjustment; committed: aggregates of VIX-adjusted values (the "
+                "market-adjusted rows of results.parquet, tests.json and event_paths.json); the VIX series and every "
+                "per-event VIX-adjusted value stay local",
         "url": "https://fred.stlouisfed.org/series/VIXCLS",
         "licence": "Cboe copyright (see source)",
-        "committed": False,
+        "committed": True,
     },
     {
         "name": "Cboe single-stock volatility indices (VX*)",
@@ -86,7 +88,10 @@ EXPECTED_DATA_LICENCE = {
         "of St. Louis, https://fred.stlouisfed.org/series/DTB3, 2026-10-29 (public domain). Not under "
         "CC BY-SA: the labels made from Yahoo Finance prices (security.in_universe and "
         "timing_check.gap_verdict_yf, and the share of gap contradictions built from it) fall under "
-        "Yahoo's terms of service. No Cboe data is committed."
+        "Yahoo's terms of service. The market-adjusted aggregates (results.parquet, tests.json, event_paths.json) "
+        "are computed with FRED VIXCLS (Cboe VIX): Chicago Board Options Exchange, CBOE Volatility Index: VIX "
+        "[VIXCLS], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/VIXCLS, "
+        "2026-10-29; they fall under Cboe's terms, not CC BY-SA. No Cboe VX* data is committed."
     ),
 }
 
@@ -105,7 +110,7 @@ def run_export(exporter, tmp_path, kind="meta"):
 def test_writes_envelope_with_five_keys(exporter, tmp_path):
     doc = run_export(exporter, tmp_path)
     assert set(doc) == {"schema_version", "kind", "generated_at", "source_commit", "data"}
-    assert doc["schema_version"] == "0.3.0"
+    assert doc["schema_version"] == "0.4.0"
     assert doc["kind"] == "meta"
     # ISO-8601 UTC with a trailing Z, e.g. 2026-10-27T12:00:00Z
     assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", doc["generated_at"])
@@ -117,7 +122,7 @@ def test_meta_data_fields(exporter, tmp_path):
     assert set(data) == {"project", "milestone", "title", "data_sources", "data_licence", "sample", "params",
                          "files", "provenance"}
     assert data["project"] == "earnings-vol-study"
-    assert data["milestone"] == 2
+    assert data["milestone"] == 3
     assert data["title"] == "Earnings and implied volatility: an event study"
 
 
@@ -154,7 +159,11 @@ def test_the_committed_flags_say_what_the_registry_lets_into_the_repository(expo
     assert committed["Yahoo Finance"] is True                                   # gap_verdict_yf, in_universe
     assert [n for n in committed if "Cboe" in n] == ["FRED VIXCLS (Cboe VIX)", "Cboe single-stock volatility indices (VX*)"]
     assert not any(n.endswith("_cboe") for n in kept)
-    assert committed["FRED VIXCLS (Cboe VIX)"] is False and committed["Cboe single-stock volatility indices (VX*)"] is False
+    # Milestone 3: no _cboe column is committed, but results holds class-S statistics over VIX-adjusted values,
+    # so VIXCLS is committed exactly when a committed table has a class-S column. No VX* value is anywhere.
+    vix_derived = any(c.licence == "S" for t in schema.REGISTRY.values() if t.committed for c in t.columns)
+    assert vix_derived and committed["FRED VIXCLS (Cboe VIX)"] is vix_derived
+    assert committed["Cboe single-stock volatility indices (VX*)"] is False
     # Every source whose values are committed is named in the attribution text the About page shows.
     attribution = run_export(exporter, tmp_path)["data"]["data_licence"]["attribution"]
     for name, is_committed in committed.items():
@@ -220,7 +229,7 @@ def without_code_commit(data: dict) -> dict:
     return out
 
 
-@pytest.mark.parametrize("kind", ["meta", "sample_funnel", "iv_measures"])
+@pytest.mark.parametrize("kind", ["meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain", "heatmap"])
 def test_committed_json_matches_what_the_exporter_writes(exporter, kind):
     # Nothing else ties the committed files to the exporter: the app reads the
     # files, the exporter owns the content, and a number edited by hand in a file
@@ -232,10 +241,11 @@ def test_committed_json_matches_what_the_exporter_writes(exporter, kind):
     committed = json.loads((PUBLIC / f"{kind}.json").read_text(encoding="utf-8"))
     p = exporter.params_mod.load()
     tables = exporter.load_tables()
-    build = {"meta": exporter.meta_data, "sample_funnel": exporter.funnel_data, "iv_measures": exporter.iv_measures_data}
+    build = {"meta": exporter.meta_data, "sample_funnel": exporter.funnel_data, "iv_measures": exporter.iv_measures_data,
+             **exporter.BUILDERS}
     fresh = build[kind](tables, p, "x")
     assert set(committed) == {"schema_version", "kind", "generated_at", "source_commit", "data"}
-    assert committed["schema_version"] == "0.3.0"
+    assert committed["schema_version"] == "0.4.0"
     assert committed["kind"] == kind
     assert committed["generated_at"] and committed["source_commit"]
     assert committed["data"]["provenance"]["code_commit"]
@@ -248,7 +258,8 @@ def test_meta_lists_exactly_the_files_written(exporter, tmp_path):
     out = tmp_path / "o"
     assert exporter.main(["--out-dir", str(out)]) == 0
     meta = json.loads((out / "meta.json").read_text(encoding="utf-8"))
-    assert sorted(meta["data"]["files"]) == sorted(f.stem for f in out.glob("*.json")) == ["iv_measures", "meta", "sample_funnel"]
+    assert sorted(meta["data"]["files"]) == sorted(f.stem for f in out.glob("*.json")) == [
+        "event_paths", "heatmap", "iv_measures", "meta", "sample_funnel", "terrain", "tests"]
 
 
 def test_funnel_and_meta_agree_on_the_primary_sample(exporter, tmp_path):
@@ -262,7 +273,7 @@ def test_funnel_and_meta_agree_on_the_primary_sample(exporter, tmp_path):
 def test_exported_json_has_no_restricted_field(exporter, tmp_path):
     # No _yf or _cboe KEY appears in the app files, at any depth: the funnel reports the share of gap
     # contradictions under a plain name (the owner allowed the values themselves on 2026-10-29).
-    for kind in ("meta", "sample_funnel", "iv_measures"):
+    for kind in ("meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain", "heatmap"):
         text = json.dumps(run_export(exporter, tmp_path, kind))
         keys = re.findall(r'"([A-Za-z0-9_]+)":', text)
         assert not [k for k in keys if k.endswith(("_yf", "_cboe"))], kind

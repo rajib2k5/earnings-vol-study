@@ -19,7 +19,7 @@ def test_notebook_on_disk_is_in_sync(builder):
 
 
 def test_every_notebook_is_built_and_checked(builder):
-    assert list(builder.NOTEBOOKS) == ["00_scaffold_tour", "01_events", "02_iv_measures"]
+    assert list(builder.NOTEBOOKS) == ["00_scaffold_tour", "01_events", "02_iv_measures", "03_event_study"]
     for name in builder.NOTEBOOKS:
         assert builder.check(builder.NOTEBOOK_DIR / f"{name}.ipynb", name), name
 
@@ -73,7 +73,7 @@ def test_main_check_exit_codes(builder, monkeypatch, tmp_path, capsys):
     assert "01_events" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize("name", ["00_scaffold_tour", "01_events", "02_iv_measures"])
+@pytest.mark.parametrize("name", ["00_scaffold_tour", "01_events", "02_iv_measures", "03_event_study"])
 def test_build_is_deterministic(builder, name):
     assert builder.render(name) == builder.render(name)
 

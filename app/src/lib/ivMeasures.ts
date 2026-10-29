@@ -1,5 +1,5 @@
 /**
- * Loads and checks `data/iv_measures.json` (kind "iv_measures", schema 0.3.0): the distribution of
+ * Loads and checks `data/iv_measures.json` (kind "iv_measures", schema 0.4.0): the distribution of
  * the implied move at day -1 and of the 30-day IV crush, written by the Python exporter. The app
  * only draws these numbers; it never recomputes them. Like `funnel.ts`, `fetch` is injected so tests
  * never touch the network, and nothing here throws or coerces.

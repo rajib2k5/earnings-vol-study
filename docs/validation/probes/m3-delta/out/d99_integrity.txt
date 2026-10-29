@@ -1,0 +1,7 @@
+git status lines added since the start (only m3-delta paths allowed):
+> ?? docs/validation/m3-delta-ledger.md
+> ?? docs/validation/probes/m3-delta/
+tracked + untracked file hashes vs start (m3-delta paths excluded):
+  identical (516 files)
+stage cache hashes vs start:
+  identical (33 files)

@@ -1,0 +1,11 @@
+2a day 0 / day -1 checked on 1317 events with BMO/AMC: violations 0
+2b daily CRUSH own vs package: max |diff| 0.000e+00; both null 13; null mismatch 0
+2b falsifier (crush read one day late): max |diff| 6.384e-01
+2b daily runup: max |own - pkg| 0.000e+00; own-only 0, pkg-only 0
+2b daily persist_1: max |own - pkg| 0.000e+00; own-only 0, pkg-only 0
+2b daily persist_5: max |own - pkg| 0.000e+00; own-only 0, pkg-only 0
+2b daily persist_10: max |own - pkg| 0.000e+00; own-only 0, pkg-only 0
+2d baseline_n / baseline_n_changes recomputed on 1259 events: mismatches 0
+2d excluded baseline-range sessions by reason (all samples): {'other_event_zone': 10195, 'not_observed': 12215, 'outside': 40288, 'orphan_zone': 1521, 'null_iv': 322}
+2d daily eligible_crush own vs package mismatches: 0 (own 347, pkg 347)
+2d daily events failing the 20/15 baseline minimum: 7 of 366

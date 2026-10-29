@@ -83,7 +83,7 @@ def test_allowed_paths_pass():
         ("data/derived/chain_expiry.parquet", 10, "not a file data/derived/ may hold"),     # local only
         ("data/derived/extra/events.parquet", 10, "not a file data/derived/ may hold"),
         ("data/derived/notes.txt", 10, "not a file data/derived/ may hold"),
-        ("app/public/data/terrain.json", 10, "not <kind>.json"),
+        ("app/public/data/validation.json", 10, "not <kind>.json"),   # a planned kind, not in the contract yet
         ("app/public/data/meta.csv.json", 10, "not <kind>.json"),
         # 10 MB = 10,485,760 bytes; one byte over is refused for a data file.
         ("data/derived/iv_daily.parquet", 10 * MB + 1, "limit for a data file"),
@@ -228,6 +228,8 @@ def test_an_app_file_must_carry_its_own_kind(tmp_path):
 
 def test_the_allow_lists_follow_the_registry_and_the_contract():
     # Every committed registry table, and only those; every contract kind, and only those.
-    assert check.COMMITTED_TABLES == ("eps", "event_iv", "events", "iv_daily", "security", "session",
-                                      "session_snapshot", "ticker_alias", "timing_check")
-    assert check.contract.KINDS == ("meta", "sample_funnel", "iv_measures")
+    assert check.COMMITTED_TABLES == ("eps", "event_iv", "event_measures", "event_window_obs", "events", "iv_daily",
+                                      "results", "security", "session", "session_snapshot", "ticker_alias",
+                                      "timing_check")
+    assert check.contract.KINDS == ("meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain",
+                                    "heatmap")

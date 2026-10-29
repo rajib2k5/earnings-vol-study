@@ -1,0 +1,8 @@
+passing baselines only: securities 50, max |own - package beta| 6.11e-16; median own 0.3095 package 0.3095; min/max package 0.067/0.525; changes per company 118-297
+pool: 11759 changes in the pool; 14927 clean changes overall; 3168 from failing events, of which 0 also lie in a passing event's baseline (kept)
+results: H1 -0.1994 t -17.73; g1 beta_median row 0.3095
+rc=0
+FALSIFY (every clean change): securities 50, max |own - package beta| 1.38e-01; median own 0.3611 package 0.3095; min/max package 0.067/0.525; changes per company 142-347
+pool: 14927 changes in the pool; 14927 clean changes overall; 3168 from failing events, of which 0 also lie in a passing event's baseline (kept)
+results: H1 -0.1994 t -17.73; g1 beta_median row 0.3095
+falsify_rc=1

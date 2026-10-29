@@ -1,0 +1,5 @@
+M10 daily persist_10 first-failing reasons: {'beyond_data_end': 18, 'missing_target': 12, 'short_baseline': 7, 'event_excluded': 2}
+M10 daily events (baseline ok) whose +1 is unusable but a neighbour is usable: 10
+M10 daily events (baseline ok) whose +5 is unusable but a neighbour is usable: 9
+M10 daily events (baseline ok) whose +10 is unusable but a neighbour is usable: 9
+M08 coarse/mixed events whose change count changes: 6; whose 15-change verdict flips: 0

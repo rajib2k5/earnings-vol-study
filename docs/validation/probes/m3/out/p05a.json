@@ -1,0 +1,45 @@
+{
+ "mode": "a",
+ "reps": 2000,
+ "mine": {
+  "H1": {
+   "twoway_date_t": 0.046,
+   "cluster_date_t": 0.241,
+   "bmp_t": 0.2605,
+   "kp_ow_t": 0.157,
+   "kpp_t": 0.1575,
+   "patell_z": 0.6895,
+   "gen_sign_z": 0.2095,
+   "rank_t": 0.3875,
+   "_primary": "twoway_date_t"
+  },
+  "H2": {
+   "twoway_season_t": 0.008,
+   "rad_season_p": 0.0065,
+   "cluster_season_t": 0.006,
+   "sa_twoway_season_t": 0.008,
+   "date_cluster_t": 0.197,
+   "_primary": "rad_season_p"
+  },
+  "H3": {
+   "twoway_season_t": 0.0055,
+   "rad_season_p": 0.0055,
+   "cluster_season_t": 0.006,
+   "sa_twoway_season_t": 0.006,
+   "date_cluster_t": 0.2155,
+   "_primary": "twoway_season_t"
+  },
+  "H4": {
+   "twoway_date_t": 0.0475,
+   "cluster_date_t": 0.222,
+   "bmp_t": 0.237,
+   "kp_ow_t": 0.137,
+   "kpp_t": 0.1395,
+   "gen_sign_z": 0.1865,
+   "rank_t": 0.3705,
+   "_primary": "twoway_date_t"
+  }
+ },
+ "max_abs_diff_vs_report": 0.0,
+ "calibration_params_equal_report": true
+}

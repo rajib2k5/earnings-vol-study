@@ -6,7 +6,9 @@
 #      Every column, class R included, plus a manifest (ADR 0001 §2): row
 #      count, params_hash, Dolt commits, input hashes, code commit, write time.
 #   2. data/derived/ in the repository (CC BY-SA 4.0). Only tables marked
-#      committed. write_derived() drops every class-R column except those the
+#      committed. A table's invariant (schema.Table.invariant; at milestone 3
+#      the results reference-distribution check) runs in validate(), so on
+#      every write and every read. write_derived() drops every class-R column except those the
 #      table names in keep_restricted (owner decision of 2026-10-29: real
 #      Yahoo/Cboe/FRED values the app or the docs need may be committed), and
 #      refuses any _yf or _cboe column that the registry did not call class R.
@@ -92,6 +94,8 @@ def validate(df: pd.DataFrame, table: Table) -> None:
         if key and df.duplicated(list(key)).any():
             dup = df[df.duplicated(list(key), keep=False)][list(key)].head(2).values.tolist()
             problems.append(f"key {key} is not unique, e.g. {dup}")
+    if not problems and table.invariant is not None:
+        problems += table.invariant(df)[:5]
     if problems:
         raise SchemaError(f"{table.name}: " + "; ".join(problems))
 
@@ -199,7 +203,8 @@ def committed_schema(table: Table) -> Table:
     if stray:
         raise SchemaError(f"{table.name}: {stray} end in _yf/_cboe but are not class R")
     keep = tuple(c for c in table.columns if c.licence != "R" or c.name in table.keep_restricted)
-    return Table(table.name, keep, committed=True, unique=table.unique, keep_restricted=table.keep_restricted)
+    return Table(table.name, keep, committed=True, unique=table.unique, keep_restricted=table.keep_restricted,
+                 invariant=table.invariant)
 
 
 def committable(df: pd.DataFrame, table: Table) -> tuple[pd.DataFrame, Table]:

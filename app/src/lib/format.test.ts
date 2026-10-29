@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { fmt, pct, bps } from './format'
+import { asGiven, fmt, pct, bps } from './format'
 
 describe('formatters', () => {
   it('fmt formats with thousands separators and fixed decimals', () => {
@@ -17,5 +17,18 @@ describe('formatters', () => {
     expect(fmt(NaN)).toBe('—')
     expect(pct(Infinity)).toBe('—')
     expect(bps(NaN)).toBe('—')
+  })
+})
+
+describe('asGiven', () => {
+  it('shows a number exactly as written: no rounding, no padding, exponent kept', () => {
+    expect(asGiven(0.0123)).toBe('0.0123')
+    expect(asGiven(-0.5)).toBe('-0.5')
+    expect(asGiven(4.445e-22)).toBe('4.445e-22')
+    expect(asGiven(2)).toBe('2')
+  })
+  it('shows a dash for null, and zero as 0 (null is not 0)', () => {
+    expect(asGiven(null)).toBe('—')
+    expect(asGiven(0)).toBe('0')
   })
 })

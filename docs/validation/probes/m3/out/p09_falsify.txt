@@ -1,0 +1,25 @@
+accept tests: envelope ok=true schema_version=0.4.0 data ok=true
+accept event_paths: envelope ok=true schema_version=0.4.0 data ok=true
+accept terrain: envelope ok=true schema_version=0.4.0 data ok=true
+accept heatmap: envelope ok=true schema_version=0.4.0 data ok=true
+ACCEPTED tests: p_value 1.5
+ACCEPTED tests: estimate as string
+ACCEPTED tests: role unknown
+ACCEPTED tests: row extra key
+ACCEPTED tests: row missing key
+ACCEPTED tests: ci_lo > ci_hi
+ACCEPTED tests: g1 band decreasing
+ACCEPTED tests: g1 pass not boolean
+ACCEPTED tests: holm family not list
+ACCEPTED tests: caveats empty string
+ACCEPTED event_paths: series mean wrong length
+ACCEPTED event_paths: per_event value string
+ACCEPTED event_paths: adjustment unknown
+ACCEPTED event_paths: duplicate series
+ACCEPTED terrain: ragged values row
+ACCEPTED terrain: rows/values count differ
+ACCEPTED heatmap: n negative
+ACCEPTED heatmap: values not matrix
+envelope 0.3.0 rejected: true
+SUMMARY bad=18
+falsifier_rc=1

@@ -178,12 +178,12 @@
       "units": "decimal move (0.05 = 5%)"
     },
     "provenance": {
-      "code_commit": "1579080",
+      "code_commit": "fca9972",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "8286751e4eaca31edc17c1e9307f250b3fa1a795fc108a8dd3f122ca5662cd49",
+      "params_hash": "94065662cd46610cd788566f6d71f0bbddedce8e91a4837da0149e3e5cd9be09",
       "sample_label": "daily"
     },
     "sample": {
@@ -191,8 +191,8 @@
       "n_events": 347
     }
   },
-  "generated_at": "2026-10-29T19:30:05Z",
+  "generated_at": "2026-10-29T23:09:58Z",
   "kind": "iv_measures",
-  "schema_version": "0.3.0",
-  "source_commit": "1579080"
+  "schema_version": "0.4.0",
+  "source_commit": "fca9972"
 }

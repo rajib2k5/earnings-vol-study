@@ -32,9 +32,22 @@
 # THE RULE THE TESTS ENFORCE
 #   Over value columns (keys excluded), a column is class R exactly when its
 #   name ends in _yf or _cboe. A forgotten suffix and a stray suffix both fail.
+#
+# MILESTONE 3
+#   event_window_obs, event_measures and results. The market-adjusted
+#   per-row values (e_abn_cboe, aliv_cboe, the *_cboe measures, s_abn_cboe and
+#   beta_vix_cboe) are class R and stay local: no view needs them per row
+#   (owner preference of 2026-10-29: VIX-derived per-row values stay local
+#   unless the app needs them). Their aggregates in `results` are class S and
+#   committed (data model §2.1). A table may carry an `invariant`: a function
+#   of the whole DataFrame that returns the rules it breaks; store.validate
+#   runs it on every write and read (results: invariants.results_reference).
 # =============================================================================
 
 from dataclasses import dataclass, field
+from typing import Callable
+
+from earnings_vol.invariants import results_reference
 
 DTYPES = ("string", "date32", "int16", "int32", "float64", "bool", "enum")
 LICENCES = ("U", "R", "S", "F")
@@ -63,6 +76,15 @@ CHAIN_STATUS = ("ok", "no_atm", "no_forward", "stale")
 CM30_METHODS = ("interp_clean", "interp_spanning", "extrap_clean", "extrap_spanning", "two_component",
                 "flat_sigma", "none")
 IMPLIED_MOVE_STATUS = ("ok", "nonpositive_event_variance", "not_identified")
+# Milestone 3 (data model §3.10, §3.11, §3.13).
+BASELINE_EXCLUDED = ("other_event_zone", "orphan_zone", "not_observed", "null_iv", "outside")
+VIX_REGIME = ("low", "mid", "high")
+RESULT_FAMILY = ("event_test", "regression", "validation", "descriptive")
+HYPOTHESES = ("H1", "H2", "H3", "H4", "H5", "H6", "H7")
+ROLES = ("primary", "robustness", "exploratory")
+ESTIMANDS = ("equal_weighted", "precision_weighted")
+RESULT_SAMPLES = ("daily", "mixed", "coarse", "cboe5")
+ADJUSTMENTS = ("market", "mean")
 
 
 @dataclass(frozen=True)
@@ -90,6 +112,7 @@ class Table:
     committed: bool                      # does a copy go to data/derived/?
     unique: tuple[tuple[str, ...], ...] = field(default=())   # extra unique keys
     keep_restricted: tuple[str, ...] = ()  # class-R columns the committed copy keeps (see the header)
+    invariant: Callable | None = None      # f(df) -> [broken rule, ...], run by store.validate
 
     def __post_init__(self):
         bad = [n for n in self.keep_restricted if n not in self.names or self.column(n).licence != "R"]
@@ -329,9 +352,124 @@ EVENT_IV = Table("event_iv", (
     C("flags", "string", licence="F"),
 ), committed=True)
 
+# --- milestone 3: data model §3.10 ---------------------------------------------
+# Every column depends on day 0, so the value columns are class F like
+# iv_daily's; the market-adjusted ones are class R (local only).
+EVENT_WINDOW_OBS = Table("event_window_obs", (
+    C("event_id", "string", key=True),
+    C("rel_day", "int16", key=True),
+    C("session_date", "date32", licence="F"),
+    C("observed", "bool", licence="F"),
+    C("in_window", "bool"),
+    C("in_baseline", "bool", licence="F"),
+    C("baseline_excluded_reason", "enum", nullable=True, licence="F", enum=BASELINE_EXCLUDED),
+    C("cm30_iv", "float64", nullable=True, licence="F"),
+    C("ln_cm30", "float64", nullable=True, licence="F"),
+    C("d_ln_cm30", "float64", nullable=True, licence="F"),
+    C("e_abn_cboe", "float64", nullable=True, licence="R"),
+    C("aliv_cboe", "float64", nullable=True, licence="R"),
+    C("aliv_mean_adj", "float64", nullable=True, licence="F"),
+    C("aiv_level", "float64", nullable=True, licence="F"),
+    C("front_fixed_iv", "float64", nullable=True, licence="F"),
+    C("front_fixed_interpolated", "bool", licence="F"),
+    C("sigma_d_iv", "float64", nullable=True, licence="F"),
+    C("event_var", "float64", nullable=True, licence="F"),
+    C("ln_vx_cboe", "float64", nullable=True, licence="R"),
+    C("e_abn_vx_cboe", "float64", nullable=True, licence="R"),
+), committed=True)
+
+# --- milestone 3: data model §3.11 ---------------------------------------------
+EVENT_MEASURES = Table("event_measures", (
+    C("event_id", "string", key=True),
+    C("eligible_crush", "bool", licence="F"),
+    C("eligible_runup", "bool", licence="F"),
+    C("eligible_persist_10", "bool", licence="F"),
+    C("ineligible_reason", "string", licence="F"),
+    C("baseline_n", "int16", licence="F"),
+    C("baseline_n_changes", "int16", licence="F"),
+    C("baseline_mean_ln_iv", "float64", nullable=True, licence="F"),
+    C("baseline_mean_iv", "float64", nullable=True, licence="F"),
+    C("beta_vix_cboe", "float64", nullable=True, licence="R"),
+    C("beta_n", "int32", licence="F"),
+    C("s_abn_cboe", "float64", nullable=True, licence="R"),
+    C("runup_cboe", "float64", nullable=True, licence="R"),
+    C("crush_cboe", "float64", nullable=True, licence="R"),
+    C("persist_1_cboe", "float64", nullable=True, licence="R"),
+    C("persist_5_cboe", "float64", nullable=True, licence="R"),
+    C("persist_10_cboe", "float64", nullable=True, licence="R"),
+    C("dsigma_d_cboe", "float64", nullable=True, licence="R"),
+    C("crush_mean_adj", "float64", nullable=True, licence="F"),
+    C("dsigma_d_mean_adj", "float64", nullable=True, licence="F"),
+    C("crush_two_session_cboe", "float64", nullable=True, licence="R"),
+    C("crush_two_session_mean_adj", "float64", nullable=True, licence="F"),
+    C("crush_front_fixed", "float64", nullable=True, licence="F"),
+    C("crush_span_sessions", "int16", nullable=True, licence="F"),
+    C("sa_crush_cboe", "float64", nullable=True, licence="R"),
+    C("sa_runup_cboe", "float64", nullable=True, licence="R"),
+    C("sa_persist_1_cboe", "float64", nullable=True, licence="R"),
+    C("sa_persist_5_cboe", "float64", nullable=True, licence="R"),
+    C("sa_persist_10_cboe", "float64", nullable=True, licence="R"),
+    C("sa_dsigma_d_cboe", "float64", nullable=True, licence="R"),
+    C("evar_m1", "float64", nullable=True, licence="F"),
+    C("evar_m2", "float64", nullable=True, licence="F"),
+    C("implied_move_m1", "float64", nullable=True, licence="F"),
+    C("implied_abs_move_total_m1", "float64", nullable=True, licence="F"),
+    C("implied_move_status", "enum", nullable=True, licence="F", enum=IMPLIED_MOVE_STATUS),
+    C("sigma_d_m1", "float64", nullable=True, licence="F"),
+    C("cm30_m1", "float64", nullable=True, licence="F"),
+    C("ts_slope_m1", "float64", nullable=True, licence="F"),
+    C("price_ref", "float64", nullable=True, licence="F"),
+    C("surprise_scaled", "float64", nullable=True, licence="F"),
+    C("abs_surprise_scaled_w", "float64", nullable=True, licence="F"),
+    C("sue_hist", "float64", nullable=True, licence="F"),
+    C("sue_hist_n", "int16", nullable=True, licence="F"),
+    C("realized_ret_0", "float64", nullable=True, licence="F"),
+    C("abs_move_cand_max", "float64", nullable=True),
+    C("realized_ret_0_yf", "float64", nullable=True, licence="R"),
+    C("abs_ret_over_implied", "float64", nullable=True, licence="F"),
+    C("vix_regime", "enum", nullable=True, licence="F", enum=VIX_REGIME),
+    C("ln_mcap_yf", "float64", nullable=True, licence="R"),
+), committed=True)
+
+# --- milestone 3: data model §3.13 ---------------------------------------------
+# The numbers of a market-adjusted row are statistics over VIX-derived values:
+# class S (committed; data model §2.1, owner decision of 2026-10-29).
+RESULTS = Table("results", (
+    C("result_id", "string", key=True),
+    C("family", "enum", enum=RESULT_FAMILY),
+    C("hypothesis", "enum", nullable=True, enum=HYPOTHESES),
+    C("role", "enum", enum=ROLES),
+    C("measure", "string"),
+    C("statistic", "string"),
+    C("estimand", "enum", nullable=True, enum=ESTIMANDS),
+    C("rel_day", "int16", nullable=True),
+    C("sample", "enum", enum=RESULT_SAMPLES),
+    C("subgroup_key", "string"),
+    C("subgroup_value", "string"),
+    C("adjustment", "enum", enum=ADJUSTMENTS),
+    C("model_id", "string", nullable=True),
+    C("term", "string", nullable=True),
+    C("n", "int32"),
+    C("n_clusters", "int32", nullable=True),
+    C("n_clusters_firm", "int32", nullable=True),
+    C("df", "float64", nullable=True),
+    C("df_num", "float64", nullable=True),
+    C("estimate", "float64", nullable=True, licence="S"),
+    C("se", "float64", nullable=True, licence="S"),
+    C("stat", "float64", nullable=True, licence="S"),
+    C("p_value", "float64", nullable=True, licence="S"),
+    C("ci_lo", "float64", nullable=True, licence="S"),
+    C("ci_hi", "float64", nullable=True, licence="S"),
+    C("p_holm", "float64", nullable=True, licence="S"),
+    C("q_bh", "float64", nullable=True, licence="S"),
+    C("rbar", "float64", nullable=True, licence="S"),
+    C("params_hash", "string"),
+    C("code_commit", "string"),
+), committed=True, invariant=results_reference)
+
 REGISTRY: dict[str, Table] = {t.name: t for t in (
     SECURITY, TICKER_ALIAS, SESSION, MARKET_DAILY, EVENTS, EPS, TIMING_CHECK, SESSION_SNAPSHOT,
-    CHAIN_EXPIRY, IV_DAILY, EVENT_IV,
+    CHAIN_EXPIRY, IV_DAILY, EVENT_IV, EVENT_WINDOW_OBS, EVENT_MEASURES, RESULTS,
 )}
 
 

@@ -1,0 +1,24 @@
+accept tests: envelope ok=true schema_version=0.4.0 data ok=true
+accept event_paths: envelope ok=true schema_version=0.4.0 data ok=true
+accept terrain: envelope ok=true schema_version=0.4.0 data ok=true
+accept heatmap: envelope ok=true schema_version=0.4.0 data ok=true
+rejected tests: p_value 1.5 -> rows[0].p_value must be a number from 0 to 1 or null, got number 1.5
+rejected tests: estimate as string -> rows[0].estimate must be a finite number or null, got "-0.2"
+rejected tests: role unknown -> rows[0].role must be "primary", "robustness" or "exploratory", got "headline"
+rejected tests: row extra key -> rows[0] has unexpected key(s): beta (expected exactly: hypothesis, role, measure, statisti
+rejected tests: row missing key -> rows[0] has missing key(s): se (expected exactly: hypothesis, role, measure, statistic, es
+rejected tests: ci_lo > ci_hi -> rows[0].ci_lo (0.8431) must be at most ci_hi (-0.2224)
+rejected tests: g1 band decreasing -> g1.band must not decrease: the lower edge (0.07) is above the upper edge (0.03)
+rejected tests: g1 pass not boolean -> g1.calibrated[0].pass must be true or false, got "yes"
+rejected tests: holm family not list -> holm.family must be an array, got "H1"
+rejected tests: caveats empty string -> caveats[5] must be a non-empty string, got ""
+rejected event_paths: series mean wrong length -> series[0].mean must have 21 entries (one per rel_days entry), got 20
+rejected event_paths: per_event value string -> per_event[0].values[0] must be a finite number or null, got "x"
+rejected event_paths: adjustment unknown -> series[0].adjustment must be "market" or "mean", got "vix"
+rejected event_paths: duplicate series -> series[6] repeats series[0] (same adjustment "market" and subgroup "all" = "all")
+rejected terrain: ragged values row -> values[0] must have 21 entries (one per rel_days entry), got 20
+rejected terrain: rows/values count differ -> values must have 49 rows (one per company in rows), got 50
+rejected heatmap: n negative -> grids[0].n[0][0] must be a non-negative integer, got number -1
+rejected heatmap: values not matrix -> grids[0].values[0] must be an array, got number 3
+envelope 0.3.0 rejected: true
+SUMMARY bad=0

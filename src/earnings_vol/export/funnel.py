@@ -38,7 +38,7 @@ import pandas as pd
 
 from earnings_vol.events import calendar
 from earnings_vol.events.eps import orphan_zones
-from earnings_vol.panel.baseline import clean_baseline, zones_of_events
+from earnings_vol.panel.baseline import clean_baseline, event_centres, zones_of_events
 from earnings_vol.schema import SAMPLES, TIMING_STATUS
 
 CAVEATS = [
@@ -80,17 +80,7 @@ def baseline_counts(events: pd.DataFrame, iv_daily: pd.DataFrame, eps: pd.DataFr
                 for sid, g in iv_daily.groupby("security_id")}
     out = {}
     for sid, g in events.groupby("security_id"):
-        centres = []
-        for r in g.itertuples(index=False):
-            if r.exclusion_reason == "duplicate_row":
-                continue
-            if r.day0_session is not None:
-                centres.append((r.event_id, [sessions.index[r.day0_session]]))
-            else:
-                a = r.announce_date_used
-                cands = [sessions.next_after(a)] + ([a] if sessions.is_session(a) else [])
-                centres.append((r.event_id, [sessions.index[c] for c in cands]))
-        ez = zones_of_events(centres, zone)
+        ez = zones_of_events(event_centres(g, sessions), zone)
         for r in g.itertuples(index=False):
             if r.day0_session is None:
                 continue

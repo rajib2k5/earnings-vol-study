@@ -1,0 +1,17 @@
+F2 beta pools failing baselines too [window.py]: KILLED | 1 failed, 4 warnings in 0.63s | restored sha256 ok=True
+sig0 without the change-variance factor [g1.py]: KILLED | 1 failed, 1 warning in 1.11s | restored sha256 ok=True
+generate ignores sig0 [g1.py]: KILLED | 1 failed in 0.50s | restored sha256 ok=True
+oversized >= instead of > [results.py]: KILLED | 1 failed in 0.49s | restored sha256 ok=True
+oversized keeps date_cluster_t [results.py]: KILLED | 1 failed in 0.52s | restored sha256 ok=True
+withhold keeps the interval [results.py]: KILLED | 1 failed in 0.47s | restored sha256 ok=True
+season cut merges the first two seasons [results.py]: KILLED | 1 failed in 0.53s | restored sha256 ok=True
+season cut Holm keeps the reported p [results.py]: KILLED | 1 failed in 0.52s | restored sha256 ok=True
+holm/bh accept anything [multiple.py]: KILLED | 1 failed in 0.48s | restored sha256 ok=True
+kp_ow r not clamped [eventtests.py]: KILLED | 1 failed in 0.35s | restored sha256 ok=True
+tests.json g1_size dropped [event_views.py]: KILLED | 1 failed in 0.55s | restored sha256 ok=True
+tests.json counterfactual verdict flipped [event_views.py]: KILLED | 1 failed in 0.53s | restored sha256 ok=True
+tests.json season labels swapped [event_views.py]: KILLED | 1 failed in 0.53s | restored sha256 ok=True
+tests.json oversized caveat empty [event_views.py]: KILLED | 1 failed in 0.50s | restored sha256 ok=True
+data: an oversized row keeps its p-value [results.parquet]: KILLED | 1 failed in 0.53s | restored sha256 ok=True
+data: the season-cut Holm p is the reported one [results.parquet]: KILLED | 1 failed in 0.56s | restored sha256 ok=True
+SUMMARY killed 16 of 16

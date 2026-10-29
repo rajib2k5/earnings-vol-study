@@ -4,9 +4,13 @@ import App from './App'
 import { ARCH_LAYERS } from './lib/architecture'
 import { PITCH, PROJECT_TITLE, QUESTIONS } from './lib/studyContent'
 import { resetMemoryFallback, safeStorage } from './lib/storage'
+import { EVENT_PATHS_DATA_FIXTURE, EVENT_PATHS_FIXTURE } from './test/eventPathsFixture'
 import { FUNNEL_DATA_FIXTURE, FUNNEL_FIXTURE } from './test/funnelFixture'
+import { HEATMAP_DATA_FIXTURE, HEATMAP_FIXTURE } from './test/heatmapFixture'
 import { IV_MEASURES_DATA_FIXTURE, IV_MEASURES_FIXTURE } from './test/ivMeasuresFixture'
 import { jsonFetch, META_DATA_FIXTURE, META_FIXTURE } from './test/metaFixture'
+import { TESTS_DATA_FIXTURE, TESTS_FIXTURE } from './test/resultsFixture'
+import { TERRAIN_FIXTURE } from './test/terrainFixture'
 
 // jsdom has no WebGL: replace the r3f Canvas and drei controls with inert stand-ins.
 vi.mock('@react-three/fiber', () => ({ Canvas: () => <div data-testid="r3f-canvas" /> }))
@@ -43,7 +47,7 @@ describe('App (integration)', () => {
 
   it('shows the milestone and source commit from data/meta.json in the footer', async () => {
     render(<App />)
-    expect(await screen.findByText(/data contract 0\.3\.0 · milestone M0 · source commit abc1234/)).toBeInTheDocument()
+    expect(await screen.findByText(/data contract 0\.4\.0 · milestone M0 · source commit abc1234/)).toBeInTheDocument()
     expect(fetch).toHaveBeenCalledWith('data/meta.json', { cache: 'no-cache' }) // relative URL (works under a sub-path), always revalidated
   })
 
@@ -71,7 +75,7 @@ describe('App (integration)', () => {
     vi.stubGlobal('fetch', server)
     render(<App />)
     const nav = within(screen.getByRole('navigation', { name: 'Primary' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['About', 'Sample', 'IV measures', 'Architecture', '3D preview', 'Metrics'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['About', 'Sample', 'IV measures', 'Results', 'Crush paths', 'Heatmap', 'Architecture', '3D view', 'Metrics'])
     expect(server).not.toHaveBeenCalledWith('data/sample_funnel.json', expect.anything()) // not fetched until the page is opened
     fireEvent.click(nav.getByRole('link', { name: 'Sample' }))
     const steps = await screen.findByRole('table', { name: 'Funnel steps' })
@@ -130,12 +134,81 @@ describe('App (integration)', () => {
     await screen.findByText(/source commit/)
   })
 
-  it('has a 3D preview page that lazy-loads the surface and labels it as illustrative', async () => {
+  it('has a Results page, after IV measures, that draws tests.json (the fixture here) under a provisional-labels notice', async () => {
+    const server = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => (url === 'data/tests.json' ? TESTS_FIXTURE : META_FIXTURE) }) as Response)
+    vi.stubGlobal('fetch', server)
+    render(<App />)
+    expect(server).not.toHaveBeenCalledWith('data/tests.json', expect.anything()) // not fetched until the page is opened
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Primary' })).getByRole('link', { name: 'Results' }))
+    const primary = await screen.findByRole('table', { name: 'Primary family' })
+    expect(server).toHaveBeenCalledWith('data/tests.json', { cache: 'no-cache' })
+    expect(within(primary).getAllByRole('row')).toHaveLength(TESTS_DATA_FIXTURE.rows.filter((r) => r.role === 'primary').length + 1)
+    expect(screen.getByRole('complementary', { name: 'Provisional timing labels' })).toHaveTextContent('Timing labels are provisional')
+    for (const c of TESTS_DATA_FIXTURE.caveats) expect(screen.getByText(c)).toBeInTheDocument()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('shows the Results page error, and keeps the app usable, when tests.json is missing', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (url === 'data/meta.json' ? ({ ok: true, status: 200, json: async () => META_FIXTURE } as Response) : ({ ok: false, status: 404 } as Response))))
+    render(<App />)
+    fireEvent.click(screen.getByRole('link', { name: 'Results' }))
+    expect(await screen.findByText(/results could not be shown/i)).toHaveTextContent('data/tests.json returned HTTP 404')
+    expect(screen.queryByRole('table', { name: 'Primary family' })).toBeNull()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('has a Crush paths page that draws event_paths.json (the fixture here) and does not autoplay without a motion preference', async () => {
+    const server = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => (url === 'data/event_paths.json' ? EVENT_PATHS_FIXTURE : META_FIXTURE) }) as Response)
+    vi.stubGlobal('fetch', server)
+    render(<App />)
+    expect(server).not.toHaveBeenCalledWith('data/event_paths.json', expect.anything())
+    fireEvent.click(screen.getByRole('link', { name: 'Crush paths' }))
+    expect(await screen.findByRole('img', { name: /Mean abnormal log IV path/ })).toBeInTheDocument()
+    expect(server).toHaveBeenCalledWith('data/event_paths.json', { cache: 'no-cache' })
+    expect(screen.getByRole('img', { name: /Per-event abnormal log IV paths, 3 events/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument() // jsdom has no matchMedia: reduced motion, no autoplay
+    expect(screen.getByRole('complementary', { name: 'Provisional timing labels' })).toBeInTheDocument()
+    for (const c of EVENT_PATHS_DATA_FIXTURE.caveats) expect(screen.getByText(c)).toBeInTheDocument()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('has a Heatmap page that draws heatmap.json (the fixture here) under the provisional notice', async () => {
+    const server = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => (url === 'data/heatmap.json' ? HEATMAP_FIXTURE : META_FIXTURE) }) as Response)
+    vi.stubGlobal('fetch', server)
+    render(<App />)
+    expect(server).not.toHaveBeenCalledWith('data/heatmap.json', expect.anything())
+    fireEvent.click(screen.getByRole('link', { name: 'Heatmap' }))
+    expect(await screen.findByRole('table', { name: 'Fixture grid by day' })).toBeInTheDocument()
+    expect(server).toHaveBeenCalledWith('data/heatmap.json', { cache: 'no-cache' })
+    expect(screen.getByRole('table', { name: 'Fixture grid by season' })).toBeInTheDocument()
+    expect(screen.getByRole('complementary', { name: 'Provisional timing labels' })).toBeInTheDocument()
+    for (const c of HEATMAP_DATA_FIXTURE.caveats) expect(screen.getByText(c)).toBeInTheDocument()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('has a 3D view that loads terrain.json first, then lazy-loads the surface, with real-data wording and the provisional notice', async () => {
+    const server = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => (url === 'data/terrain.json' ? TERRAIN_FIXTURE : META_FIXTURE) }) as Response)
+    vi.stubGlobal('fetch', server)
     render(<App />)
     expect(screen.queryByTestId('r3f-canvas')).toBeNull() // not loaded on first paint
-    fireEvent.click(screen.getByRole('link', { name: '3D preview' }))
+    expect(server).not.toHaveBeenCalledWith('data/terrain.json', expect.anything())
+    fireEvent.click(screen.getByRole('link', { name: '3D view' }))
     expect(await screen.findByTestId('r3f-canvas')).toBeInTheDocument()
-    expect(screen.getByText('Illustrative synthetic shape — not data')).toBeInTheDocument()
+    expect(server).toHaveBeenCalledWith('data/terrain.json', { cache: 'no-cache' })
+    expect(screen.getByRole('heading', { name: '3D view' })).toBeInTheDocument()
+    expect(screen.getByText(/x: event day \(-1 to 1\)/)).toBeInTheDocument()
+    expect(screen.queryByText(/Illustrative/i)).toBeNull()
+    expect(screen.getByRole('complementary', { name: 'Provisional timing labels' })).toHaveTextContent('Timing labels are provisional')
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('shows the 3D view error, and keeps the app usable, when terrain.json is missing', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (url === 'data/meta.json' ? ({ ok: true, status: 200, json: async () => META_FIXTURE } as Response) : ({ ok: false, status: 404 } as Response))))
+    render(<App />)
+    fireEvent.click(screen.getByRole('link', { name: '3D view' }))
+    expect(await screen.findByText(/3D view could not be shown/i)).toHaveTextContent('data/terrain.json returned HTTP 404')
+    expect(screen.queryByTestId('r3f-canvas')).toBeNull()
+    await screen.findByText(/source commit abc1234/)
   })
 
   it('offers no Admin page and no API-key field (there is no live mode)', async () => {

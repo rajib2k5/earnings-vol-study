@@ -1,0 +1,2 @@
+market {'TSLA': 0.002, 'NFLX': 0.003, 'CSCO': 0.002} share of firm term 0.278
+mean {'TSLA': 0.037, 'NFLX': 0.091, 'CSCO': 0.136} share of firm term 0.284

@@ -286,6 +286,14 @@ under test. A new assertion is seen to fail before it passes. Coverage is not ev
 > `kind`), so a re-serialised raw month or a local-only table is refused without the local vendor folder too.
 > Tests keep their hand-worked made-up values. Public history stays as it is. `tools/licensing/scan_real_rows.py`
 > is kept as a tool, but is no longer a push gate.
+>
+> *Recorded at milestone 3 (coordinator's message relaying the owner, 2026-10-29).* Two questions that were left open
+> are **covered by this decision**: (1) the Yahoo-derived labels `security.in_universe` and
+> `timing_check.gap_verdict_yf` may be committed; (2) the Cboe VX\* cross-check (ADR 0003 validation item 1) may be
+> built and its values committed, despite the "verify or correct other data" term of Cboe's website terms (data model
+> §6 item 8, now closed). Only bulk raw files stay out. Milestone 3 also commits aggregates of VIX-derived values
+> (the market-adjusted rows of `results` and the JSON views built from them) under the same decision, and keeps the
+> VIX-derived per-row values local because no view needs them (data model §2.1).
 
 > **Owner decision, 2026-10-29 (data policy), replaced the same day by the note above.** Keep the strict rule. No new commit may hold a real vendor
 > value or a vendor data file: no Yahoo, Cboe (including VIX via FRED), Kaggle or OptionsDX values. Tests use

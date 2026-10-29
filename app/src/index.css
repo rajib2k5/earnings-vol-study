@@ -79,11 +79,10 @@ a { color: var(--teal); }
   --down: #A63E3A;
 }
 
-/* ---- 3D preview (EventTerrain3D) ---- */
+/* ---- 3D view (EventTerrain3D) ---- */
 .terrain { margin: 0; }
 .terrain-canvas { height: 420px; border-radius: 4px; background: var(--surface2); overflow: hidden; touch-action: none; }
-.terrain figcaption { margin-top: .7rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .8rem; }
-.terrain-label { font-family: var(--mono); font-size: .72rem; padding: .15rem .55rem; border: 1px solid var(--accent); border-radius: 3px; color: var(--accent); } /* no uppercase: the wording is exact */
+.terrain figcaption { margin-top: .7rem; }
 .terrain figcaption .sub { margin: 0; font-size: .8rem; }
 
 /* ---- sample funnel page (FunnelPage): one bar per step ---- */
@@ -96,3 +95,35 @@ a { color: var(--teal); }
 .hist { display: flex; align-items: flex-end; gap: 1px; height: 11rem; border-bottom: 1px solid var(--line); }
 .hist-bar { flex: 1 1 0; min-width: 0; background: var(--teal); }
 .hist-axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-top: .3rem; }
+
+/* ---- provisional-timing notice (ProvisionalNotice), on every page that shows a result ---- */
+.provisional { border: 1px solid var(--accent); border-left-width: 4px; border-radius: 6px; background: var(--surface); padding: .8rem 1.1rem; margin: 0 0 1.2rem; }
+.provisional-done { border-color: var(--line); }
+.provisional-head { margin: 0 0 .5rem; font-weight: 600; }
+.provisional ul { margin: 0; padding-left: 1.2rem; max-width: none; }
+.badge.warn-badge { color: var(--accent); border-color: var(--accent); }
+
+/* ---- results page (ResultsPage) ---- */
+.results h3 { font-size: .95rem; margin: 1.2rem 0 .4rem; }
+.cell-note { font-size: .72rem; margin: 0; max-width: none; }
+.results details { margin: .4rem 0 1rem; }
+.results summary { cursor: pointer; margin-bottom: .5rem; }
+
+/* ---- crush paths page (CrushPathsPage): SVG charts ---- */
+.path-chart { width: 100%; height: auto; display: block; }
+.path-chart .grid-line { stroke: var(--line); stroke-width: 1; }
+.path-chart .day0-line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.path-chart .tick { fill: var(--muted); font-family: var(--mono); font-size: 10px; }
+.path-chart .path-band { fill: var(--accent); fill-opacity: .22; stroke: none; }
+.path-chart .path-mean { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.path-chart .path-event { fill: none; stroke: var(--teal); stroke-opacity: .28; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+.crush-paths .controls input[type="range"] { padding: 0; min-width: 12rem; }
+
+/* ---- heatmap page (HeatmapPage): one table cell per company and column ---- */
+table.heat { border-collapse: separate; border-spacing: 1px; width: auto; font-size: .68rem; }
+table.heat th { padding: .1rem .35rem; border-bottom: 0; white-space: nowrap; text-transform: none; letter-spacing: 0; }
+table.heat th[scope="row"] { text-align: right; position: sticky; left: 0; background: var(--surface); }
+.heat-cell { min-width: 1.15rem; height: 1rem; padding: 0; border: 0; }
+.heat-empty { background: transparent; outline: 1px dashed var(--line); outline-offset: -2px; }
+.heat-legend { display: flex; align-items: center; gap: .5rem; font-size: .72rem; color: var(--muted); margin: 0 0 .8rem; }
+.heat-legend-bar { flex: 0 1 14rem; height: .6rem; border-radius: 2px; border: 1px solid var(--line); }

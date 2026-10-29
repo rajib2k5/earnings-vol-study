@@ -1,0 +1,136 @@
+{
+ "mode": "d",
+ "reps": 2000,
+ "band": [
+  0.038,
+  0.063
+ ],
+ "rates": {
+  "calibrated": {
+   "H1": {
+    "primary": "twoway_date_t",
+    "rate": 0.0535
+   },
+   "H2": {
+    "primary": "rad_season_p",
+    "rate": 0.0075
+   },
+   "H3": {
+    "primary": "twoway_season_t",
+    "rate": 0.0045
+   },
+   "H4": {
+    "primary": "twoway_date_t",
+    "rate": 0.0515
+   }
+  },
+  "phi=1.0": {
+   "H1": {
+    "primary": "twoway_date_t",
+    "rate": 0.0575
+   },
+   "H2": {
+    "primary": "rad_season_p",
+    "rate": 0.055
+   },
+   "H3": {
+    "primary": "twoway_season_t",
+    "rate": 0.0645
+   },
+   "H4": {
+    "primary": "twoway_date_t",
+    "rate": 0.051
+   }
+  },
+  "phi=0.995": {
+   "H1": {
+    "primary": "twoway_date_t",
+    "rate": 0.056
+   },
+   "H2": {
+    "primary": "rad_season_p",
+    "rate": 0.015
+   },
+   "H3": {
+    "primary": "twoway_season_t",
+    "rate": 0.018
+   },
+   "H4": {
+    "primary": "twoway_date_t",
+    "rate": 0.0525
+   }
+  },
+  "phi=0.99": {
+   "H1": {
+    "primary": "twoway_date_t",
+    "rate": 0.054
+   },
+   "H2": {
+    "primary": "rad_season_p",
+    "rate": 0.0095
+   },
+   "H3": {
+    "primary": "twoway_season_t",
+    "rate": 0.0085
+   },
+   "H4": {
+    "primary": "twoway_date_t",
+    "rate": 0.0515
+   }
+  },
+  "kappa=0 (rho_m refit)": {
+   "H1": {
+    "primary": "twoway_date_t",
+    "rate": 0.053
+   },
+   "H2": {
+    "primary": "rad_season_p",
+    "rate": 0.007
+   },
+   "H3": {
+    "primary": "twoway_season_t",
+    "rate": 0.0045
+   },
+   "H4": {
+    "primary": "twoway_date_t",
+    "rate": 0.0535
+   }
+  },
+  "kappa=0, phi=1.0": {
+   "H1": {
+    "primary": "twoway_date_t",
+    "rate": 0.0545
+   },
+   "H2": {
+    "primary": "rad_season_p",
+    "rate": 0.0565
+   },
+   "H3": {
+    "primary": "twoway_season_t",
+    "rate": 0.0665
+   },
+   "H4": {
+    "primary": "twoway_date_t",
+    "rate": 0.057
+   }
+  },
+  "drift=0.0005": {
+   "H1": {
+    "primary": "twoway_date_t",
+    "rate": 0.0555
+   },
+   "H2": {
+    "primary": "rad_season_p",
+    "rate": 0.0085
+   },
+   "H3": {
+    "primary": "twoway_season_t",
+    "rate": 0.003
+   },
+   "H4": {
+    "primary": "twoway_date_t",
+    "rate": 0.0555
+   }
+  }
+ }
+}

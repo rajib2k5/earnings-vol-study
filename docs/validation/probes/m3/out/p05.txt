@@ -1,0 +1,28 @@
+5a {'H1': ('twoway_date_t', 4.6), 'H2': ('rad_season_p', 0.65), 'H3': ('twoway_season_t', 0.55), 'H4': ('twoway_date_t', 4.75)} maxdiff 0.0 params equal True
+5b n sims 20
+  rho1                             real -0.2535  sim -0.2244 sd 0.0178  z -1.64
+  corr_same_date_across_sectors    real +0.3071  sim +0.2980 sd 0.0218  z 0.42
+  corr_same_date_within_sector     real +0.3739  sim +0.3588 sd 0.0209  z 0.72
+  corr_lag1_cross_firm             real -0.0719  sim -0.0652 sd 0.0234  z -0.28
+  ar_levels_raw                    real +0.7240  sim +0.7943 sd 0.0180  z -3.9
+  ar_levels                        real +0.9815  sim +0.9988 sd 0.0031  z -5.66
+  drift_sd                         real +0.0000  sim +0.0000 sd 0.0000  z None
+  firm_crush_sd                    real +0.0704  sim +0.0701 sd 0.0062  z 0.04
+  day0_variance_ratio              real +4.7694  sim +5.2774 sd 0.4985  z -1.02
+  sd_log_s                         real +0.1362  sim +0.1480 sd 0.0175  z -0.68
+  cs_mean_acf1                     real -0.2292  sim -0.1850 sd 0.0415  z -1.06
+5c reading (10 sims each):
+  true phi 1.0: corrected 1.0000 (sd 0.0000), raw 0.8162
+  true phi 0.995: corrected 1.0000 (sd 0.0000), raw 0.8105
+  true phi 0.99: corrected 1.0000 (sd 0.0000), raw 0.8047
+  true phi 0.982: corrected 0.9987 (sd 0.0023), raw 0.7961
+  true phi 0.97: corrected 0.9959 (sd 0.0067), raw 0.7833
+  true phi 0.95: corrected 0.9869 (sd 0.0134), raw 0.7600
+5d band [0.038, 0.063]
+   calibrated {'H1': ('twow', 5.35), 'H2': ('rad_', 0.75), 'H3': ('twow', 0.45), 'H4': ('twow', 5.15)}
+   phi=1.0 {'H1': ('twow', 5.75), 'H2': ('rad_', 5.5), 'H3': ('twow', 6.45), 'H4': ('twow', 5.1)}
+   phi=0.995 {'H1': ('twow', 5.6), 'H2': ('rad_', 1.5), 'H3': ('twow', 1.8), 'H4': ('twow', 5.25)}
+   phi=0.99 {'H1': ('twow', 5.4), 'H2': ('rad_', 0.95), 'H3': ('twow', 0.85), 'H4': ('twow', 5.15)}
+   kappa=0 (rho_m refit) {'H1': ('twow', 5.3), 'H2': ('rad_', 0.7), 'H3': ('twow', 0.45), 'H4': ('twow', 5.35)}
+   kappa=0, phi=1.0 {'H1': ('twow', 5.45), 'H2': ('rad_', 5.65), 'H3': ('twow', 6.65), 'H4': ('twow', 5.7)}
+   drift=0.0005 {'H1': ('twow', 5.55), 'H2': ('rad_', 0.85), 'H3': ('twow', 0.3), 'H4': ('twow', 5.55)}

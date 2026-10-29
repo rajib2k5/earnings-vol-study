@@ -1,0 +1,4 @@
+cm30/CRUSH: jump_k real 2.698 demeaned 2.139; day-0 ratio 4.70 vs 3.32; firm_fx 0.0709 vs 0.0709
+sigma_d/DSIGMA_D: jump_k real 2.785 demeaned 2.789; day-0 ratio 3.70 vs 3.70; firm_fx 0.0151 vs 0.0151
+real: H1 bmp_t 24.20%; H1 cluster_date_t 22.75%; H1 gen_sign_z 19.75%; H1 kp_ow_t 14.35%; H1 kpp_t 14.40%; H1 patell_z 66.70%; H1 rank_t 37.20%; H1 twoway_date_t 4.45%; H4 bmp_t 6.00%; H4 cluster_date_t 5.15%; H4 gen_sign_z 6.45%; H4 kp_ow_t 4.30%; H4 kpp_t 4.25%; H4 rank_t 13.95%; H4 twoway_date_t 4.75%
+demeaned: H1 bmp_t 27.55%; H1 cluster_date_t 25.15%; H1 gen_sign_z 21.90%; H1 kp_ow_t 17.40%; H1 kpp_t 17.55%; H1 patell_z 65.75%; H1 rank_t 39.45%; H1 twoway_date_t 4.60%; H4 bmp_t 6.00%; H4 cluster_date_t 5.15%; H4 gen_sign_z 6.50%; H4 kp_ow_t 4.30%; H4 kpp_t 4.25%; H4 rank_t 13.95%; H4 twoway_date_t 4.75%

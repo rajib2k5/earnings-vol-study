@@ -110,7 +110,7 @@ export interface MetaParams {
   clock: string
 }
 
-/** The `data` object of `meta.json` (kind "meta", schema 0.3.0). */
+/** The `data` object of `meta.json` (kind "meta", schema 0.4.0). */
 export interface MetaData {
   project: string
   milestone: number

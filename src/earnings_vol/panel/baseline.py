@@ -10,11 +10,17 @@
 #   The event keeps its baseline if at least 20 sessions and at least 15
 #   one-session changes (both ends clean) are left.
 #
-# Milestone 1 applies rules 1-3. Rule 4 can only remove more sessions, so the
-# counts here are upper bounds of the final ones.
+# Milestone 1 applied rules 1-3; the funnel applies rule 4 since milestone 2
+# (export/funnel.py passes only sessions with a cm30_iv as observed).
+#
+# Milestone 3 adds event_centres() (moved here from the funnel, so the funnel
+# and the panel place every zone the same way) and baseline_reasons(): why each
+# session of the baseline range is or is not clean, for event_window_obs.
 # =============================================================================
 
 from dataclasses import dataclass
+
+from earnings_vol.events import calendar
 
 
 @dataclass(frozen=True)
@@ -47,3 +53,54 @@ def clean_baseline(day0_index: int, own_id: str, event_zones: dict[str, list[tup
     cs = set(clean)
     changes = sum(1 for t in clean if t - 1 in cs)
     return BaselineCount(len(clean), changes)
+
+
+def event_centres(events, sessions: calendar.Sessions) -> list[tuple[str, list[int]]]:
+    """[(event_id, [centre session index, ...])] for the zones of one security's events.
+
+    `events` holds one security's rows of the events table. A duplicate_row is a second
+    calendar row of another event's release: it has no zone of its own. An event with a
+    day 0 is centred on it; one without (ambiguous or not checked) on both candidates,
+    next(D) and D itself when D is a session (ADR 0004 §1).
+    """
+    centres = []
+    for r in events.itertuples(index=False):
+        if r.exclusion_reason == "duplicate_row":
+            continue
+        if r.day0_session is not None:
+            centres.append((r.event_id, [sessions.index[r.day0_session]]))
+        else:
+            a = r.announce_date_used
+            cands = [sessions.next_after(a)] + ([a] if sessions.is_session(a) else [])
+            centres.append((r.event_id, [sessions.index[c] for c in cands]))
+    return centres
+
+
+# Why a session of the baseline range [-60, -22] is not clean, in this order (data model §3.10).
+REASONS = ("other_event_zone", "orphan_zone", "not_observed", "null_iv")
+
+
+def baseline_reasons(day0_index: int, own_id: str, event_zones: dict[str, list[tuple[int, int]]],
+                     orphan_zones: list[tuple[int, int]], observed: set[int], has_iv: set[int],
+                     window: tuple[int, int]) -> dict[int, str | None]:
+    """{session index: None if clean, else the first rule it fails} over the baseline range.
+
+    `observed` holds the sessions with an ok snapshot, `has_iv` those that also have a
+    cm30_iv. The clean sessions are exactly those clean_baseline() counts when it is
+    given `has_iv` as its observed set.
+    """
+    lo, hi = day0_index + window[0], day0_index + window[1]
+    others = [z for eid, zs in event_zones.items() if eid != own_id for z in zs]
+    out = {}
+    for t in range(lo, hi + 1):
+        if any(a <= t <= b for a, b in others):
+            out[t] = "other_event_zone"
+        elif any(a <= t <= b for a, b in orphan_zones):
+            out[t] = "orphan_zone"
+        elif t not in observed:
+            out[t] = "not_observed"
+        elif t not in has_iv:
+            out[t] = "null_iv"
+        else:
+            out[t] = None
+    return out

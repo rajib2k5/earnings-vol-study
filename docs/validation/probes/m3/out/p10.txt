@@ -1,0 +1,77 @@
+OK  H1 est: doc -0.1991 vs data -0.199124
+OK  H1 se: doc 0.0113 vs data 0.011253
+OK  H1 t: doc -17.7 vs data -17.6952
+OK  H1 df: doc 49 vs data 49
+OK  H1 p: doc 6.35e-23 vs data 6.34973e-23
+OK  H1 p_holm: doc 4.44e-22 vs data 4.44481e-22
+OK  H1 ci_lo: doc -0.2217 vs data -0.221738
+OK  H1 ci_hi: doc -0.1765 vs data -0.176511
+OK  H1 n: doc 347 vs data 347
+OK  H1 G date: doc 172 vs data 172
+OK  H1 G firm: doc 50 vs data 50
+BAD H2 est: doc 0.2314 vs data 0.23135
+OK  H2 p: doc 0.0078 vs data 0.0078125
+OK  H2 p_holm: doc 0.0469 vs data 0.046875
+OK  H2 stat (one-way t): doc 17.28 vs data 17.2819
+OK  H2 G: doc 8 vs data 8
+OK  H2 n: doc 356 vs data 356
+OK  H3 est: doc 0.0089 vs data 0.00887675
+OK  H3 se: doc 0.0216 vs data 0.0216412
+OK  H3 t: doc 0.41 vs data 0.410179
+OK  H3 p: doc 0.696 vs data 0.695919
+OK  H3 ci_lo: doc -0.0441 vs data -0.0440773
+OK  H3 ci_hi: doc 0.0618 vs data 0.0618308
+OK  H4 est: doc 0.0034 vs data 0.00343117
+OK  H4 se: doc 0.0114 vs data 0.0113737
+OK  H4 p: doc 0.764 vs data 0.76426
+OK  H4 G date: doc 134 vs data 134
+OK  H4 G firm: doc 47 vs data 47
+OK  H1 twin est: doc -0.2009 vs data -0.200924
+OK  H1 twin t: doc -17.65 vs data -17.6514
+OK  H1 one-way t: doc -30.88 vs data -30.8782
+OK  H1 one-way se (6.5): doc 0.0064 vs data 0.0064487
+OK  H1 kp_ow_t: doc -22.0 vs data -21.9691
+OK  H1 kpp_t: doc -22.6 vs data -22.6041
+OK  H1 bmp_t: doc -29.2 vs data -29.2292
+OK  H1 patell: doc -78.5 vs data -78.4573
+OK  H1 sign share below 0: doc 0.986 vs data 0.985591
+OK  H2 two-way t: doc 13.82 vs data 13.8178
+OK  H2 two-way se (6.5): doc 0.0167 vs data 0.0167429
+OK  H2 one-way se (6.5): doc 0.0134 vs data 0.0133868
+OK  H3 one-way se (6.5): doc 0.0224 vs data 0.0223654
+OK  H2 twin est: doc 0.2333 vs data 0.233307
+OK  H3 twin est: doc 0.003 vs data 0.0029612
+OK  H3 twin t: doc 0.09 vs data 0.0850703
+OK  AMC crush: doc -0.23 vs data -0.22989
+OK  AMC n: doc 182 vs data 182
+OK  BMO crush: doc -0.165 vs data -0.165189
+OK  BMO n: doc 165 vs data 165
+OK  coarse crush: doc -0.19 vs data -0.189614
+OK  coarse n: doc 110 vs data 110
+BAD path day -10: doc 0.236 vs data 0.235459
+OK  path day -1: doc 0.231 vs data 0.231281
+OK  path day 0: doc 0.032 vs data 0.0321569
+OK  path day 10: doc 0.008 vs data 0.0076578
+OK  H1 80%-power shift: doc 0.035 vs data 0.0352
+OK  H2 80%-power shift: doc 0.083 vs data 0.0834
+OK  H3 80%-power shift: doc 0.107 vs data 0.1071
+OK  H4 80%-power shift: doc 0.039 vs data 0.0391
+OK  H1 calibrated G1 rate: doc 0.046 vs data 0.046
+OK  H2 calibrated G1 rate: doc 0.0065 vs data 0.0065
+OK  H3 calibrated G1 rate: doc 0.0055 vs data 0.0055
+OK  H4 calibrated G1 rate: doc 0.0475 vs data 0.0475
+OK  11 calibrated H1 cluster_date_t: doc 0.241 vs data 0.241
+OK  11 calibrated H1 bmp_t: doc 0.261 vs data 0.2605
+OK  11 calibrated H1 kp_ow_t: doc 0.157 vs data 0.157
+OK  11 calibrated H1 kpp_t: doc 0.158 vs data 0.1575
+OK  11 calibrated H1 patell_z: doc 0.69 vs data 0.6895
+OK  11 calibrated H1 gen_sign_z: doc 0.209 vs data 0.2095
+OK  11 calibrated H1 rank_t: doc 0.388 vs data 0.3875
+OK  stress D2+drift0.0015 H2 rad: doc 0.08 vs data 0.08
+OK  stress common_ar0.9 H1: doc 0.177 vs data 0.177
+OK  stress D3 H3: doc 0.068 vs data 0.068
+OK  date-cluster mutant H2: doc 0.197 vs data 0.197
+11 caveat: Gate G1's calibrated design finds these robustness rows oversized (rejection rate under the null above 6.30%): H1 bmp_t 26.1%; H1 cluster_date_t 24.1%; H1 gen_sign_z 20.9%; H1 kp_ow_t 15.7%; H1 kpp_t 15.8%; H1 patell_z 69.0%; H1 rank_t 38.8%; H4 bmp_t 23.7%; H4 cluster_date_t 22.2%; H4 gen_sign_z 18.6%; H4 kp_ow_t 13.7%; H4 kpp_t 14.0%; H4 rank_t 37.0%. Read their p-values as descriptive, not as tests.
+11 rows above 6.30% in the G1 table: ['H1 bmp_t 0.2605', 'H1 cluster_date_t 0.2410', 'H1 gen_sign_z 0.2095', 'H1 kp_ow_t 0.1570', 'H1 kpp_t 0.1575', 'H1 patell_z 0.6895', 'H1 rank_t 0.3875', 'H4 bmp_t 0.2370', 'H4 cluster_date_t 0.2220', 'H4 gen_sign_z 0.1865', 'H4 kp_ow_t 0.1370', 'H4 kpp_t 0.1395', 'H4 rank_t 0.3705']
+11 rows above the band not named in the caveat: []
+SUMMARY 71 of 73 numbers equal

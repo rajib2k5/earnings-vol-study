@@ -1,0 +1,44 @@
+g1 H1 bmp_t                   24.20%  OVER
+g1 H1 cluster_date_t          22.75%  OVER
+g1 H1 gen_sign_z              19.75%  OVER
+g1 H1 kp_ow_t                 14.35%  OVER
+g1 H1 kpp_t                   14.40%  OVER
+g1 H1 patell_z                66.70%  OVER
+g1 H1 rank_t                  37.20%  OVER
+g1 H1 twoway_date_t            4.45% PRIMARY
+g1 H2 cluster_season_t         0.60% 
+g1 H2 date_cluster_t          20.55%  OVER
+g1 H2 rad_season_p             0.40% PRIMARY
+g1 H2 sa_twoway_season_t       0.80% 
+g1 H2 twoway_season_t          0.85% 
+g1 H3 cluster_season_t         0.65% 
+g1 H3 date_cluster_t          22.80%  OVER
+g1 H3 rad_season_p             0.60% 
+g1 H3 sa_twoway_season_t       0.50% 
+g1 H3 twoway_season_t          0.50% PRIMARY
+g1 H4 bmp_t                    6.00% 
+g1 H4 cluster_date_t           5.15% 
+g1 H4 gen_sign_z               6.45%  OVER
+g1 H4 kp_ow_t                  4.30% 
+g1 H4 kpp_t                    4.25% 
+g1 H4 rank_t                  13.95%  OVER
+g1 H4 twoway_date_t            4.75% PRIMARY
+event_test rows 45 ; with null p 11
+  null p: H1 robustness bmp_t market daily all est_notna=True se_notna=True stat_notna=True ci_null=True
+  null p: H1 robustness cluster_date_t market daily all est_notna=True se_notna=True stat_notna=True ci_null=True
+  null p: H1 robustness gen_sign_z market daily all est_notna=True se_notna=False stat_notna=True ci_null=True
+  null p: H1 robustness kp_ow_t market daily all est_notna=True se_notna=True stat_notna=True ci_null=True
+  null p: H1 robustness kpp_t market daily all est_notna=True se_notna=True stat_notna=True ci_null=True
+  null p: H1 robustness patell_z market daily all est_notna=True se_notna=False stat_notna=True ci_null=True
+  null p: H1 robustness rank_t market daily all est_notna=True se_notna=False stat_notna=True ci_null=True
+  null p: H4 robustness gen_sign_z market daily all est_notna=True se_notna=False stat_notna=True ci_null=True
+  null p: H4 robustness rank_t market daily all est_notna=True se_notna=False stat_notna=True ci_null=True
+  null p: nan exploratory mean market mixed all est_notna=True se_notna=False stat_notna=False ci_null=True
+  null p: nan exploratory mean market mixed all est_notna=True se_notna=False stat_notna=False ci_null=True
+withheld == oversized set: True sizes 9 9
+primary rows with null p: 0 of 4
+  statistic bmp_t keeps a p in 1 other rows: [('H4', 'daily', 'market', 'all')]
+  statistic cluster_date_t keeps a p in 1 other rows: [('H4', 'daily', 'market', 'all')]
+  statistic kp_ow_t keeps a p in 1 other rows: [('H4', 'daily', 'market', 'all')]
+  statistic kpp_t keeps a p in 1 other rows: [('H4', 'daily', 'market', 'all')]
+tests.json g1_size rows 9 match G1 rates: True keys equal: True

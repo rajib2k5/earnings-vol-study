@@ -32,9 +32,22 @@ def test_class_r_exactly_when_suffixed_over_every_value_column():
 def test_the_restricted_columns_are_the_ones_the_data_model_lists():
     assert schema.MARKET_DAILY.restricted() == ("vix_close_cboe", "ln_vix_cboe")
     assert set(schema.TIMING_CHECK.restricted()) == set(schema.TIMING_CHECK.names) - {"event_id"}
-    for name in ("security", "ticker_alias", "session", "events", "eps", "session_snapshot", "iv_daily", "event_iv"):
+    for name in ("security", "ticker_alias", "session", "events", "eps", "session_snapshot", "iv_daily", "event_iv",
+                 "results"):
         assert schema.REGISTRY[name].restricted() == (), name
         assert schema.REGISTRY[name].committed, name
+    # Milestone 3: the market-adjusted per-row values stay local (data model §2.1; the owner's preference of
+    # 2026-10-29 that VIX-derived per-row values stay local unless the app needs them), and so do the
+    # VX* and Yahoo columns. Their committed copies keep everything else.
+    assert schema.EVENT_WINDOW_OBS.restricted() == ("e_abn_cboe", "aliv_cboe", "ln_vx_cboe", "e_abn_vx_cboe")
+    assert set(schema.EVENT_MEASURES.restricted()) == {
+        "beta_vix_cboe", "s_abn_cboe", "runup_cboe", "crush_cboe", "persist_1_cboe", "persist_5_cboe",
+        "persist_10_cboe", "dsigma_d_cboe", "crush_two_session_cboe", "sa_crush_cboe", "sa_runup_cboe",
+        "sa_persist_1_cboe", "sa_persist_5_cboe", "sa_persist_10_cboe", "sa_dsigma_d_cboe", "realized_ret_0_yf",
+        "ln_mcap_yf"}
+    # results' numbers are class S (statistics over VIX-adjusted values), committed under the owner's decision.
+    assert {c.name for c in schema.RESULTS.columns if c.licence == "S"} == {
+        "estimate", "se", "stat", "p_value", "ci_lo", "ci_hi", "p_holm", "q_bh", "rbar"}
     # Local only: market_daily (VIX) and chain_expiry (about 190k rows; its DF is a FRED value).
     assert not schema.MARKET_DAILY.committed and not schema.CHAIN_EXPIRY.committed
     # Owner decision of 2026-10-29: the one class-R column committed is timing_check's gap verdict.

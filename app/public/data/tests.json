@@ -1,0 +1,4835 @@
+{
+  "data": {
+    "caveats": [
+      "Timing labels are provisional: 20 press releases were looked up and every other event keeps the calendar's label (not_checked) until SEC EDGAR is set up, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
+      "H5-H7 (the drivers and the implied-versus-realised test) are milestone 4. Until then they enter Holm's family as p = 1, so each p_holm here is an upper bound: it can only fall when they are tested.",
+      "Primary rows are equal-weighted means of market-adjusted abnormal log IV (VIX, beta per company). Precision-weighted rows (BMP, KP, KPP, Patell) test another estimand and are robustness only.",
+      "Market-adjusted numbers are aggregates of values computed with the Cboe VIX index (via FRED VIXCLS); see DATA.md for Cboe's terms.",
+      "Gate G1's calibrated design finds these robustness rows oversized (rejection rate under the null above the band's upper edge for the replications it was measured on: 6.30% at 2,000, 5.57% at 10,000): H1 bmp_t 27.55%; H1 cluster_date_t 25.15%; H1 gen_sign_z 21.90%; H1 kp_ow_t 17.40%; H1 kpp_t 17.55%; H1 patell_z 65.75%; H1 rank_t 39.45%; H4 gen_sign_z 5.68% (on 10,000); H4 rank_t 13.65%. As ADR 0005 \u00a74 does for rows known to be mis-sized, their p-values and intervals are withheld (null; g1_size and g1_reps give the rate and its replications instead) and their estimates are shown.",
+      "Robustness rates within one point of the 6.30% bar on 2,000 replications are re-measured on more replications and decided against that count's bar (ADR 0005 \u00a74): H4 bmp_t 5.34% on 10,000, p-value kept; H4 cluster_date_t 4.98% on 10,000, p-value kept; H4 gen_sign_z 5.68% on 10,000, withheld."
+    ],
+    "g1": {
+      "band": [
+        0.038,
+        0.063
+      ],
+      "calibrated": [
+        {
+          "hypothesis": "H1",
+          "pass": true,
+          "rejection_rate": 0.046,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "hypothesis": "H2",
+          "pass": true,
+          "rejection_rate": 0.004,
+          "statistic": "rad_season_p"
+        },
+        {
+          "hypothesis": "H3",
+          "pass": true,
+          "rejection_rate": 0.005,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "hypothesis": "H4",
+          "pass": true,
+          "rejection_rate": 0.046,
+          "statistic": "twoway_date_t"
+        }
+      ],
+      "calibration": {
+        "common_ar": 0.0,
+        "drift": 0.0,
+        "firm_fx": 0.070873,
+        "jump_k": 2.139,
+        "noise": 0.695977,
+        "noise_common": 0.25648,
+        "phi": 0.985307,
+        "psi": 0.0,
+        "rho_m": 0.330249,
+        "rho_s": 0.130627,
+        "sig0": 0.033558,
+        "sig_disp": 0.134358,
+        "sigma_d:common_ar": 0.0,
+        "sigma_d:drift": 0.0,
+        "sigma_d:firm_fx": 0.0151,
+        "sigma_d:jump_k": 2.788961,
+        "sigma_d:noise": 0.968505,
+        "sigma_d:noise_common": 0.041484,
+        "sigma_d:phi": 0.868013,
+        "sigma_d:psi": 0.0,
+        "sigma_d:rho_m": 0.13995,
+        "sigma_d:rho_s": 0.232769,
+        "sigma_d:sig0": 0.049115,
+        "sigma_d:sig_disp": 0.321401
+      },
+      "designs": [
+        {
+          "design": "D0",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0455,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.051,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0525,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.044,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.045,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0505,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.045,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.048,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.073,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.052,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.065,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.049,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0495,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0745,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.072,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.053,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.063,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0495,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.055,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.046,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.045,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.061,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0585,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.046,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0665,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0525,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0605,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0525,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.052,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.067,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.063,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.0535,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.076,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.062,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.065,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0585,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.059,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0755,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.08,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.067,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.197,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.176,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.135,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.183,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.17,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.1985,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.166,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.177,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0635,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.051,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.068,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0485,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.047,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0585,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.061,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.049,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0705,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.056,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.072,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.058,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.056,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0715,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.069,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.05,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.101,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.089,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0925,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.085,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0835,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.113,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.1045,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.0455,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.327,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.317,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.256,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.296,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.295,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.4485,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.3645,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.0555,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.065,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0565,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0625,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0545,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0535,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0665,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.071,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.0515,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0785,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.065,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0675,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0595,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.081,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.085,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.0665,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0525,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.054,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0515,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0515,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.061,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0555,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.052,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0495,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0475,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.059,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.04,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0415,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.434,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.149,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.0475,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.053,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0485,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0665,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0415,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.042,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.4635,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.167,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.0525,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.1245,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0975,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.1055,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.1085,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.1105,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.586,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.251,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.047,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0515,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.047,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.067,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.042,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0415,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.4495,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.173,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.052,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0665,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0425,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.068,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.044,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.043,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.0655,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.075,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.047,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.2755,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.2515,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.219,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.174,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.1755,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.6575,
+          "statistic": "patell_z"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H1",
+          "primary": false,
+          "rejection_rate": 0.3945,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H1",
+          "primary": true,
+          "rejection_rate": 0.046,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.059,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0495,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.0505,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.058,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.061,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0615,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.294,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.0585,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.061,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.067,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.3125,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.063,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0665,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0655,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0745,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.2755,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.0495,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0735,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0725,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0535,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.44,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.048,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.056,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.056,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0735,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.597,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.065,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0755,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0765,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.05,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.3145,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.0495,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0535,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.052,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.087,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.3205,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.08,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.061,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.062,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.052,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.298,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.0475,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0545,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.3185,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.0525,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.059,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0595,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0615,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.364,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.052,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.061,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0565,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.408,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.05,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0585,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.059,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.059,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.3125,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.0525,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.058,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0585,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0085,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0635,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.007,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0175,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0205,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0115,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.071,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.011,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0205,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0215,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.009,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.065,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.007,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0225,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0185,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0135,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0575,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.008,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.081,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0135,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.009,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.087,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.0075,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0185,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0175,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0055,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.206,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H2",
+          "primary": true,
+          "rejection_rate": 0.004,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.008,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H2",
+          "primary": false,
+          "rejection_rate": 0.0085,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.05,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0515,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.054,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.06,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0635,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.3495,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.053,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.063,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0645,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.063,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.339,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.061,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0665,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0665,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.075,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.316,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0495,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0775,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.075,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.059,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.475,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0535,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0605,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.075,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.63,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.073,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0785,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0785,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0535,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.34,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.051,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.052,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.051,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0835,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.3515,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0785,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0545,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0535,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.055,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.345,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.049,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0545,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.056,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.064,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.3485,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0565,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.058,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.061,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0565,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.389,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0505,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.057,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0575,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.056,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.447,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.056,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0575,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0565,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0665,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.3455,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0615,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.066,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.068,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.005,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0235,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0055,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.023,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0235,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.007,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.036,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.004,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0265,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.025,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0065,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0405,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.005,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.018,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.0215,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0055,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.029,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0045,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.068,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.015,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0025,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.071,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0025,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0125,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.013,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.006,
+          "statistic": "cluster_season_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.2355,
+          "statistic": "date_cluster_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.0055,
+          "statistic": "rad_season_p"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H3",
+          "primary": false,
+          "rejection_rate": 0.005,
+          "statistic": "sa_twoway_season_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H3",
+          "primary": true,
+          "rejection_rate": 0.005,
+          "statistic": "twoway_season_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.05,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0565,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0575,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.049,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0495,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0555,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.0575,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0675,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.054,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.078,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.05,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0495,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0725,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D1",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.053,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.078,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0625,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.071,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0605,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0595,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0695,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.0625,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0485,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0585,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.045,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0435,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0605,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2 unbalanced",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.0535,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.083,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.066,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.08,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.069,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0665,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0795,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.071,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1555,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.135,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1115,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.141,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1305,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1235,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+common_ar0.9",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.1345,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0705,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.057,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0625,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0565,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.056,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.062,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+drift0.0005",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.0585,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.064,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.051,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.066,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0495,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0495,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0595,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+drift0.0015",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.05,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.109,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0895,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.09,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0905,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0905,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.114,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+firm_fx0.01",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.055,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.2655,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.261,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.2085,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.236,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.2355,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.3045,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.052,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.068,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.055,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.06,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0535,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.053,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0675,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+lag1_0.02",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.053,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0845,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.066,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.081,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0615,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.062,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.094,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D2+lag1_0.05",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.067,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0605,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.05,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.064,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0515,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0505,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.063,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D3",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.054,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0515,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0515,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.067,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0425,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.043,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1625,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.0575,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0505,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0505,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0585,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.039,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.039,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1645,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D4+drift0.0005",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.055,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1175,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0865,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1015,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0975,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0955,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.253,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.047,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0495,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0515,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0595,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0385,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.038,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1615,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D5",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.054,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.063,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0445,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.073,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.045,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.044,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.076,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "D6",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.047,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0605,
+          "statistic": "bmp_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0535,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.0675,
+          "statistic": "gen_sign_z"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.042,
+          "statistic": "kp_ow_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.042,
+          "statistic": "kpp_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H4",
+          "primary": false,
+          "rejection_rate": 0.1365,
+          "statistic": "rank_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H4",
+          "primary": true,
+          "rejection_rate": 0.046,
+          "statistic": "twoway_date_t"
+        }
+      ],
+      "power": [
+        {
+          "detectable_80": 0.0348,
+          "hypothesis": "H1",
+          "power": [
+            0.1525,
+            0.418,
+            0.74,
+            0.992,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "shifts": [
+            0.01,
+            0.02,
+            0.03,
+            0.05,
+            0.08,
+            0.12,
+            0.16
+          ]
+        },
+        {
+          "detectable_80": 0.1014,
+          "hypothesis": "H2",
+          "power": [
+            0.0085,
+            0.025,
+            0.056,
+            0.2315,
+            0.63,
+            0.9475,
+            0.996
+          ],
+          "shifts": [
+            0.01,
+            0.02,
+            0.03,
+            0.05,
+            0.08,
+            0.12,
+            0.16
+          ]
+        },
+        {
+          "detectable_80": 0.121,
+          "hypothesis": "H3",
+          "power": [
+            0.0075,
+            0.0205,
+            0.0355,
+            0.1345,
+            0.4255,
+            0.7955,
+            0.9775
+          ],
+          "shifts": [
+            0.01,
+            0.02,
+            0.03,
+            0.05,
+            0.08,
+            0.12,
+            0.16
+          ]
+        },
+        {
+          "detectable_80": 0.0357,
+          "hypothesis": "H4",
+          "power": [
+            0.131,
+            0.409,
+            0.7245,
+            0.99,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "shifts": [
+            0.01,
+            0.02,
+            0.03,
+            0.05,
+            0.08,
+            0.12,
+            0.16
+          ]
+        }
+      ],
+      "reps": 2000
+    },
+    "holm": {
+      "family": [
+        "H1",
+        "H2",
+        "H3",
+        "H4",
+        "H5",
+        "H6",
+        "H7"
+      ],
+      "left_family": [],
+      "tested": [
+        "H1",
+        "H2",
+        "H3",
+        "H4"
+      ],
+      "untested": [
+        "H5",
+        "H6",
+        "H7"
+      ]
+    },
+    "lookups": {
+      "complete": false,
+      "n_done": 20
+    },
+    "provenance": {
+      "code_commit": "fca9972",
+      "dolt_commits": {
+        "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
+        "options": "msfqpodh24viv7prdqdan8517rkjp861"
+      },
+      "params_hash": "94065662cd46610cd788566f6d71f0bbddedce8e91a4837da0149e3e5cd9be09",
+      "sample_label": "daily"
+    },
+    "rows": [
+      {
+        "adjustment": "market",
+        "ci_hi": -0.1577,
+        "ci_lo": -0.2231,
+        "df": 39.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.1904,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "crush_cm30",
+        "n": 110,
+        "n_clusters": 81,
+        "n_clusters_firm": 40,
+        "note": null,
+        "p_holm": null,
+        "p_value": 2.081e-14,
+        "q_bh": 8.323e-14,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "coarse",
+        "se": 0.0162,
+        "stat": -11.771,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of the 30-day IV"
+      },
+      {
+        "adjustment": "mean",
+        "ci_hi": -0.1582,
+        "ci_lo": -0.2287,
+        "df": 39.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.1934,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "crush_cm30",
+        "n": 110,
+        "n_clusters": 81,
+        "n_clusters_firm": 40,
+        "note": null,
+        "p_holm": null,
+        "p_value": 1.217e-13,
+        "q_bh": 2.433e-13,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "coarse",
+        "se": 0.0174,
+        "stat": -11.1035,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of the 30-day IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": -0.0157,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "persist_10",
+        "n": 127,
+        "n_clusters": 8,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.3906,
+        "q_bh": 0.3906,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "coarse",
+        "se": null,
+        "stat": -1.0382,
+        "statistic": "rad_season_p",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.2073,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "runup",
+        "n": 117,
+        "n_clusters": 7,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.01562,
+        "q_bh": 0.02083,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "coarse",
+        "se": null,
+        "stat": 4.7041,
+        "statistic": "rad_season_p",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": 346.0,
+        "estimand": "precision_weighted",
+        "estimate": -4.4133,
+        "g1_reps": 2000,
+        "g1_size": 0.2755,
+        "hypothesis": "H1",
+        "measure": "crush_cm30",
+        "n": 347,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": "p-value and interval withheld: under gate G1's calibrated null this statistic rejects 27.55% of the time at 5% over 2,000 replications (band upper edge 6.30% for that count), so ADR 0005 \u00a74 drops its p-value. The estimate stands.",
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.1497,
+        "stat": -29.482,
+        "statistic": "bmp_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised value (precision-weighted)"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": 171.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.1994,
+        "g1_reps": 2000,
+        "g1_size": 0.2515,
+        "hypothesis": "H1",
+        "measure": "crush_cm30",
+        "n": 347,
+        "n_clusters": 172,
+        "n_clusters_firm": null,
+        "note": "p-value and interval withheld: under gate G1's calibrated null this statistic rejects 25.15% of the time at 5% over 2,000 replications (band upper edge 6.30% for that count), so ADR 0005 \u00a74 drops its p-value. The estimate stands.",
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.0064,
+        "stat": -31.2436,
+        "statistic": "cluster_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of the 30-day IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": null,
+        "estimate": 0.9914,
+        "g1_reps": 2000,
+        "g1_size": 0.219,
+        "hypothesis": "H1",
+        "measure": "crush_cm30",
+        "n": 347,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": "p-value and interval withheld: under gate G1's calibrated null this statistic rejects 21.90% of the time at 5% over 2,000 replications (band upper edge 6.30% for that count), so ADR 0005 \u00a74 drops its p-value. The estimate stands.",
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": null,
+        "stat": 18.3248,
+        "statistic": "gen_sign_z",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "share of events below 0"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": 346.0,
+        "estimand": "precision_weighted",
+        "estimate": -4.4133,
+        "g1_reps": 2000,
+        "g1_size": 0.174,
+        "hypothesis": "H1",
+        "measure": "crush_cm30",
+        "n": 347,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": "p-value and interval withheld: under gate G1's calibrated null this statistic rejects 17.40% of the time at 5% over 2,000 replications (band upper edge 6.30% for that count), so ADR 0005 \u00a74 drops its p-value. The estimate stands.",
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": 0.00211,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.1971,
+        "stat": -22.3899,
+        "statistic": "kp_ow_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised value (precision-weighted)"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": 346.0,
+        "estimand": "precision_weighted",
+        "estimate": -4.4133,
+        "g1_reps": 2000,
+        "g1_size": 0.1755,
+        "hypothesis": "H1",
+        "measure": "crush_cm30",
+        "n": 347,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": "p-value and interval withheld: under gate G1's calibrated null this statistic rejects 17.55% of the time at 5% over 2,000 replications (band upper edge 6.30% for that count), so ADR 0005 \u00a74 drops its p-value. The estimate stands.",
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": 0.001858,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.192,
+        "stat": -22.9805,
+        "statistic": "kpp_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised value (precision-weighted)"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "precision_weighted",
+        "estimate": -4.4133,
+        "g1_reps": 2000,
+        "g1_size": 0.6575,
+        "hypothesis": "H1",
+        "measure": "crush_cm30",
+        "n": 347,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": "p-value and interval withheld: under gate G1's calibrated null this statistic rejects 65.75% of the time at 5% over 2,000 replications (band upper edge 6.30% for that count), so ADR 0005 \u00a74 drops its p-value. The estimate stands.",
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": null,
+        "stat": -79.0882,
+        "statistic": "patell_z",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised value (precision-weighted)"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": null,
+        "estimate": -0.4384,
+        "g1_reps": 2000,
+        "g1_size": 0.3945,
+        "hypothesis": "H1",
+        "measure": "crush_cm30",
+        "n": 347,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": "p-value and interval withheld: under gate G1's calibrated null this statistic rejects 39.45% of the time at 5% over 2,000 replications (band upper edge 6.30% for that count), so ADR 0005 \u00a74 drops its p-value. The estimate stands.",
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": null,
+        "stat": -29.2833,
+        "statistic": "rank_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised rank"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": -0.1768,
+        "ci_lo": -0.222,
+        "df": 49.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.1994,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H1",
+        "measure": "crush_cm30",
+        "n": 347,
+        "n_clusters": 172,
+        "n_clusters_firm": 50,
+        "note": null,
+        "p_holm": 4.06e-22,
+        "p_value": 5.8e-23,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "primary",
+        "sample": "daily",
+        "se": 0.0112,
+        "stat": -17.7329,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of the 30-day IV"
+      },
+      {
+        "adjustment": "mean",
+        "ci_hi": -0.178,
+        "ci_lo": -0.2238,
+        "df": 49.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.2009,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H1",
+        "measure": "crush_cm30",
+        "n": 347,
+        "n_clusters": 172,
+        "n_clusters_firm": 50,
+        "note": null,
+        "p_holm": null,
+        "p_value": 7.055e-23,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.0114,
+        "stat": -17.6514,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of the 30-day IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.2651,
+        "ci_lo": 0.1987,
+        "df": 7.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.2319,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H2",
+        "measure": "runup",
+        "n": 356,
+        "n_clusters": 8,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 7.285e-07,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.014,
+        "stat": 16.5147,
+        "statistic": "cluster_season_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.2319,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H2",
+        "measure": "runup",
+        "n": 356,
+        "n_clusters": 8,
+        "n_clusters_firm": null,
+        "note": "This Holm p rests on 8 season clusters: rad_season_p sits at its floor 2/2^8 = 0.007812, so the verdict depends on G alone. With 2026Q4 merged into 2026Q3 (7 clusters, as ADR 0005 \u00a72b expected) the p is 0.01562 and the Holm p 0.09375: not rejected at 5%. The sign is not in question: the two-way t is 13.4.",
+        "p_holm": 0.04688,
+        "p_value": 0.007812,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "primary",
+        "sample": "daily",
+        "se": null,
+        "stat": 16.5147,
+        "statistic": "rad_season_p",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "mean",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.2333,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H2",
+        "measure": "runup",
+        "n": 356,
+        "n_clusters": 8,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.007812,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": null,
+        "stat": 9.4372,
+        "statistic": "rad_season_p",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.2319,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H2",
+        "measure": "runup",
+        "n": 356,
+        "n_clusters": 7,
+        "n_clusters_firm": null,
+        "note": "Counterfactual season cut (2026Q4 merged into 2026Q3), not a test of its own. Its p_holm (0.09375) is the Holm p H2 would get with this p, the family's other p-values as reported.",
+        "p_holm": 0.09375,
+        "p_value": 0.01562,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": null,
+        "stat": 13.737,
+        "statistic": "rad_season_p",
+        "subgroup_key": "season_cut",
+        "subgroup_value": "2026Q4_into_2026Q3",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 1.7766,
+        "ci_lo": 1.151,
+        "df": 7.0,
+        "estimand": "precision_weighted",
+        "estimate": 1.4638,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H2",
+        "measure": "runup",
+        "n": 356,
+        "n_clusters": 8,
+        "n_clusters_firm": 50,
+        "note": null,
+        "p_holm": null,
+        "p_value": 1.093e-05,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.1323,
+        "stat": 11.0664,
+        "statistic": "sa_twoway_season_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised value (precision-weighted)"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.2727,
+        "ci_lo": 0.1911,
+        "df": 7.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.2319,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H2",
+        "measure": "runup",
+        "n": 356,
+        "n_clusters": 8,
+        "n_clusters_firm": 50,
+        "note": null,
+        "p_holm": null,
+        "p_value": 2.974e-06,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.0173,
+        "stat": 13.4318,
+        "statistic": "twoway_season_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.0669,
+        "ci_lo": -0.0509,
+        "df": 6.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.008,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H3",
+        "measure": "persist_10",
+        "n": 329,
+        "n_clusters": 7,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.7503,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.0241,
+        "stat": 0.3332,
+        "statistic": "cluster_season_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.008,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H3",
+        "measure": "persist_10",
+        "n": 329,
+        "n_clusters": 7,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.7656,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": null,
+        "stat": 0.3332,
+        "statistic": "rad_season_p",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.3782,
+        "ci_lo": -0.2228,
+        "df": 6.0,
+        "estimand": "precision_weighted",
+        "estimate": 0.0777,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H3",
+        "measure": "persist_10",
+        "n": 329,
+        "n_clusters": 7,
+        "n_clusters_firm": 50,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.5503,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.1228,
+        "stat": 0.6326,
+        "statistic": "sa_twoway_season_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised value (precision-weighted)"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.0651,
+        "ci_lo": -0.0491,
+        "df": 6.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.008,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H3",
+        "measure": "persist_10",
+        "n": 329,
+        "n_clusters": 7,
+        "n_clusters_firm": 50,
+        "note": null,
+        "p_holm": 1.0,
+        "p_value": 0.7428,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "primary",
+        "sample": "daily",
+        "se": 0.0233,
+        "stat": 0.3437,
+        "statistic": "twoway_season_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "mean",
+        "ci_hi": 0.0881,
+        "ci_lo": -0.0822,
+        "df": 6.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.003,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H3",
+        "measure": "persist_10",
+        "n": 329,
+        "n_clusters": 7,
+        "n_clusters_firm": 50,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.935,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.0348,
+        "stat": 0.0851,
+        "statistic": "twoway_season_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.2253,
+        "ci_lo": -0.2496,
+        "df": 261.0,
+        "estimand": "precision_weighted",
+        "estimate": -0.0121,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H4",
+        "measure": "dsigma_d",
+        "n": 262,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": "p-value kept: under gate G1's calibrated null this statistic rejects 5.34% of the time at 5% over 10,000 replications, within the band upper edge 5.57% for that count. Its rate on 2,000 replications was within one point of that count's bar (6.30%), so it was re-measured on 10,000 fresh replications and decided on those.",
+        "p_holm": null,
+        "p_value": 0.9199,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.1206,
+        "stat": -0.1007,
+        "statistic": "bmp_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised value (precision-weighted)"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.0246,
+        "ci_lo": -0.0184,
+        "df": 133.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.0031,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H4",
+        "measure": "dsigma_d",
+        "n": 262,
+        "n_clusters": 134,
+        "n_clusters_firm": null,
+        "note": "p-value kept: under gate G1's calibrated null this statistic rejects 4.98% of the time at 5% over 10,000 replications, within the band upper edge 5.57% for that count. Its rate on 2,000 replications was within one point of that count's bar (6.30%), so it was re-measured on 10,000 fresh replications and decided on those.",
+        "p_holm": null,
+        "p_value": 0.7753,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.0109,
+        "stat": 0.286,
+        "statistic": "cluster_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of sigma_d"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": null,
+        "estimate": 0.4733,
+        "g1_reps": 10000,
+        "g1_size": 0.0568,
+        "hypothesis": "H4",
+        "measure": "dsigma_d",
+        "n": 262,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": "p-value and interval withheld: under gate G1's calibrated null this statistic rejects 5.68% of the time at 5% over 10,000 replications (band upper edge 5.57% for that count), so ADR 0005 \u00a74 drops its p-value. The estimate stands. Its rate on 2,000 replications was within one point of that count's bar (6.30%), so it was re-measured on 10,000 fresh replications and decided on those.",
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": null,
+        "stat": -0.6234,
+        "statistic": "gen_sign_z",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "share of events below 0"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.2553,
+        "ci_lo": -0.2795,
+        "df": 261.0,
+        "estimand": "precision_weighted",
+        "estimate": -0.0121,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H4",
+        "measure": "dsigma_d",
+        "n": 262,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.9288,
+        "q_bh": null,
+        "rbar": 0.001021,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.1358,
+        "stat": -0.0894,
+        "statistic": "kp_ow_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised value (precision-weighted)"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.2455,
+        "ci_lo": -0.2697,
+        "df": 261.0,
+        "estimand": "precision_weighted",
+        "estimate": -0.0121,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H4",
+        "measure": "dsigma_d",
+        "n": 262,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.9261,
+        "q_bh": null,
+        "rbar": 0.000673,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.1308,
+        "stat": -0.0928,
+        "statistic": "kpp_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised value (precision-weighted)"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": null,
+        "estimate": -0.0151,
+        "g1_reps": 2000,
+        "g1_size": 0.1365,
+        "hypothesis": "H4",
+        "measure": "dsigma_d",
+        "n": 262,
+        "n_clusters": null,
+        "n_clusters_firm": null,
+        "note": "p-value and interval withheld: under gate G1's calibrated null this statistic rejects 13.65% of the time at 5% over 2,000 replications (band upper edge 6.30% for that count), so ADR 0005 \u00a74 drops its p-value. The estimate stands.",
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": null,
+        "stat": -0.8807,
+        "statistic": "rank_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "mean standardised rank"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.0256,
+        "ci_lo": -0.0194,
+        "df": 46.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.0031,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H4",
+        "measure": "dsigma_d",
+        "n": 262,
+        "n_clusters": 134,
+        "n_clusters_firm": 47,
+        "note": null,
+        "p_holm": 1.0,
+        "p_value": 0.7821,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "primary",
+        "sample": "daily",
+        "se": 0.0112,
+        "stat": 0.2782,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of sigma_d"
+      },
+      {
+        "adjustment": "mean",
+        "ci_hi": 0.0228,
+        "ci_lo": -0.0208,
+        "df": 46.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.001,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": "H4",
+        "measure": "dsigma_d",
+        "n": 262,
+        "n_clusters": 134,
+        "n_clusters_firm": 47,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.9255,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "robustness",
+        "sample": "daily",
+        "se": 0.0108,
+        "stat": 0.0941,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of sigma_d"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": -0.1978,
+        "ci_lo": -0.2628,
+        "df": 25.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.2303,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "crush_cm30",
+        "n": 182,
+        "n_clusters": 119,
+        "n_clusters_firm": 26,
+        "note": null,
+        "p_holm": null,
+        "p_value": 9.465e-14,
+        "q_bh": 4.259e-13,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "daily",
+        "se": 0.0158,
+        "stat": -14.6121,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "timing",
+        "subgroup_value": "AMC",
+        "units": "log change of the 30-day IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": -0.1382,
+        "ci_lo": -0.1923,
+        "df": 23.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.1653,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "crush_cm30",
+        "n": 165,
+        "n_clusters": 95,
+        "n_clusters_firm": 24,
+        "note": null,
+        "p_holm": null,
+        "p_value": 7.94e-12,
+        "q_bh": 2.382e-11,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "daily",
+        "se": 0.0131,
+        "stat": -12.6274,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "timing",
+        "subgroup_value": "BMO",
+        "units": "log change of the 30-day IV"
+      },
+      {
+        "adjustment": "mean",
+        "ci_hi": -0.2645,
+        "ci_lo": -0.3331,
+        "df": 46.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.2988,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "crush_front_fixed",
+        "n": 264,
+        "n_clusters": 135,
+        "n_clusters_firm": 47,
+        "note": null,
+        "p_holm": null,
+        "p_value": 5.492e-22,
+        "q_bh": 4.943e-21,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "daily",
+        "se": 0.0171,
+        "stat": -17.5235,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of the front-expiry IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.0133,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "persist_1",
+        "n": 349,
+        "n_clusters": 8,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.4531,
+        "q_bh": 0.6797,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "daily",
+        "se": null,
+        "stat": 0.7893,
+        "statistic": "rad_season_p",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.0143,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "persist_10",
+        "n": 175,
+        "n_clusters": 7,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.6719,
+        "q_bh": 0.8638,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "daily",
+        "se": null,
+        "stat": 0.4301,
+        "statistic": "rad_season_p",
+        "subgroup_key": "timing",
+        "subgroup_value": "AMC",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.0674,
+        "ci_lo": -0.0656,
+        "df": 6.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.0009,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "persist_10",
+        "n": 154,
+        "n_clusters": 7,
+        "n_clusters_firm": 24,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.9737,
+        "q_bh": 0.9737,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "daily",
+        "se": 0.0272,
+        "stat": 0.0344,
+        "statistic": "twoway_season_t",
+        "subgroup_key": "timing",
+        "subgroup_value": "BMO",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.0481,
+        "ci_lo": -0.042,
+        "df": 6.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.003,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "persist_5",
+        "n": 341,
+        "n_clusters": 7,
+        "n_clusters_firm": 50,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.8751,
+        "q_bh": 0.9737,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "daily",
+        "se": 0.0184,
+        "stat": 0.164,
+        "statistic": "twoway_season_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.1926,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "runup",
+        "n": 170,
+        "n_clusters": 8,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": 0.007812,
+        "q_bh": 0.01406,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "daily",
+        "se": null,
+        "stat": 9.9973,
+        "statistic": "rad_season_p",
+        "subgroup_key": "timing",
+        "subgroup_value": "BMO",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": 0.3362,
+        "ci_lo": 0.1995,
+        "df": 6.0,
+        "estimand": "equal_weighted",
+        "estimate": 0.2678,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "runup",
+        "n": 186,
+        "n_clusters": 7,
+        "n_clusters_firm": 26,
+        "note": null,
+        "p_holm": null,
+        "p_value": 7.375e-05,
+        "q_bh": 0.0001659,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "daily",
+        "se": 0.0279,
+        "stat": 9.5842,
+        "statistic": "twoway_season_t",
+        "subgroup_key": "timing",
+        "subgroup_value": "AMC",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": -0.1907,
+        "ci_lo": -0.3089,
+        "df": 12.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.2498,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "crush_cm30",
+        "n": 33,
+        "n_clusters": 13,
+        "n_clusters_firm": 33,
+        "note": null,
+        "p_holm": null,
+        "p_value": 8.712e-07,
+        "q_bh": 1.742e-06,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "mixed",
+        "se": 0.0271,
+        "stat": -9.2036,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of the 30-day IV"
+      },
+      {
+        "adjustment": "mean",
+        "ci_hi": -0.1778,
+        "ci_lo": -0.3061,
+        "df": 12.0,
+        "estimand": "equal_weighted",
+        "estimate": -0.242,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "crush_cm30",
+        "n": 33,
+        "n_clusters": 13,
+        "n_clusters_firm": 33,
+        "note": null,
+        "p_holm": null,
+        "p_value": 2.853e-06,
+        "q_bh": 2.853e-06,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "mixed",
+        "se": 0.0294,
+        "stat": -8.2177,
+        "statistic": "twoway_date_t",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "log change of the 30-day IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.0382,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "persist_10",
+        "n": 35,
+        "n_clusters": 1,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "mixed",
+        "se": null,
+        "stat": null,
+        "statistic": "mean",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      },
+      {
+        "adjustment": "market",
+        "ci_hi": null,
+        "ci_lo": null,
+        "df": null,
+        "estimand": "equal_weighted",
+        "estimate": 0.3477,
+        "g1_reps": null,
+        "g1_size": null,
+        "hypothesis": null,
+        "measure": "runup",
+        "n": 34,
+        "n_clusters": 1,
+        "n_clusters_firm": null,
+        "note": null,
+        "p_holm": null,
+        "p_value": null,
+        "q_bh": null,
+        "rbar": null,
+        "rel_day": null,
+        "role": "exploratory",
+        "sample": "mixed",
+        "se": null,
+        "stat": null,
+        "statistic": "mean",
+        "subgroup_key": "all",
+        "subgroup_value": "all",
+        "units": "abnormal log IV"
+      }
+    ]
+  },
+  "generated_at": "2026-10-29T23:09:58Z",
+  "kind": "tests",
+  "schema_version": "0.4.0",
+  "source_commit": "fca9972"
+}

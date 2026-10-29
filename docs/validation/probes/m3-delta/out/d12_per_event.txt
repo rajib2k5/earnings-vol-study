@@ -1,0 +1,8 @@
+event_paths per-event values 7097: max |v - aliv_mean_adj| 5.00e-05; max |v - aliv_cboe| 0.528 (large = not the VIX-adjusted value)
+event_window_obs cboe/beta/vix columns: []
+event_measures cboe/beta/vix columns: ['beta_n', 'vix_regime']
+results cboe/beta/vix columns: []
+tests.json: 438 distinct 4-dp numbers; equal to some per-event *_cboe/beta value: 188; control (equal to some crush_mean_adj): 26
+event_paths.json: 4630 distinct 4-dp numbers; equal to some per-event *_cboe/beta value: 1944; control (equal to some crush_mean_adj): 388
+terrain.json: 918 distinct 4-dp numbers; equal to some per-event *_cboe/beta value: 438; control (equal to some crush_mean_adj): 54
+heatmap.json: 1243 distinct 4-dp numbers; equal to some per-event *_cboe/beta value: 582; control (equal to some crush_mean_adj): 379

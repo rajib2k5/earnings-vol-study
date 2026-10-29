@@ -1,0 +1,10 @@
+W1 event_test_rows never withholds (claim 5): SURVIVED [] | 548 passed, 2 deselected, 49 warnings in 140.87s (0:02:20) | restored sha256 ok=True
+W2 run_results passes no mis-sized rows (claim 5): SURVIVED [] | 548 passed, 2 deselected, 49 warnings in 115.36s (0:01:55) | restored sha256 ok=True
+W3 run_results drops the season-cut row (claim 7): SURVIVED [] | 548 passed, 2 deselected, 49 warnings in 72.35s (0:01:12) | restored sha256 ok=True
+W4 H4 calibrated on the cm30 calibration again (claim 2): SURVIVED [] | 548 passed, 2 deselected, 49 warnings in 56.50s | restored sha256 ok=True
+W5 sigma_d design uses the cm30 usable mask (claim 2): SURVIVED [] | 548 passed, 2 deselected, 49 warnings in 56.86s | restored sha256 ok=True
+W6 sigma_d calibration from the cm30 series and CRUSH (claim 2): SURVIVED [] | 548 passed, 2 deselected, 49 warnings in 52.01s | restored sha256 ok=True
+W7 replicate evaluates H4 on the FIRST (cm30) series (claim 2): SURVIVED [] | 548 passed, 2 deselected, 49 warnings in 51.54s | restored sha256 ok=True
+W8 sig0 calibration ignored by the run: stress scale in the calibrated design (claim 1): SURVIVED [] | 548 passed, 2 deselected, 49 warnings in 52.44s | restored sha256 ok=True
+W9 beta pool back to every clean change (claim 4): KILLED ['tests/test_panel.py::test_beta_pools_only_baselines_that_pass_the_minimum'] | 1 failed, 547 passed, 2 deselected, 49 warnings in 51.43s | restored sha256 ok=True
+SUMMARY killed by a behavioural test 1 of 9

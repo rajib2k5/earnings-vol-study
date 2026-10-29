@@ -3,15 +3,21 @@
 #
 # Run:  uv run python tools/export_app_data.py
 #
-# The app only draws charts; Python does all the computing. Milestone 2
-# writes three files to app/public/data/, all in the envelope of
-# src/earnings_vol/contract.py (schema 0.3.0):
+# The app only draws charts; Python does all the computing. Milestone 3
+# writes seven files to app/public/data/, all in the envelope of
+# src/earnings_vol/contract.py (schema 0.4.0):
 #   meta.json           what the project is, where the data comes from, the
 #                       primary sample and the parameters behind it
 #   sample_funnel.json  how many events survive each rule (export/funnel.py)
 #   iv_measures.json    how the implied move and the crush are distributed
 #                       over the primary sample (export/iv_view.py):
 #                       counts, quantiles and histograms only
+#   tests.json          the event tests of `results`, gate G1 and the Holm
+#                       family (export/event_views.py)
+#   event_paths.json    the mean abnormal path with its bands, and every
+#                       primary event's own path (the animated crush paths)
+#   terrain.json        company x event day: the 3D view
+#   heatmap.json        company x event day and company x season grids
 #
 # Inputs: only committed files (data/derived/*.parquet and params.yaml), so
 # the committed JSON can be rebuilt and checked without the local cache.
@@ -23,7 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from earnings_vol import contract, params as params_mod, schema, store
-from earnings_vol.export import funnel, iv_view
+from earnings_vol.export import event_views, funnel, iv_view
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT_DIR = ROOT / "app" / "public" / "data"
@@ -42,7 +48,10 @@ FILES = list(contract.KINDS)
 # table). Wikipedia text is CC BY-SA 4.0 too. FRED marks DTB3 public domain
 # and asks for a citation (the attribution below gives it). Since the owner's
 # decision of 2026-10-29 the repository also holds two labels made from
-# Yahoo prices (data/derived/README.md lists them); no Cboe value is committed.
+# Yahoo prices (data/derived/README.md lists them). Since milestone 3 it holds
+# aggregates of VIX-adjusted values (the market-adjusted rows of results and
+# the JSON built from them); the VIX series and every per-event VIX-adjusted
+# value stay local. No Cboe VX* value is committed.
 # The timing labels are not made from Yahoo data: they come from documents,
 # and a Yahoo gap only decides which events are looked up or read twice
 # (data model §2.1, class F).
@@ -78,10 +87,12 @@ DATA_SOURCES = [
     },
     {
         "name": "FRED VIXCLS (Cboe VIX)",
-        "uses": "the VIX close, for the market adjustment (local only)",
+        "uses": "the VIX close, for the market adjustment; committed: aggregates of VIX-adjusted values (the "
+                "market-adjusted rows of results.parquet, tests.json and event_paths.json); the VIX series and every "
+                "per-event VIX-adjusted value stay local",
         "url": "https://fred.stlouisfed.org/series/VIXCLS",
         "licence": "Cboe copyright (see source)",
-        "committed": False,
+        "committed": True,
     },
     {
         "name": "Cboe single-stock volatility indices (VX*)",
@@ -123,7 +134,10 @@ DATA_LICENCE = {
         "of St. Louis, https://fred.stlouisfed.org/series/DTB3, 2026-10-29 (public domain). Not under "
         "CC BY-SA: the labels made from Yahoo Finance prices (security.in_universe and "
         "timing_check.gap_verdict_yf, and the share of gap contradictions built from it) fall under "
-        "Yahoo's terms of service. No Cboe data is committed."
+        "Yahoo's terms of service. The market-adjusted aggregates (results.parquet, tests.json, event_paths.json) "
+        "are computed with FRED VIXCLS (Cboe VIX): Chicago Board Options Exchange, CBOE Volatility Index: VIX "
+        "[VIXCLS], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/VIXCLS, "
+        "2026-10-29; they fall under Cboe's terms, not CC BY-SA. No Cboe VX* data is committed."
     ),
 }
 
@@ -146,7 +160,8 @@ def git_short_commit() -> str:
 
 def load_tables(derived: Path = DERIVED) -> dict:
     """The committed tables the views are built from."""
-    names = ("events", "eps", "session", "security", "iv_daily", "event_iv", "timing_check")
+    names = ("events", "eps", "session", "security", "iv_daily", "event_iv", "timing_check", "event_window_obs",
+             "event_measures", "results")
     return {n: store.read_table(derived / f"{n}.parquet", store.committed_schema(schema.REGISTRY[n])) for n in names}
 
 
@@ -165,12 +180,34 @@ def iv_measures_data(tables: dict, p, code_commit: str) -> dict:
     return iv_view.iv_measures_data(primary, tables["event_iv"], provenance(p, code_commit))
 
 
+def tests_data(tables: dict, p, code_commit: str) -> dict:
+    return event_views.tests_data(tables["results"], tables["events"], p, provenance(p, code_commit))
+
+
+def event_paths_data(tables: dict, p, code_commit: str) -> dict:
+    return event_views.paths_data(tables["results"], tables["event_window_obs"], tables["events"],
+                                  tables["event_measures"], tables["security"], p, provenance(p, code_commit))
+
+
+def terrain_data(tables: dict, p, code_commit: str) -> dict:
+    return event_views.terrain_data(tables["event_window_obs"], tables["events"], tables["event_measures"],
+                                    tables["security"], p, provenance(p, code_commit))
+
+
+def heatmap_data(tables: dict, p, code_commit: str) -> dict:
+    return event_views.heatmap_data(tables["event_window_obs"], tables["events"], tables["event_measures"],
+                                    tables["security"], p, provenance(p, code_commit))
+
+
+BUILDERS = {"tests": tests_data, "event_paths": event_paths_data, "terrain": terrain_data, "heatmap": heatmap_data}
+
+
 def meta_data(tables: dict, p, code_commit: str, funnel_payload: dict | None = None) -> dict:
     fd = funnel_payload if funnel_payload is not None else funnel_data(tables, p, code_commit)
     w = p["windows"]
     return {
         "project": "earnings-vol-study",
-        "milestone": 2,
+        "milestone": 3,
         "title": "Earnings and implied volatility: an event study",
         "data_sources": DATA_SOURCES,
         "data_licence": DATA_LICENCE,
@@ -199,8 +236,11 @@ def main(argv: list[str] | None = None) -> int:
     fd = funnel_data(tables, p, commit)
     now = datetime.now(timezone.utc)
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    for kind, data in (("meta", meta_data(tables, p, commit, fd)), ("sample_funnel", fd),
-                       ("iv_measures", iv_measures_data(tables, p, commit))):
+    views = [("meta", meta_data(tables, p, commit, fd)), ("sample_funnel", fd),
+             ("iv_measures", iv_measures_data(tables, p, commit))]
+    views += [(kind, build(tables, p, commit)) for kind, build in BUILDERS.items()]
+    for kind, data in views:
+        event_views.check_finite(data)
         env = contract.envelope(kind, data, generated_at=now, source_commit=commit)
         out = args.out_dir / f"{kind}.json"
         out.write_text(contract.dumps(env), encoding="utf-8")

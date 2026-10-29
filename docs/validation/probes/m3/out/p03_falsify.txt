@@ -1,0 +1,2 @@
+3b H1 own two-way: n 347, G_date 172, G_firm 50, estimate -0.1991, se 0.0139, t -14.33, df 49, p 3.76e-19
+falsifier_rc=1 (intersection added)

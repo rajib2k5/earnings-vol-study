@@ -1,0 +1,2 @@
+1a beta recomputed for 50 securities; max |beta_pkg - beta_own| = 1.898e-01; max |beta_n diff| = 411.0
+falsifier_rc=1

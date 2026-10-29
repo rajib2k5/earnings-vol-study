@@ -403,7 +403,7 @@ describe('loadSampleFunnel', () => {
   })
   it('passes envelope violations through (here: the previous schema version)', async () => {
     const r = await loadSampleFunnel('data/sample_funnel.json', serving({ ...FUNNEL_FIXTURE, schema_version: '0.2.0' }))
-    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.2.0": this app only understands "0.3.0"' })
+    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.2.0": this app only understands "0.4.0"' })
   })
   it('refuses a valid envelope of another kind, naming both kinds', async () => {
     const r = await loadSampleFunnel('data/sample_funnel.json', serving({ ...FUNNEL_FIXTURE, kind: 'meta' }))

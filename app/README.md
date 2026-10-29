@@ -4,12 +4,12 @@ An event study of how earnings announcements move options implied volatility: th
 crush and what drives them. Python computes everything; this React app only validates and
 visualises the JSON files in `public/data/`. Not financial advice.
 
-Status: **milestone 1**, the app shell plus the Sample page. Pages: About, Sample (how many earnings
-events survive each sample rule, drawn from `data/sample_funnel.json` with its timing-status counts, the
-look-up count marked provisional, and its caveats), Architecture, 3D preview (an illustrative synthetic
-surface, labelled as such), plus a local Metrics page. No study results are shown yet: the Sample page
-shows event counts, and the move-tercile and non-positive-variance parts of the funnel are `null` until
-milestone 2 (the page says "not computed yet").
+Status: **milestone 3**. Pages: About, Sample (how many earnings events survive each sample rule, from
+`data/sample_funnel.json`), IV measures (`data/iv_measures.json`), Results (`data/tests.json`: the primary family, robustness
+and exploratory rows, the G1 gate and the Holm statement), Crush paths (`data/event_paths.json`: the mean path with its band
+and the animated per-event paths), Heatmap (`data/heatmap.json`), Architecture and the 3D view (`data/terrain.json`: each
+company's mean abnormal log IV by event day), plus a local Metrics page. **The timing labels are provisional**: every page
+that shows a result says so, with the look-up count and the caveats of its file, until the timing look-ups are complete.
 
 ## Run
 
@@ -24,17 +24,19 @@ The built app (`dist/`) uses relative URLs (`base: './'`), so it can be served f
 ## Data
 
 The app fetches `data/meta.json` on start-up and shows the schema version, milestone and Python
-source commit in the footer; the Sample page fetches `data/sample_funnel.json`. Both are written at
-schema 0.2.0. The envelope format, the keys of each file and the data licences are in [DATA.md](DATA.md).
+source commit in the footer; each page fetches its own file when it is opened. All seven files are written at
+schema 0.4.0. The envelope format, the keys of each file and the data licences are in [DATA.md](DATA.md).
 The files in `public/data/` are written by `tools/export_app_data.py` on the Python side, from the
 committed tables in `data/derived/` and `params.yaml` only (run `uv run python tools/export_app_data.py`
 from the repository root after a change there); do not edit them by hand.
 
 ## Tests
 
-- `src/lib/*.test.ts(x)`: unit tests for the pure helpers (JSON contract validator, `meta` and
-  `sample_funnel` parsers, 3D mesh builder, seeded RNG, architecture data) and the small components
-  (including the Sample page), with hand-worked or independently computed expected values.
+- `src/lib/*.test.ts(x)`: unit tests for the pure helpers (JSON contract validator, the parsers of the seven data kinds,
+  chart frame and colour logic, 3D mesh builder, seeded RNG, architecture data) and the small components (the data
+  pages), with hand-worked or independently computed expected values.
+- `src/test/publicData.test.ts`: checks the REAL files in `public/data/` against the parsers (kinds, cross-file counts,
+  the Cboe and Yahoo flags in `meta.json`).
 - `src/App.test.tsx`: integration test of the whole shell with a fake `fetch` and a stand-in 3D canvas.
 - `src/three/*.test.tsx`: the 3D view with the r3f `Canvas` replaced (jsdom has no WebGL).
 - Coverage thresholds are enforced on `src/lib/**` (lines and functions 85%, branches 75%).
