@@ -1,0 +1,10 @@
+3: 8856 (date, label) cases; sampled but outside can_enter_sample: 0 []
+   can_enter_sample true but no label samples it: 0 []
+   falsifier (next(D) only): hidden 2 e.g. [(datetime.date(2026, 10, 26), 'BMO'), (datetime.date(2026, 10, 26), None)]
+4b: as params                        -> accepted
+4b: gap of 2 days (coarse ends 09-09) -> refused: sample ranges are not contiguous: one ends 2024-09-09, the next starts 2024-09-12
+4b: overlap of 1 day                 -> refused: sample ranges are not contiguous: one ends 2024-09-11, the next starts 2024-09-11
+4b: empty range                      -> refused: sample range 2024-12-04 .. 2024-09-12 is empty
+4b: daily before mixed               -> refused: sample ranges are not contiguous: one ends 2024-09-11, the next starts 2024-12-05
+4b: gap between mixed and daily      -> refused: sample ranges are not contiguous: one ends 2024-12-04, the next starts 2024-12-06
+4b: daily extends past data_end      -> accepted

@@ -1,0 +1,32 @@
+eps_history rows for the universe tickers: 1973; distinct (security, period): 1965; committed eps rows: 1965
+independent matcher vs committed eps.parquet, differences: []
+lag_min= 10: {'pre_calendar': 606, 'matched': 1316, 'orphan': 43}; orphan rate 43/1359 = 0.0316; matches with lag >= 70 days: 8 [('COST', '2020-02-29', 'COST:2020-05-28', 89), ('COST', '2021-02-28', 'COST:2021-05-27', 88), ('COST', '2022-02-28', 'COST:2022-05-26', 87), ('COST', '2023-02-28', 'COST:2023-05-25', 86), ('COST', '2024-02-29', 'COST:2024-05-30', 91), ('COST', '2025-02-28', 'COST:2025-05-29', 90), ('COST', '2026-02-28', 'COST:2026-05-28', 89), ('ORCL', '2024-08-31', 'ORCL:2024-12-09', 100)]
+lag_min=  0: {'pre_calendar': 606, 'matched': 1324, 'orphan': 35}; orphan rate 35/1359 = 0.0258; matches with lag >= 70 days: 7 [('COST', '2020-02-29', 'COST:2020-05-28', 89), ('COST', '2021-02-28', 'COST:2021-05-27', 88), ('COST', '2022-02-28', 'COST:2022-05-26', 87), ('COST', '2023-02-28', 'COST:2023-05-25', 86), ('COST', '2024-02-29', 'COST:2024-05-30', 91), ('COST', '2025-02-28', 'COST:2025-05-29', 90), ('COST', '2026-02-28', 'COST:2026-05-28', 89)]
+lag_min=-10: {'pre_calendar': 606, 'matched': 1324, 'orphan': 35}; orphan rate 35/1359 = 0.0258; matches with lag >= 70 days: 0 []
+
+Orphans (committed) whose company HAS a calendar row within 0..9 days after the period end:
+  COST 2021-11-30: calendar event [('2021-12-09', 9)]; that event is linked to no period
+  COST 2022-11-30: calendar event [('2022-12-08', 8)]; that event is linked to no period
+  CSCO 2021-01-31: calendar event [('2021-02-09', 9)]; that event is linked to no period
+  ORCL 2020-08-31: calendar event [('2020-09-09', 9)]; that event is linked to no period
+  ORCL 2021-11-30: calendar event [('2021-12-09', 9)]; that event is linked to no period
+  ORCL 2023-02-28: calendar event [('2023-03-09', 9)]; that event is linked to no period
+  ORCL 2024-11-30: calendar event [('2024-12-09', 9)]; that event is linked to period 2024-08-31
+  ORCL 2025-08-31: calendar event [('2025-09-09', 9)]; that event is linked to no period
+  count: 8
+
+Orphans of companies that were not yet public (PLTR listed 2020-09-30): ['2020-03-31', '2020-06-30']
+
+Events linked to a period 86-100 days earlier (the next quarter's report taking the EPS of the one before):
+security_id fiscal_period_end        event_id  lag_days  reported  estimate
+       COST        2020-02-29 COST:2020-05-28      89.0      2.10      2.07
+       COST        2021-02-28 COST:2021-05-27      88.0      2.14      2.42
+       COST        2022-02-28 COST:2022-05-26      87.0      2.92      2.69
+       COST        2023-02-28 COST:2023-05-25      86.0      3.30      3.20
+       COST        2024-02-29 COST:2024-05-30      91.0      3.78      3.70
+       COST        2025-02-28 COST:2025-05-29      90.0      4.02      4.09
+       COST        2026-02-28 COST:2026-05-28      89.0      4.58      4.55
+       ORCL        2024-08-31 ORCL:2024-12-09     100.0      1.39      1.32
+
+Events with no EPS link at all, in the samples:
+{'ORCL': 4, 'COST': 2, 'BRK.B': 1, 'CSCO': 1} total 8

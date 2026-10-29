@@ -1,0 +1,144 @@
+{
+  "data": {
+    "by_move_tercile": null,
+    "by_move_tercile_status": "not_computed: abs_move_cand_max needs the option forwards of milestone 2",
+    "by_sample": [
+      {
+        "n_events": 368,
+        "sample": "daily"
+      },
+      {
+        "n_events": 49,
+        "sample": "mixed"
+      },
+      {
+        "n_events": 868,
+        "sample": "coarse"
+      },
+      {
+        "n_events": 68,
+        "sample": "none"
+      }
+    ],
+    "caveats": [
+      "Survivorship: the 50 companies are today's largest S&P 500 members by market cap, so firms that shrank or left the index since 2020 are missing and firms that grew are over-represented.",
+      "Timing labels are provisional: only 20 press releases were looked up (owner default, 2026-10-29); every other event keeps the calendar label as not_checked until SEC EDGAR is set up.",
+      "The baseline step counts observed option snapshots only. Sessions without a usable IV are removed at milestone 2, so the last count is an upper bound."
+    ],
+    "evar_nonpositive": null,
+    "evar_nonpositive_status": "not_computed: the event variance is a milestone-2 measure",
+    "lookups": {
+      "complete": false,
+      "n_done": 20
+    },
+    "provenance": {
+      "code_commit": "3636e98",
+      "dolt_commits": {
+        "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
+        "options": "msfqpodh24viv7prdqdan8517rkjp861"
+      },
+      "params_hash": "5bf1cbed590907414302da30a652ab04c71daad292d6a9dbbd6c6a9a3da5807c",
+      "sample_label": "daily"
+    },
+    "steps": [
+      {
+        "label": "Calendar events of the 50 companies",
+        "n_events": 1353,
+        "n_removed": 0,
+        "reason": null,
+        "step": "calendar_events"
+      },
+      {
+        "label": "One row per release, and day 0 can be placed",
+        "n_events": 1320,
+        "n_removed": 33,
+        "reason": "duplicate_row|timing_ambiguous|timing_not_checked",
+        "step": "timing_known"
+      },
+      {
+        "label": "Day 0 in the daily range 2024-12-05 to 2026-10-26",
+        "n_events": 366,
+        "n_removed": 954,
+        "reason": "outside_daily_range",
+        "step": "daily_range"
+      },
+      {
+        "label": "Snapshots on day -1 and day 0",
+        "n_events": 356,
+        "n_removed": 10,
+        "reason": "missing_m1|missing_0",
+        "step": "crush_observed"
+      },
+      {
+        "label": "At least 20 clean baseline sessions and 15 changes",
+        "n_events": 350,
+        "n_removed": 6,
+        "reason": "short_baseline",
+        "step": "baseline_minimum"
+      }
+    ],
+    "timing_status_by_sample": [
+      {
+        "sample": "daily",
+        "timing_status_counts": {
+          "ambiguous": 0,
+          "confirmed": 0,
+          "corrected": 0,
+          "date_corrected": 0,
+          "inferred": 0,
+          "no_document": 0,
+          "not_checked": 368
+        }
+      },
+      {
+        "sample": "mixed",
+        "timing_status_counts": {
+          "ambiguous": 0,
+          "confirmed": 11,
+          "corrected": 2,
+          "date_corrected": 1,
+          "inferred": 1,
+          "no_document": 0,
+          "not_checked": 34
+        }
+      },
+      {
+        "sample": "coarse",
+        "timing_status_counts": {
+          "ambiguous": 0,
+          "confirmed": 5,
+          "corrected": 0,
+          "date_corrected": 0,
+          "inferred": 0,
+          "no_document": 0,
+          "not_checked": 863
+        }
+      },
+      {
+        "sample": "none",
+        "timing_status_counts": {
+          "ambiguous": 0,
+          "confirmed": 0,
+          "corrected": 0,
+          "date_corrected": 0,
+          "inferred": 0,
+          "no_document": 0,
+          "not_checked": 68
+        }
+      }
+    ],
+    "timing_status_counts": {
+      "ambiguous": 0,
+      "confirmed": 16,
+      "corrected": 2,
+      "date_corrected": 1,
+      "inferred": 1,
+      "no_document": 0,
+      "not_checked": 1333
+    }
+  },
+  "generated_at": "2026-10-29T16:19:42Z",
+  "kind": "sample_funnel",
+  "schema_version": "0.2.0",
+  "source_commit": "3636e98"
+}

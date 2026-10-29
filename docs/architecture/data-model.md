@@ -1,7 +1,8 @@
 # Data model
 
-- **Status:** milestone 0. Source schemas verified; derived tables designed, not yet built. **Revised 2026-10-28 after
-  the milestone-0 methodology review** (note below).
+- **Status:** milestone 1. `security`, `ticker_alias`, `session`, `market_daily`, `events`, `eps`, `timing_check` and
+  the new `session_snapshot` are built (schema registry: `src/earnings_vol/schema.py`); the other tables are designed,
+  not yet built. Revised 2026-10-28 after the milestone-0 reviews, and on 2026-10-29 at milestone 1 (note below).
 - **Date:** 2026-10-28
 - **Decisions behind it:** [ADR 0001](../adr/0001-overall-architecture.md) (layers, cache, licensing),
   [0002](../adr/0002-day-zero-convention.md) (day 0, timing), [0003](../adr/0003-iv-measures.md) (IV measures),
@@ -52,6 +53,21 @@ If code and this file disagree, one of them is a bug.
 >   `n_gap_check_changed` and the sensitivity analysis without gap-triggered changes (§4).
 > - **`results` (N2).** A new invariant pins each row's reference distribution: `df` from the cluster counts, and
 >   `p_value` from `stat` and `df` (§3.13, ADR 0005 §5 G1).
+
+> **Milestone 1, 2026-10-29: what building the tables changed.**
+>
+> - **New columns.** `security.cik` (the SEC CIK from the same Wikipedia table, needed by the EDGAR client) and
+>   `events.announce_date_used` (the documents' date for a `date_corrected` event; the event keeps its calendar
+>   `event_id`). The press-release record gains `label` and `lookup_minutes` (§1.3).
+> - **New table** `session_snapshot` (§3.6a): the first four columns of `iv_daily`, built early because the baseline
+>   counts of the sample funnel need to know which sessions are observed.
+> - **`timing_check` value columns are nullable** (§3.9): a non-session D has no BMO candidate, and a day missing
+>   from Yahoo has no gap.
+> - **A provisional exclusion reason**, `timing_not_checked` (§3.7): a NULL-label event on a session day that nobody
+>   looked up. It exists only while the look-ups are incomplete (owner default of 2026-10-29, §6 item 7).
+> - **Owner decisions recorded** in §6 (items 2, 3, 6, 7) with their dates.
+> - **Contract 0.2.0** (§4): `meta` gains `sample`, `params`, `files`, `provenance`; `sample_funnel` is built, with
+>   `by_move_tercile` and `evar_nonpositive` null until milestone 2 and a status string saying why.
 
 ---
 
@@ -163,8 +179,8 @@ CREATE TABLE `volatility_history` (
 | FRED `VIXCLS` | VIX close | **CBOE index**, so treated as CBOE data: suffix `_cboe`, never committed |
 | CBOE VX\* CSVs | `VXAPL, VXAZN, VXGOG, VXGS, VXIBM` daily closes | never committed; suffix `_cboe` |
 | Wikipedia "List of S&P 500 companies" (snapshot) | ticker, name, GICS sector and sub-industry | CC BY-SA 4.0, compatible; may be committed |
-| SEC EDGAR submissions JSON (`data.sec.gov/submissions/CIK##########.json`, one per security) | `form`, `items`, `acceptanceDateTime` (UTC), `accessionNumber` of 8-K filings with Item 2.02 | **Proposed, pending owner decision** (ADR 0002, status note): used only if the owner approves EDGAR. US-government public data; class U, may be committed. SEC's fair-access policy allows ≤ 10 requests/s and requires a real contact email in the User-Agent, so a real run needs a contact string the owner chooses. Added after the review (ADR 0002 §3). |
-| Company press releases (investor-relations pages, or the newswire copy they link to) | the release's date and time: its time stamp, else its own words, else the earnings-call time it announces | Read by hand, one event at a time (ADR 0002 §3, "The default rule"). Under the default (no EDGAR) they are the first timing source, looked up for every event with D on or after 2024-09-11 and every NULL-label event. *Revised after the delta review:* each look-up is recorded in a committed, hand-maintained file, `data/manual/press_release_checks.csv`, one row per look-up: `security_id`, `announce_date` (the calendar's D; with `security_id` it gives `event_id`), `found` (bool), `release_date`, `release_time_et` (`HH:MM` New York time, null if the release gives none), `basis` (`time_stamp`, `release_text` or `call_time`), `url`, `checked_on`, `reread` (bool: a second reading triggered by the gap), `note`. A re-read adds a second row for the same event; the latest row decides. An event with no row is `not_checked`. The file holds dates, times and URLs, facts about the company, and no quoted text: class U, committed. |
+| SEC EDGAR submissions JSON (`data.sec.gov/submissions/CIK##########.json`, one per security) | `form`, `items`, `acceptanceDateTime` (UTC), `accessionNumber` of 8-K filings with Item 2.02 | **Accepted 2026-10-28; runs once the owner's contact string is set** (ADR 0002, milestone-1 note). The client (`src/earnings_vol/ingest/edgar.py`) refuses to run while the environment variable `SEC_EDGAR_USER_AGENT` is unset; it has no default or placeholder. No request was made at milestone 1. US-government public data; class U, may be committed. SEC's fair-access policy allows ≤ 10 requests/s and requires a real contact email in the User-Agent. Added after the review (ADR 0002 §3). |
+| Company press releases (investor-relations pages, or the newswire copy they link to) | the release's date and time: its time stamp, else its own words, else the earnings-call time it announces | Read by hand, one event at a time (ADR 0002 §3, "The default rule"). Under the default (no EDGAR) they are the first timing source, looked up for every event with D on or after 2024-09-11 and every NULL-label event. *Revised after the delta review:* each look-up is recorded in a committed, hand-maintained file, `data/manual/press_release_checks.csv`, one row per look-up: `security_id`, `announce_date` (the calendar's D; with `security_id` it gives `event_id`), `found` (bool), `release_date`, `release_time_et` (`HH:MM` New York time, null if the release gives none), `basis` (what the stored time is: `time_stamp` the release's own time stamp, `announced_time` the release time the company announced beforehand; or, with no time, `release_text` or `call_time`; *`announced_time` added after the milestone-1 review*, and the parser refuses a time with any other basis), `label` (`BMO` or `AMC` as read; required, because a `release_text` or `call_time` reading has no time; when a time is given, the label must agree with it), `url`, `source_kind` (`company`, `newswire` or `aggregator`: what the URL is; an aggregator, a third-party re-host, is kept only where no company or newswire page was found; *added after the milestone-1 review*), `time_source` (the `https://` page on which the stored `release_time_et` was read: the `url` itself when it shows the time, else the page named; required with a time and only with one; *added after the milestone-1 delta review*), `checked_on`, `reread` (bool: a second, blind reading triggered by the gap), `lookup_minutes` (the measured time of the look-up, added at milestone 1), `note`. A re-read adds a row for the same event; the label changes only when a second and a third blind reading agree against the first (ADR 0002 §3). An event with no row is `not_checked`. The file holds dates, times, URLs and short notes in our own words, facts about the company, and no quoted text: class U, committed. Milestone 1 holds 20 rows (ADR 0002, milestone-1 note). |
 
 ---
 
@@ -215,8 +231,9 @@ Columns with Yahoo or CBOE lineage are listed below. Every column not listed her
 - Under the default (ADR 0002 without EDGAR: the press release, then the calendar label) the label is class F. Every
   `daily` and `mixed` event is looked up, but a gap contradiction triggers a second reading, and in `coarse` it
   decides which events are looked up at all. The "stricter" reading below would then withhold all of those columns.
-- The label would be class U under ADR 0002's *proposed* EDGAR rule, which would leave those columns with no Yahoo
-  lineage at all. That rule is pending the owner's decision. *Caveat found in the delta review:* the EDGAR rule's own
+- The label would be class U under ADR 0002's EDGAR rule, which would leave those columns with no Yahoo lineage at
+  all. That rule was accepted 2026-10-28 and is gated on the owner's contact string; until the string is set the
+  default applies. *Caveat found in the delta review:* the EDGAR rule's own
   gap-triggered press-release check (ADR 0002 §3, job 1) would also put a Yahoo-derived bit into the status, so it
   is class U only if that check is dropped (ADR 0002, delta note item 9).
 
@@ -224,10 +241,10 @@ Columns with Yahoo or CBOE lineage are listed below. Every column not listed her
 |---|---|---|---|
 | `market_daily.vix_close_cboe`, `ln_vix_cboe` | R | no | the index itself |
 | `timing_check` value columns, all `*_yf`, including `rel_day_max_outside_yf` | R | no | Yahoo gaps and their z-scores. The location of the largest outside gap is a detail of the evidence, not a fact about the company. |
-| `events.timing_used`, and what follows from it: `day0_session`, `day_m1_session`, every `rel_day` | **F** under the default (no EDGAR); U only under ADR 0002's proposed EDGAR rule | yes | When a company announced is a fact, taken from documents: the press release and the calendar label, plus the SEC 8-K acceptance time if the owner approves EDGAR (ADR 0002 §3). **Settled after the review (ledger N10):** no label is ever set by Yahoo gaps alone. A NULL label is filled only from a document, and without one the event is `ambiguous`. So the class-F "fact that Yahoo prices only helped check" rationale holds for every committed label. Under the proposed EDGAR rule Yahoo would play no part at all. |
-| `events.timing_status`, `timing_source`, `gap_check_changed`, `edgar_accession`, `edgar_accepted_utc` | `timing_status`, `timing_source` and `gap_check_changed` (added after the delta review) are **F** under the default (no EDGAR), because a Yahoo gap can trigger the second reading or the `coarse` look-up that sets them; all four are U under the proposed EDGAR rule (with the caveat above) | yes | Under the default, which labels got a second reading, and which `coarse` events got a look-up, depends on a Yahoo gap trigger, so `timing_status` carries one Yahoo-derived bit per event (F, as before). Under the proposed EDGAR rule they would record calendar-vs-document agreement only. The two `edgar_*` columns exist only if the owner approves EDGAR. |
+| `events.timing_used`, and what follows from it: `day0_session`, `day_m1_session`, every `rel_day` | **F** under the default (no EDGAR); U only under ADR 0002's EDGAR rule once it runs | yes | When a company announced is a fact, taken from documents: the press release and the calendar label, plus the SEC 8-K acceptance time once EDGAR runs (accepted 2026-10-28, gated on the owner's contact string) (ADR 0002 §3). **Settled after the review (ledger N10):** no label is ever set by Yahoo gaps alone. A NULL label is filled only from a document, and without one the event is `ambiguous`. So the class-F "fact that Yahoo prices only helped check" rationale holds for every committed label. Under the EDGAR rule Yahoo would play no part at all. |
+| `events.timing_status`, `timing_source`, `gap_check_changed`, `edgar_accession`, `edgar_accepted_utc` | `timing_status`, `timing_source` and `gap_check_changed` (added after the delta review) are **F** under the default (no EDGAR), because a Yahoo gap can trigger the second reading or the `coarse` look-up that sets them; all four are U under the EDGAR rule (with the caveat above) | yes | Under the default, which labels got a second reading, and which `coarse` events got a look-up, depends on a Yahoo gap trigger, so `timing_status` carries one Yahoo-derived bit per event (F, as before). Under the EDGAR rule they would record calendar-vs-document agreement only. The two `edgar_*` columns exist only once EDGAR runs (accepted 2026-10-28, gated on the owner's contact string). |
 | `event_measures.vix_regime` | F | yes (owner decision) | It is a three-level bin of VIX on day −1, with the cut points taken over the sample. It reveals order, not values. |
-| `security.in_universe`, `universe_rank` | F if the milestone-1 rule ranks by Yahoo market cap; U otherwise | yes | a rank of 50 firms on one date |
+| `security.in_universe` | F if the milestone-1 rule ranks by Yahoo market cap; U otherwise | yes | an in/out label of 499 firms on one date. *Revised after the milestone-1 review:* the rank behind it (`universe_rank`, 497 firms) is a per-row Yahoo-derived number, so it is not committed; it stays in the local `cache/universe.parquet` (§3.1). |
 | `event_window_obs.e_abn_cboe`, `aliv_cboe` | R | no | Were they committed, $\Delta\ln\text{VIX}_t = (\texttt{d\_ln\_cm30} - \texttt{e\_abn\_cboe})/\beta_s$ would follow. Without $\beta_s$, cross-firm ratios still give the series up to a single scale factor. |
 | `event_window_obs.ln_vx_cboe`, `e_abn_vx_cboe`; the `_cboe` columns of `event_measures_vx` | R | no | VX\* values and their transforms |
 | `event_measures.runup_cboe`, `crush_cboe`, `persist_1_cboe`, `persist_5_cboe`, `persist_10_cboe`, `dsigma_d_cboe`, `crush_two_session_cboe`, `sa_*_cboe` | R | no | For example, `crush_cboe` $= \Delta x_0 - \beta_s\Delta m_0$, and $\Delta x_0$ follows from the committed `iv_daily.cm30_iv`, so $\Delta\ln\text{VIX}$ on every day-0 date could be recovered. |
@@ -303,8 +320,8 @@ copy of FRED `VIXCLS`. The owner can read the rule differently in either directi
 1. **Looser:** a sparse sample of Δln VIX on announcement dates is not CBOE data. Then drop the `_cboe` suffix from
    the market-adjusted columns and commit them. This is a rename, cheap before milestone 3 builds these tables and
    expensive after.
-2. **Stricter:** labels count as Yahoo/CBOE data too. Then `vix_regime` (and a Yahoo-based `universe_rank`) become
-   R, and the timing label could not be committed either. That would leave nothing per event, since day 0 depends on
+2. **Stricter:** labels count as Yahoo/CBOE data too. Then `vix_regime` (and `security.in_universe`; the Yahoo-based
+   rank itself is already local, §3.1) become R, and the timing label could not be committed either. That would leave nothing per event, since day 0 depends on
    the label. We see no workable version of the study under that reading for timing, so F is the default. Withholding
    `vix_regime` alone would be workable. The adversarial reviewer recommends doing so, since no view needs it per
    event.
@@ -324,11 +341,18 @@ The cost of the default is real. Subgroup results for run-up and persistence, wh
 | `name` | string | | Wikipedia S&P 500 list |
 | `gics_sector` | enum (11 GICS sectors) | | Wikipedia S&P 500 list |
 | `gics_sub_industry` | string | | Wikipedia S&P 500 list |
-| `in_universe` | bool | | milestone-1 selection rule |
-| `universe_rank` | int16, null | | order of selection |
+| `cik` | string, null | | *Added at milestone 1.* SEC Central Index Key, 10 digits, from the same Wikipedia table; the EDGAR client needs it. Class U. |
+| `in_universe` | bool | | milestone-1 selection rule. Class F (§2.1). |
 | `cboe_vx_index` | enum {`VXAPL`,`VXAZN`,`VXGOG`,`VXGS`,`VXIBM`}, null | | GOOGL is mapped to `VXGOG` (an index on GOOG) |
 
-Committed: yes.
+Rows: every S&P 500 constituent of the pinned Wikipedia revision, one share class per company (499 at milestone 1,
+497 of them ranked); `in_universe` marks the 50 of the study (rule and survivorship bias:
+`src/earnings_vol/ingest/universe.py`). The columns are listed in the code's order. Committed: yes.
+
+*Revised after the milestone-1 review (claim 10).* The table used to hold `universe_rank`, the Yahoo market-cap rank
+of 497 firms. A rank of ~500 firms on one date is a per-row Yahoo-derived number, which the strict reading of §2.1
+makes class R, and nothing downstream reads it. It is no longer a column of `security`; the selection keeps it in the
+local `cache/universe.parquet` only.
 
 ### 3.2 `ticker_alias`: ticker → security over time
 
@@ -339,7 +363,11 @@ Committed: yes.
 | `valid_to` | date32, null | | null = still valid |
 | `security_id` | string | FK → `security` | |
 
-Example rows: (`FB`, 2012-05-18, 2022-06-08, `META`), (`META`, 2022-06-09, null, `META`). Committed: yes.
+Example rows: (`FB`, 2012-05-18, 2022-06-08, `META`), (`META`, 2022-06-09, null, `META`), (`UTX`, 2016-01-01,
+2020-04-02, `RTX`), (`RTX`, 2020-04-03, null, `RTX`). A ticker with no known change is asserted valid from
+2016-01-01, the start of the session table; history before that is not checked. Calendar rows resolve by ticker *and*
+date; `eps_history` rows resolve by ticker alone, because DoltHub copied FB's quarters under META with dates before
+META existed. Committed: yes.
 
 ### 3.3 `session`: NYSE trading calendar
 
@@ -467,6 +495,19 @@ is approximate in both directions and is not counted here; milestone 1 counts it
 to an otherwise unobserved session and pass the `stale_repeat` test.
 Committed: yes.
 
+### 3.6a `session_snapshot`: is a usable snapshot there? (milestone 1)
+
+| Column | Type | Key | Lineage / meaning |
+|---|---|---|---|
+| `security_id` | string | **PK** (1/2), FK → `security` | via `ticker_alias` from `option_chain.act_symbol`, by date |
+| `session_date` | date32 | **PK** (2/2), FK → `session` | |
+| `snapshot_date` | date32, null | | the snapshot kept for the session; null if `missing` |
+| `snapshot_status` | enum {`ok`,`stale_repeat`,`missing`} | | as `iv_daily.snapshot_status` (ADR 0002 §1). `stale_copy` drops are counted in the manifest. |
+
+The first four columns of `iv_daily`, built at milestone 1 from the option-chain extract because the funnel's baseline
+step needs the observed sessions. Same coverage as `iv_daily` (2020-01-02 → the data end, every session, observed or
+not). At milestone 2 `iv_daily` takes these columns over, and this table can be dropped. Class U. Committed: yes.
+
 ### 3.7 `events`: one row per announcement
 
 | Column | Type | Key | Lineage / meaning |
@@ -475,13 +516,14 @@ Committed: yes.
 | `security_id` | string | FK → `security` | via `ticker_alias` |
 | `ticker_at_event` | string | | `earnings_calendar.act_symbol` |
 | `announce_date` | date32 | | `earnings_calendar.date` |
+| `announce_date_used` | date32 | | *Added at milestone 1.* The announcement date day 0 is computed from: the documents' date for a `date_corrected` event (ADR 0002 §3), otherwise `announce_date`. `event_id` keeps the calendar date. Class F, like `timing_used`. |
 | `timing_raw` | enum {`BMO`,`AMC`}, null | | `earnings_calendar.when`: `'Before market open'` → `BMO`, `'After market close'` → `AMC`, SQL NULL → null. Any other value is an error, since §1.1 found exactly these three. |
 | `timing_used` | enum {`BMO`,`AMC`}, null | | After the ADR 0002 §3 check, from documents. Null for `ambiguous`, and for a NULL-label `not_checked` event outside every sample. For a non-session D the label does not affect day 0. A release timed inside the session (09:30–16:00) is stored as `BMO`, which gives the same day 0 (ADR 0002 §3, added after the delta review). Class F under the default (no EDGAR), U under the proposed EDGAR rule (§2.1). |
 | `timing_status` | enum {`confirmed`,`corrected`,`inferred`,`date_corrected`,`no_document`,`not_checked`,`ambiguous`} | | ADR 0002 §3, revised after the review and again after the delta review. `confirmed`: a document agrees with the label. `corrected`: a document contradicts it, and its timing is used. `inferred`: no label, a document gives the timing. `date_corrected`: the documents put the announcement on another date, which is used (replaces `date_suspect`, which used to exclude the event). `no_document`: **looked up**, nothing found (no press release, and no 8-K if EDGAR is approved); the calendar label is kept. `not_checked`: **never looked up**; the calendar label is kept. `ambiguous`: looked up, nothing found, and the label is NULL. *Delta review (4b-ii):* `no_document` and `not_checked` replace `unverified`, which this table defined as "no document found" while ADR 0002 also gave it to every event nobody looked up. **Invariant** (tested at milestone 1; the `events` layer stops otherwise; the same statement as ADR 0002 §3): `not_checked` is allowed only for an event with `announce_date` before 2024-09-11, a non-NULL label and no gap trigger; any other `not_checked` event is a build error. Labelled events with `announce_date` in the 10 sessions before 2024-09-11 are looked up too, because a wrong label or date can move their day 0 into `mixed`. Same class as `timing_used`. |
-| `timing_source` | enum {`edgar`,`press_release`,`calendar`}, null | | What decided `timing_used`: a hand-checked press release, the calendar label alone (`no_document`, `not_checked`), or the 8-K acceptance time. **`edgar` only if the owner approves EDGAR** (ADR 0002, status note); under the default the values are `press_release` and `calendar`. Null for `ambiguous`. |
-| `gap_check_changed` | bool | | *Added after the delta review.* True when a gap-triggered check changed the label: a second reading of the press release under the default, or a press-release check of the 8-K under the proposed EDGAR rule (ADR 0002 §3, job 1). The sensitivity analysis of job 1 re-runs the pipeline with these changes undone (`params.timing_undo_gap_checks`). Class F, like `timing_status`. |
-| `edgar_accession` | string, null | | **Only if the owner approves EDGAR** (ADR 0002 is proposed; null for every event under the default). Accession number of the matched Item 2.02 8-K; null if none. Class U. |
-| `edgar_accepted_utc` | string, null | | **Only if the owner approves EDGAR** (null for every event under the default). Its `acceptanceDateTime` as EDGAR gives it (ISO 8601, UTC). The BMO/AMC reading converts it to New York time (ADR 0002 §3). Class U. |
+| `timing_source` | enum {`edgar`,`press_release`,`calendar`}, null | | What decided `timing_used`: a hand-checked press release, the calendar label alone (`no_document`, `not_checked`), or the 8-K acceptance time. **`edgar` only once EDGAR runs** (accepted 2026-10-28, gated on the owner's contact string; ADR 0002, status note); under the default the values are `press_release` and `calendar`. Null for `ambiguous`. |
+| `gap_check_changed` | bool | | *Added after the delta review.* True when a gap-triggered check changed the label: a second reading of the press release under the default, or a press-release check of the 8-K under the EDGAR rule (ADR 0002 §3, job 1). The sensitivity analysis of job 1 re-runs the pipeline with these changes undone (`params.timing_undo_gap_checks`). Class F, like `timing_status`. |
+| `edgar_accession` | string, null | | **Only once EDGAR runs** (accepted 2026-10-28, gated on the owner's contact string; null for every event under the default). Accession number of the matched Item 2.02 8-K; null if none. Class U. |
+| `edgar_accepted_utc` | string, null | | **Only once EDGAR runs** (null for every event under the default). Its `acceptanceDateTime` as EDGAR gives it (ISO 8601, UTC). The BMO/AMC reading converts it to New York time (ADR 0002 §3). Class U. |
 | `day0_session` | date32, null | FK → `session` (R9a) | ADR 0002 §2 |
 | `day_m1_session` | date32, null | FK → `session` (R9b) | |
 | `fiscal_period_end` | date32, null | **not a key** | A denormalised copy of the matched `eps` row's `fiscal_period_end`. The link of record is `eps.event_id` (R13), and this copy must agree with it (invariant in §3.8). |
@@ -491,7 +533,7 @@ Committed: yes.
 | `orphan_nearby` | bool | | An `orphan` or `pre_calendar` EPS-period zone overlaps [−60, +10] (around next(D) when day 0 is null). Needs `eps.match_status` and `session` only, both from this same layer. |
 | `season` | string | | calendar quarter of day 0 (of next(D) when day 0 is null), e.g. `2025Q1` |
 | `sample` | enum {`daily`,`mixed`,`coarse`,`none`} | | A partition of events by day-0 date, from the ranges in ADR 0004 §5. It uses `day0_session`, or `announce_date` when day 0 is null, and never IV data. `none` = outside every range. |
-| `exclusion_reason` | string, null | | The first failed **event-level** rule, in this order: `timing_ambiguous`, `outside_samples`. (`date_suspect` was removed after the review. A doubtful date is checked against documents and then kept, either confirmed or corrected; ADR 0002 §3.) It is computed last in the layer, because it needs `sample`. Every event still gets an `event_measures` row, and a non-null reason makes every `eligible_*` false. Only events with a null reason get `event_window_obs` rows. A `timing_ambiguous` event has null `day0_session` and `day_m1_session`. It still gets the two-session robustness crush (ADR 0002 §2), computed from `iv_daily` at prev(D) and next(D), and for other events' baselines its zone is [−21, +10] around **both** candidate days (ADR 0004 §1). Wherever another table needs its day 0 (`season`, `orphan_nearby`, `iv_daily`/`chain_expiry.next_event_id`), it uses the effective day 0, next(D). Data-availability rules live in `event_measures.ineligible_reason`. |
+| `exclusion_reason` | string, null | | The first failed **event-level** rule, in this order: `duplicate_row` (*added after the milestone-1 delta review:* a second calendar row of another event's release, i.e. a row of the same security within 14 days of a row with stronger timing evidence, ADR 0002 §3; it is set before the EPS match, which skips it, and it has no zone of its own in other events' baselines; milestone 1 has one, BRK.B 2024-11-01), `timing_ambiguous`, `timing_not_checked` (*milestone 1, provisional:* a NULL-label event on a session day that nobody looked up; the build invariant forbids it, once the look-ups are complete, for every event that can enter a sample; a NULL-label date scheduled after the data end keeps it), `outside_samples`. (`date_suspect` was removed after the review. A doubtful date is checked against documents and then kept, either confirmed or corrected; ADR 0002 §3.) It is computed last in the layer, because it needs `sample`. Every event still gets an `event_measures` row, and a non-null reason makes every `eligible_*` false. Only events with a null reason get `event_window_obs` rows. A `timing_ambiguous` event has null `day0_session` and `day_m1_session`. It still gets the two-session robustness crush (ADR 0002 §2), computed from `iv_daily` at prev(D) and next(D), and for other events' baselines its zone is [−21, +10] around **both** candidate days (ADR 0004 §1). Wherever another table needs its day 0 (`season`, `orphan_nearby`, `iv_daily`/`chain_expiry.next_event_id`), it uses the effective day 0, next(D). Data-availability rules live in `event_measures.ineligible_reason`. |
 | `calendar_commit` | string | | Dolt commit hash read |
 
 The prev/next chain covers **every** event of the security, excluded ones included, because baseline exclusion needs
@@ -517,9 +559,9 @@ clean baseline counts, which `events` cannot know (ADR 0001 §1).
 |---|---|---|---|
 | `security_id` | string | **PK** (1/2), FK → `security` | |
 | `fiscal_period_end` | date32 | **PK** (2/2) | `eps_history.period_end_date` (month-end normalised) |
-| `event_id` | string, null | FK → `events`, **unique**; **the link of record** (R13) | The first announcement of the same security 10–100 days after the period end. If two periods would claim the same event, the one with the smaller lag keeps it. The other has no event of its own and becomes `orphan`. That is a genuine missing event, and its zone rightly contaminates nearby baselines. Null iff `match_status` ∈ {`orphan`, `pre_calendar`}. |
-| `match_status` | enum {`matched`,`orphan`,`pre_calendar`,`ticker_conflict`} | | `pre_calendar` = unmatched, not a tie loser, and the 10–100-day window starts before the calendar does (2020-01-22). This can only happen to periods ending on or before 2019-12-31. Examples are quarters ending in Oct–Nov 2019 and mid-January reporters' 2019-12-31 periods. `orphan` = unmatched and not `pre_calendar`, so tie losers are always orphans. Both kinds of zone are removed from baselines (ADR 0004 §1), but only `orphan` counts towards ADR 0002's orphan-rate check. `ticker_conflict` = two tickers report the period with different values (ADR 0002 §4). It keeps its `event_id`. |
-| `lag_days` | int16, null | | announce_date − fiscal_period_end; null iff `event_id` is null |
+| `event_id` | string, null | FK → `events`, **unique**; **the link of record** (R13) | *Revised after the milestone-1 review and again after its delta review.* The announcement of this period, among the security's events (not `duplicate_row`, §3.7) from **14 days after the first day of the period end's month** to **100 days after the period end** (the stored end is month-end normalised, so the true end is no earlier than the first of the month; `params.yaml` `eps_match.window_start: month_start+14`). Periods and events are paired one-to-one and in order, with the smallest total distance (|lag| days per link, 101 per period left without an event), so a period whose own report is missing becomes `orphan`, and it cannot take the next quarter's report unless that report comes at least 74 days after its own period end (no link in the data is longer than 59 days; ADR 0002 §3, "When a link can still move"; `events/eps.py`). An orphan is a genuine missing event, and its zone rightly contaminates nearby baselines. Null iff `match_status` ∈ {`orphan`, `pre_calendar`}. |
+| `match_status` | enum {`matched`,`orphan`,`pre_calendar`,`ticker_conflict`} | | `pre_calendar` = unmatched, its window starts before the calendar does (2020-01-22), and the window holds no event of the security. This can only happen to periods ending on or before 2020-01-31. `orphan` = unmatched and not `pre_calendar`; a period whose window holds an event that went to another period is always an orphan. Both kinds of zone are removed from baselines (ADR 0004 §1), but only `orphan` counts towards ADR 0002's orphan-rate check. `ticker_conflict` = two tickers report the period with different values (ADR 0002 §4). It keeps its `event_id`. |
+| `lag_days` | int16, null | | announce_date − fiscal_period_end; null iff `event_id` is null. Negative when a report comes before the stored month-end (Costco's May quarters, −1 to −6 days at milestone 1). |
 | `reported` | float64, null | | `eps_history.reported` (as reported, **not split-adjusted**). Null when the source is null, and for `ticker_conflict`, where neither value is chosen. |
 | `estimate` | float64, null | | `eps_history.estimate`, with the same null rule |
 | `surprise` | float64, null | | reported − estimate; null if either is null |
@@ -533,8 +575,8 @@ Price-scaled surprises (`price_ref`, `surprise_scaled`, `abs_surprise_scaled_w`,
 written (ADR 0001 §1). How many source EPS values are null is not measured yet; milestone 1 counts them.
 
 **One link, one direction.** `eps.event_id → events.event_id` is the only FK between the two tables (R13).
-`events.fiscal_period_end` is a convenience copy. Invariants, tested at milestone 1 (`tests/test_events_eps_link.py`,
-planned):
+`events.fiscal_period_end` is a convenience copy. Invariants, tested at milestone 1 (`tests/test_events_eps_link.py`
+on the committed tables, `tests/test_eps.py` on fixtures):
 
 1. every non-null `eps.event_id` exists in `events` and appears at most once;
 2. `eps.security_id = events.security_id` for every linked pair;
@@ -542,14 +584,23 @@ planned):
    to the event;
 4. `eps.event_id` is null iff `match_status` ∈ {`orphan`, `pre_calendar`}, and `lag_days` is null iff `eps.event_id`
    is null;
-5. every linked pair has 10 ≤ `lag_days` ≤ 100, and **no** event of the security falls between the period end
-   + 10 days and the linked event (the linked event is the first in the window);
+5. every linked event lies in its period's window (from 14 days after the first day of the period end's month to
+   the period end + 100 days), and the links of a security keep their order: a later period never has an earlier
+   event; no `duplicate_row` event is linked, and each group of calendar rows within 14 days keeps one row;
 6. `ticker_conflict` rows have null `reported` and `estimate`;
-7. on a fixture where two periods could claim one event, the smaller lag wins and the other period becomes `orphan`.
+7. on fixtures shaped like the milestone-1 review's cases, each period links to its own quarter: Costco (a report
+   2 days before the stored month-end; the February report missing, so February is the orphan and May keeps its
+   event), Oracle (reports 9 days after a month-end), Berkshire (a February Q4 release stays with December, also on
+   1 March); a missing report gives an orphan, never the next quarter's event, even where shifting a chain would
+   gain a link; slow reporters (lags 65–66, the delta review's S1 and S2) keep their own quarters; and a link moves
+   to the next period only from 74 days late.
 
-The test must be seen to fail when one event's `fiscal_period_end` is corrupted, when the tie rule is reversed, and
-when the matcher takes the *last* rather than the first event in the window, and when it skips an already-claimed
-event to take the next one.
+The tests must be seen to fail when one event's `fiscal_period_end` is corrupted, when the window's lower bound
+moves off 14 days after the first of the month, when the upper bound becomes exclusive, when the assignment takes the
+first event in the window, when it maximises the number of links before the distance, when the cost of an unlinked
+period changes from 101, and when a duplicate row is matched (*revised after the milestone-1 review*, which found the
+first window, 10 to 100 days after the period end, wrong for month-end normalised periods, and after its delta
+review, which found a duplicate row linked and long lags shifted).
 
 Cardinality: `events` 0..1 — 0..1 `eps`. An orphan or pre-calendar period has no event, and an event can lack an EPS
 row. Committed: yes.
@@ -565,15 +616,15 @@ tercile of `event_measures.abs_move_cand_max` (revised after the delta review; t
 | Column | Type | Key | Lineage |
 |---|---|---|---|
 | `event_id` | string | **PK**, FK → `events` | |
-| `gap_bmo_yf`, `gap_amc_yf` | float64 | | market-adjusted overnight log gap at each candidate day |
-| `gap_scale_yf` | float64 | | median \|gap\| over [−60, −22] |
-| `z_bmo_yf`, `z_amc_yf` | float64 | | |
-| `z_max_outside_yf` | float64 | | largest z in [D−3, D+4] excluding the candidates |
+| `gap_bmo_yf`, `gap_amc_yf` | float64, null | | market-adjusted overnight log gap at each candidate day, with the dividend added back on its ex-date; null without a candidate (a non-session D has no BMO candidate) or without Yahoo data. *Milestone 1:* every value column of this table is nullable for the same reasons, and the scale needs at least 10 gaps in [−60, −22] around as_of(D). |
+| `gap_scale_yf` | float64, null | | median \|gap\| over [−60, −22] |
+| `z_bmo_yf`, `z_amc_yf` | float64, null | | |
+| `z_max_outside_yf` | float64, null | | largest z in [D−3, D+4] excluding the candidates |
 | `rel_day_max_outside_yf` | int16, null | | where that largest z is. Yahoo-derived evidence detail, class R (§2.1). |
-| `gap_verdict_yf` | enum {`supports`,`contradicts`,`quiet`} | | the gap's verdict on `timing_used`, with ADR 0002 §3's thresholds (4, 3×). Class R. |
-| `outside_flag_yf` | bool | | a session in [D−3, D+4], other than the candidates, with z ≥ 6 and ≥ 3× the candidates' maximum. Class R. |
+| `gap_verdict_yf` | enum {`supports`,`contradicts`,`quiet`}, null | | the gap's verdict on `timing_used`, with ADR 0002 §3's thresholds (4, 3×). Class R. |
+| `outside_flag_yf` | bool, null | | a session in [D−3, D+4], other than the candidates, with z ≥ 6 and ≥ 3× the candidates' maximum. Class R. |
 
-Committed: **no**. All its value columns are class R; the key `event_id` is U. Only the resulting `events.timing_used` / `timing_status` (class F under the default, U only under ADR 0002's proposed EDGAR rule; §2.1) are
+Committed: **no**. All its value columns are class R; the key `event_id` is U. Only the resulting `events.timing_used` / `timing_status` (class F under the default, U only under ADR 0002's EDGAR rule once it runs; §2.1) are
 committed.
 
 ### 3.10 `event_window_obs`: one row per (event, rel_day), from rel_day −60 to +10
@@ -728,8 +779,8 @@ values are `null`, never NaN. Arrays indexed by `rel_days` have the same length 
 
 | File (`kind`) | `data` fields | Built from |
 |---|---|---|
-| `meta` (exists, 0.1.0) | `project`, `milestone`, `title`, `data_sources[] {name, uses, url, licence, committed}` (`uses` = the tables or series taken from the source), `data_licence {name, url, applies_to[], attribution}` (`applies_to` names the sources the licence covers; `attribution` is the text the About page shows). Written by `tools/export_app_data.py` (`DATA_SOURCES`, `DATA_LICENCE`) and checked by `parseMetaData` in `app/src/lib/meta.ts`, which requires exactly these keys. · **planned 0.2.0:** `sample {label, day0_from, day0_to, n_events, n_securities}`, `params {event_window, baseline, baseline_exclusion, cm30_horizon_sessions, clock}`, `files[]` (kinds available), `provenance` (as every 0.2.0 file) | `tools/export_app_data.py` constants today; params and `events` from 0.2.0 |
-| `sample_funnel` | `steps[] {step, label, n_events, n_removed, reason}`, `timing_status_counts {confirmed, corrected, inferred, date_corrected, no_document, not_checked, ambiguous}`, `by_move_tercile[] {sample, tercile, n_events, timing_status_counts, share_gap_contradicts, n_gap_check_changed, mean_crush_mean_adj}`, `evar_nonpositive {n, share}`, `by_sample[] {sample, n_events}` | `events` (`exclusion_reason`, `sample`, `timing_status`, `gap_check_changed`), `event_measures` (`eligible_*`, `ineligible_reason`, `abs_move_cand_max` for the terciles, `crush_mean_adj`), and `timing_check.gap_verdict_yf` for `share_gap_contradicts`. That share is an aggregate of a class-R input, so it falls under the §2.1 export rules. `by_move_tercile` is ADR 0002 §3's outcome-dependence check, per date sample, because `coarse` has a different look-up rule. *Revised after the delta review:* `unverified` is split into `no_document` and `not_checked`; the terciles are of `abs_move_cand_max`, not \|`realized_ret_0`\| (ledger N7); `sample` and `n_gap_check_changed` are new. |
+| `meta` (0.2.0, milestone 1) | `project`, `milestone`, `title`, `data_sources[] {name, uses, url, licence, committed}` (`uses` = the tables or series taken from the source), `data_licence {name, url, applies_to[], attribution}` (`applies_to` names the sources the licence covers; `attribution` is the text the About page shows), `sample {label, day0_from, day0_to, n_events, n_securities}` (`n_events` = the last funnel step), `params {event_window, baseline, baseline_exclusion, cm30_horizon_sessions, clock}`, `files[]` (kinds available), `provenance`. Written by `tools/export_app_data.py` and checked by `parseMetaData` in `app/src/lib/meta.ts`, which requires exactly these keys. | `tools/export_app_data.py` constants; `params.yaml`; the committed `data/derived/` tables |
+| `sample_funnel` | `steps[] {step, label, n_events, n_removed, reason}`, `timing_status_counts {confirmed, corrected, inferred, date_corrected, no_document, not_checked, ambiguous}`, `timing_status_by_sample[] {sample, timing_status_counts}`, `by_move_tercile[] {sample, tercile, n_events, timing_status_counts, share_gap_contradicts, n_gap_check_changed, mean_crush_mean_adj}` or null, `by_move_tercile_status`, `evar_nonpositive {n, share}` or null, `evar_nonpositive_status`, `by_sample[] {sample, n_events}`, `lookups {n_done, complete}`, `caveats[]`, `provenance`. *Milestone 1 (0.2.0):* the steps are `calendar_events`, `timing_known` (which also removes `duplicate_row` rows, *since the milestone-1 delta review*), `daily_range`, `crush_observed`, `baseline_minimum` (`export/funnel.py`); `by_move_tercile` and `evar_nonpositive` are null, with a status string, until milestone 2 computes their inputs; the app accepts only null for them at 0.2.0. | `events` (`exclusion_reason`, `sample`, `timing_status`, `gap_check_changed`), `event_measures` (`eligible_*`, `ineligible_reason`, `abs_move_cand_max` for the terciles, `crush_mean_adj`), and `timing_check.gap_verdict_yf` for `share_gap_contradicts`. That share is an aggregate of a class-R input, so it falls under the §2.1 export rules. `by_move_tercile` is ADR 0002 §3's outcome-dependence check, per date sample, because `coarse` has a different look-up rule. *Revised after the delta review:* `unverified` is split into `no_document` and `not_checked`; the terciles are of `abs_move_cand_max`, not \|`realized_ret_0`\| (ledger N7); `sample` and `n_gap_check_changed` are new. |
 | `event_paths` | `rel_days[]` (−10…10), `series[] {measure, adjustment, units, subgroup_key, subgroup_value, n[], mean[], ci_lo[], ci_hi[]}`, `per_event[] {event_id, ticker, sector, day0, timing_used, values[]}` (`aliv_mean_adj` of cm30, for animated paths) | `event_window_obs`, `results` (`aliv_path`). Market-adjusted `series[]` exist only for `all` and `timing` (§2.1 export rules); other subgroups' series are mean-adjusted. A suppressed rel_day is `null`, and its `n` is not shown. |
 | `heatmap` | `grids[] {id, title, measure, units, row_labels[], row_keys[], col_labels[], values[][], n[][], q[][] or null}`. Grid `company_by_season`: rows = securities (sector order), cols = seasons, value = `crush_mean_adj` (one event per cell, so per-event data). Grid `sector_by_regime`: rows = sectors, cols = `vix_regime`, value = mean **mean-adjusted** crush with BH q. For the one-session crush the two adjustments must agree within 10% (ADR 0004). | `event_measures`, `results` |
 | `terrain` | `measure`, `units`, `rel_days[]`, `rows[] {security_id, ticker, sector, n_events}`, `values[][]` (rows × rel_days, mean `aliv_mean_adj`, null where missing), `row_order` (text) | `event_window_obs` aggregated per security. A per-security mean covers ≈ 7 dates, so it is treated as per-event data and uses mean-adjusted values (§2.1). Matches `app/src/lib/terrain.ts` `values[company][eventDay]`. |
@@ -777,6 +828,8 @@ drawn.
 | R19b | `events` | `iv_daily` | `prev_event_id` → `event_id` | 0..1 : 0..* | |
 | R20 | `events` | `chain_expiry` | `next_event_id` → `event_id` | 0..1 : 0..* | |
 | R21 | `events` | `event_measures_vx` | `event_id` → `event_id` | 1 : 0..1 | local only; the `cboe5` members |
+| R22 | `security` | `session_snapshot` | `security_id` → `security_id` | 1 : 0..* | milestone 1; folded into `iv_daily` at milestone 2 |
+| R23 | `session` | `session_snapshot` | `session_date` → `session_date` | 1 : 0..* | milestone 1 |
 | — | `results` | — | — | — | aggregates; keyed by names, no FK |
 
 Relationships-only sketch (the full attribute ERD is generated from §3 and the table above):
@@ -801,6 +854,8 @@ erDiagram
   EVENTS ||--o{ EVENT_WINDOW_OBS : "window of"
   EVENTS |o--o{ IV_DAILY : "next / prev event of"
   EVENTS |o--o{ CHAIN_EXPIRY : "next event of"
+  SECURITY ||--o{ SESSION_SNAPSHOT : "observed on"
+  SESSION ||--o{ SESSION_SNAPSHOT : has
 ```
 
 ---
@@ -810,21 +865,36 @@ erDiagram
 1. ~~The hub cache path~~ **Resolved:** the hub's `STATUS.md` convention is followed. Downloads go to
    `$VOL_DATA_DIR/earnings-vol-study/raw/`; Dolt extracts and stages go to `$VOL_DATA_DIR/earnings-vol-study/cache/`
    (`config.raw_dir()` / `config.cache_dir()`). See ADR 0001 §2.
-2. **Missing calendar events** (GS, COST): recover dates from a second source, or leave them as orphan zones. See ADR 0002 §3.
-3. **Owner decision: how strictly to read the Yahoo/CBOE licence rule.** The default is strict for numbers:
+2. **Missing calendar events** (GS, COST). **Default taken 2026-10-29: leave them as orphan zones (no second
+   source). The owner can override.** Measured at milestone 1 with the EPS match as revised after the milestone-1
+   review (§3.8): 35 orphan periods of 1,359 expected (1,324 matched + 35), 2.58%, which is below the "about 3%" line
+   of ADR 0002 ("How we'll know it's wrong"), so the decision stays optional and the owner flag is withdrawn. 18 of
+   the 35 come from 8 sessions of early 2022 with no calendar row for any company; COST's 7 are its February
+   quarters. The first window gave 43 (3.16%), 8 of them false. See ADR 0002 §3 and its milestone-1 note.
+3. **Owner decision: how strictly to read the Yahoo/CBOE licence rule.** **Default taken 2026-10-29: strict, as
+   described here. The owner can override.** The default is strict for numbers:
    market-adjusted per-row and per-event values and `s_abn_cboe` stay local, and small market-adjusted cells are
    suppressed. Labels (class F: timing, `vix_regime`) are committed. See §2.1 for both alternative readings. Decide
    before milestone 3, because the answer renames columns.
-4. **Whether `dolt sql -r parquet` works on dolt v2.6.1.** It would remove the CSV parsing step. Measure at milestone 1.
+4. ~~Whether `dolt sql -r parquet` works on dolt v2.6.1~~ **Resolved 2026-10-29: it works.** Dates come back as
+   timestamps, decimals as decimals and SQL NULL as a real null, so the CSV sentinel is gone. Its speed equals CSV's on
+   one month of `option_chain` (40.75 s against 40.25 s; the month, 2025-10, holds 159,604 rows, *corrected after the milestone-1 delta review* from 160,584, a figure that could not be traced), so it was chosen for the types. pyarrow's direct
+   decimal-to-float cast is not correctly rounded, so decimals are cast through their text form
+   (`ingest/dolt.py`, `normalise`).
 5. **`cboe5` before 2020.** VX\* history from 2011 cannot be used yet, for two reasons. The calendar starts on
    2020-01-22, so a second source of event dates is needed (the same owner decision as item 2). And `cboe5` members
    need a null `exclusion_reason`, so pre-2020 events would also need an exemption from `outside_samples`. See ADR
    0004 §5.
-6. **Owner decision: SEC EDGAR as the primary timing source** (ADR 0002, *Proposed: pending owner decision*). SEC's
-   fair-access policy needs a real contact email in the User-Agent, which the approved plan excluded. If the owner
-   declines, the default is the press release, looked up for every event with D on or after 2024-09-11 and every
-   NULL-label event, then the calendar label (ADR 0002 §3, "The default rule"); `timing_status` stays class F, and
-   `edgar_accession` / `edgar_accepted_utc` stay null (§2.1, §3.7).
-7. **Whether about 415 press-release look-ups are practical** (added after the delta review). Milestone 1 times the
-   first 20. If the owner judges the cost too high, `daily` and `mixed` move to the `coarse` sample's gap-triggered
-   rule, with its stated selection, before any IV measure is computed (ADR 0002 §3, "What would make (b) win").
+6. **SEC EDGAR as the primary timing source.** **Accepted by the owner 2026-10-28; runs once the owner's contact
+   string is set.** Until `SEC_EDGAR_USER_AGENT` holds it, the EDGAR client refuses to run, no event has
+   `timing_source = edgar`, `edgar_accession` / `edgar_accepted_utc` stay null, and the default rule (the press
+   release, then the calendar label) is operative; `timing_status` stays class F (§2.1, §3.7). ADR 0002's milestone-1
+   check of EDGAR (coverage ≥ 95%, the 50-event audit) runs when the string arrives.
+7. **Whether about 415 press-release look-ups are practical.** Measured on 2026-10-29: the first 20 look-ups took
+   10.72 minutes of agent wall-clock time in total, the sum of `lookup_minutes` (mean 0.54, median 0.35, range 0.27
+   to 1.99 minutes). The default
+   rule requires 473 look-ups for the 50 companies (`events.lookup_violations` before any look-up), which extrapolates
+   to about 4.3 hours at the mean. **Default taken 2026-10-29: the remaining look-ups wait for EDGAR; the owner can
+   override.** Until then every other event keeps the calendar label as `not_checked`, the build invariant is reported
+   and not enforced (`params.yaml`: `timing.lookups_complete: false`), and the labels are marked provisional in the
+   manifests, the funnel and the app.

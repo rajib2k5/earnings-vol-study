@@ -1,0 +1,28 @@
+parse_checks on the committed CSV: 20 rows, no error
+event              basis           time   kind       host / note flags
+CRWD:2024-08-28    call_time       -      aggregator www.silicon.co.uk  aggregator kept though a company/newswire page exists (403)
+NVDA:2024-08-28    time_stamp      16:20  company    nvidianews.nvidia.com  time NOT on the url page
+DELL:2024-08-29    call_time       -      company    www.dell.com  
+AVGO:2024-09-05    call_time       -      aggregator marketchameleon.com  aggregator kept though a company/newswire page exists (403)
+ORCL:2024-09-09    time_stamp      16:05  newswire   www.prnewswire.com  
+MU:2024-09-25      time_stamp      16:07  aggregator quantisnow.com  aggregator kept though a company/newswire page exists (403)
+COST:2024-09-26    call_time       -      company    investor.costco.com  
+JPM:2024-10-11     time_stamp      06:55  company    jpmorganchase.com  time source = review ledger, no URL; url is a call/pre-announcement page, not the release
+WFC:2024-10-11     time_stamp      07:03  company    www.wellsfargo.com  time NOT on the url page
+BAC:2024-10-15     time_stamp      06:45  company    newsroom.bankofamerica.com  
+GS:2024-10-15      call_time       -      company    d3cobg6h0snvt3.cloudfront.net  
+JNJ:2024-10-15     call_time       -      company    www.investor.jnj.com  
+UNH:2024-10-15     time_stamp      05:55  company    www.unitedhealthgroup.com  
+MS:2024-10-17      time_stamp      07:29  newswire   www.businesswire.com  
+NFLX:2024-10-17    announced_time  16:00  company    ir.netflix.net  url is a call/pre-announcement page, not the release
+PG:2024-10-18      time_stamp      06:55  aggregator www.quantisnow.com  
+GE:2024-10-22      call_time       -      company    www.geaerospace.com  
+PM:2024-10-22      time_stamp      06:59  company    www.pmi.com  time NOT on the url page; time source = review ledger, no URL
+RTX:2024-10-22     call_time       -      company    raytheon.mediaroom.com  
+GOOGL:2024-10-29   call_time       -      company    abc.xyz  url is a call/pre-announcement page, not the release
+mutant refused   time_stamp without a time: press_release_checks.csv line 2: basis time_stamp with release_time_et None: only ('time_stamp', 'announced_ti
+mutant refused   call_time with a time: press_release_checks.csv line 2: basis call_time with release_time_et '09:30': only ('time_stamp', 'announced_
+mutant refused   release_text with a time: press_release_checks.csv line 2: basis release_text with release_time_et '07:00': only ('time_stamp', 'announc
+mutant refused   announced_time without a time: press_release_checks.csv line 2: basis announced_time with release_time_et None: only ('time_stamp', 'announce
+mutant refused   time contradicts the label (16:05 BMO): press_release_checks.csv line 2: time 16:05 on 2024-09-09 means AMC, but the label says BMO
+mutant refused   unknown basis: press_release_checks.csv line 2: a found release needs release_date, label BMO/AMC and a basis ('time_stamp', 

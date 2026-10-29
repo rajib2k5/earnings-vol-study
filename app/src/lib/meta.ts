@@ -4,14 +4,19 @@
  * (vite `base: './'`). `fetch` is injectable so tests never touch the network.
  */
 import { parseEnvelope, type Envelope, type ParseResult } from './contract'
+import { parseProvenance, type Provenance } from './provenance'
+import { fail, isIntPair, isIsoDate, isNonNegInt, isObject, isPositiveInt, isText, keyProblem, show, type Parsed } from './validate'
 
 export const META_URL = 'data/meta.json'
 
-/** Fetch + validate. Never throws: every failure comes back as `{ ok: false, error }`. */
-export async function loadMeta(url: string = META_URL, fetchImpl: typeof fetch = (...a) => fetch(...a)): Promise<ParseResult> {
+/**
+ * Fetch + validate the envelope of any file in `public/data/`. Never throws: every failure comes
+ * back as `{ ok: false, error }`.
+ */
+export async function loadEnvelope(url: string, fetchImpl: typeof fetch = (...a) => fetch(...a)): Promise<ParseResult> {
   let res: Response
   try {
-    // 'no-cache' = always revalidate with the server: the footer must describe the data actually
+    // 'no-cache' = always revalidate with the server: the page must describe the data actually
     // being served, not a copy the browser kept from an earlier export.
     res = await fetchImpl(url, { cache: 'no-cache' })
   } catch (e) {
@@ -26,6 +31,9 @@ export async function loadMeta(url: string = META_URL, fetchImpl: typeof fetch =
   }
   return parseEnvelope(body)
 }
+
+/** Fetch + validate `data/meta.json`'s envelope. Never throws. */
+export const loadMeta = (url: string = META_URL, fetchImpl?: typeof fetch): Promise<ParseResult> => loadEnvelope(url, fetchImpl)
 
 export interface MetaSummary {
   schemaVersion: string
@@ -83,39 +91,92 @@ export interface DataLicence {
   attribution: string
 }
 
-/** The `data` object of `meta.json` (kind "meta", schema 0.1.0). */
+/** Which events the exported numbers describe (the "daily" sample is the one with a day-0 date range). */
+export interface MetaSample {
+  label: string
+  /** First and last day 0, "YYYY-MM-DD". */
+  day0_from: string
+  day0_to: string
+  n_events: number
+  n_securities: number
+}
+
+/** The study parameters the Python side ran with. Windows are `[from, to]` session offsets from day 0. */
+export interface MetaParams {
+  event_window: [number, number]
+  baseline: [number, number]
+  baseline_exclusion: [number, number]
+  cm30_horizon_sessions: number
+  clock: string
+}
+
+/** The `data` object of `meta.json` (kind "meta", schema 0.2.0). */
 export interface MetaData {
   project: string
   milestone: number
   title: string
   data_sources: DataSource[]
   data_licence: DataLicence
+  sample: MetaSample
+  params: MetaParams
+  /** The kinds of file available in `public/data/` (e.g. "meta", "sample_funnel"). */
+  files: string[]
+  provenance: Provenance
 }
 
-export type MetaDataResult = { ok: true; data: MetaData } | { ok: false; error: string }
+export type MetaDataResult = Parsed<MetaData>
 
-const META_DATA_KEYS = ['project', 'milestone', 'title', 'data_sources', 'data_licence'] as const
+const META_DATA_KEYS = ['project', 'milestone', 'title', 'data_sources', 'data_licence', 'sample', 'params', 'files', 'provenance'] as const
 const DATA_SOURCE_KEYS = ['name', 'uses', 'url', 'licence', 'committed'] as const
 const DATA_LICENCE_KEYS = ['name', 'url', 'applies_to', 'attribution'] as const
+const SAMPLE_KEYS = ['label', 'day0_from', 'day0_to', 'n_events', 'n_securities'] as const
+const PARAMS_KEYS = ['event_window', 'baseline', 'baseline_exclusion', 'cm30_horizon_sessions', 'clock'] as const
 
-const bad = (error: string): MetaDataResult => ({ ok: false, error })
-const isObject = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x)
-const isText = (x: unknown): x is string => typeof x === 'string' && x.trim().length > 0
+const bad = fail
 /** https only: the value goes into an `href`, so `javascript:` and `http:` links are refused. */
 const isHttpsUrl = (x: unknown): x is string => typeof x === 'string' && /^https:\/\/\S+$/.test(x)
 
-/** Short description of a value for error messages (never dumps a big payload). */
-const show = (v: unknown): string => (typeof v === 'string' ? JSON.stringify(v) : Array.isArray(v) ? 'an array' : v === null ? 'null' : typeof v === 'object' ? 'an object' : `${typeof v} ${String(v)}`)
+function parseSample(input: unknown): Parsed<MetaSample> {
+  if (!isObject(input)) return bad(`sample must be an object, got ${show(input)}`)
+  const problem = keyProblem('sample', input, SAMPLE_KEYS)
+  if (problem) return bad(problem)
+  const { label, day0_from, day0_to, n_events, n_securities } = input
+  if (!isText(label)) return bad(`sample.label must be a non-empty string, got ${show(label)}`)
+  if (!isIsoDate(day0_from)) return bad(`sample.day0_from must be a date string YYYY-MM-DD, got ${show(day0_from)}`)
+  if (!isIsoDate(day0_to)) return bad(`sample.day0_to must be a date string YYYY-MM-DD, got ${show(day0_to)}`)
+  if (!isNonNegInt(n_events)) return bad(`sample.n_events must be a non-negative integer, got ${show(n_events)}`)
+  if (!isNonNegInt(n_securities)) return bad(`sample.n_securities must be a non-negative integer, got ${show(n_securities)}`)
+  return { ok: true, data: { label, day0_from, day0_to, n_events, n_securities } }
+}
 
-/** A message for an object with missing or unexpected keys, or null when the keys are exactly `expected`. */
-function keyProblem(where: string, obj: Record<string, unknown>, expected: readonly string[]): string | null {
-  const missing = expected.filter((k) => !Object.hasOwn(obj, k))
-  const extra = Object.keys(obj).filter((k) => !expected.includes(k))
-  if (missing.length === 0 && extra.length === 0) return null
-  const parts = []
-  if (missing.length > 0) parts.push(`missing key(s): ${missing.join(', ')}`)
-  if (extra.length > 0) parts.push(`unexpected key(s): ${extra.join(', ')}`)
-  return `${where} has ${parts.join('; ')} (expected exactly: ${expected.join(', ')})`
+function parseParams(input: unknown): Parsed<MetaParams> {
+  if (!isObject(input)) return bad(`params must be an object, got ${show(input)}`)
+  const problem = keyProblem('params', input, PARAMS_KEYS)
+  if (problem) return bad(problem)
+  const { event_window, baseline, baseline_exclusion, cm30_horizon_sessions, clock } = input
+  if (!isIntPair(event_window)) return bad(`params.event_window must be an array of two integers, got ${show(event_window)}`)
+  if (!isIntPair(baseline)) return bad(`params.baseline must be an array of two integers, got ${show(baseline)}`)
+  if (!isIntPair(baseline_exclusion)) return bad(`params.baseline_exclusion must be an array of two integers, got ${show(baseline_exclusion)}`)
+  if (!isPositiveInt(cm30_horizon_sessions)) return bad(`params.cm30_horizon_sessions must be a positive integer, got ${show(cm30_horizon_sessions)}`)
+  if (!isText(clock)) return bad(`params.clock must be a non-empty string, got ${show(clock)}`)
+  return {
+    ok: true,
+    data: {
+      event_window: [...event_window],
+      baseline: [...baseline],
+      baseline_exclusion: [...baseline_exclusion],
+      cm30_horizon_sessions,
+      clock,
+    },
+  }
+}
+
+function parseFiles(input: unknown): Parsed<string[]> {
+  if (!Array.isArray(input) || input.length === 0) return bad(`files must be a non-empty array, got ${show(input)}`)
+  for (const [i, f] of input.entries()) {
+    if (!isText(f)) return bad(`files[${i}] must be a non-empty string, got ${show(f)}`)
+  }
+  return { ok: true, data: [...input] }
 }
 
 /**
@@ -172,6 +233,15 @@ export function parseMetaData(input: unknown): MetaDataResult {
     }
   }
 
+  const sample = parseSample(input.sample)
+  if (!sample.ok) return sample
+  const params = parseParams(input.params)
+  if (!params.ok) return params
+  const files = parseFiles(input.files)
+  if (!files.ok) return files
+  const provenance = parseProvenance(input.provenance)
+  if (!provenance.ok) return provenance
+
   return {
     ok: true,
     data: {
@@ -180,6 +250,10 @@ export function parseMetaData(input: unknown): MetaDataResult {
       title,
       data_sources: sources,
       data_licence: { name: data_licence.name, url: data_licence.url, applies_to: [...applies_to], attribution: data_licence.attribution },
+      sample: sample.data,
+      params: params.data,
+      files: files.data,
+      provenance: provenance.data,
     },
   }
 }

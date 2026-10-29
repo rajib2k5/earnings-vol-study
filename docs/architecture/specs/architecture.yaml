@@ -4,7 +4,8 @@
 # reads only from layers to its left (ADR 0001 section 1 table):
 #   events   writes session, market_daily, security, ticker_alias, events, eps, timing_check
 #   measures reads  session, market_daily (r_cont), security, ticker_alias, events (day 0);
-#            writes chain_expiry, iv_daily
+#            writes session_snapshot (milestone 1; folded into iv_daily at milestone 2),
+#            chain_expiry, iv_daily
 #   panel    reads  iv_daily, chain_expiry, events, eps, security, session, market_daily and the
 #            local Yahoo / VX* extracts; writes event_window_obs, event_measures, event_measures_vx
 #   stats    reads  event_measures(_vx), event_window_obs, events, eps, security and, for validation,
@@ -15,9 +16,13 @@
 # Downloads (yfinance, FRED, CBOE) go to $VOL_DATA_DIR/earnings-vol-study/raw/; Dolt extracts and
 # the derived stage tables go to $VOL_DATA_DIR/earnings-vol-study/cache/ (the shared data folder's
 # convention). Neither is inside the repo.
+# The shared Dolt clones are never queried. A SELECT rewrites a clone's files on dolt 2.6.1, so
+# ingest/dolt.py (refresh_mirror) copies each clone to $VOL_DATA_DIR/earnings-vol-study/cache/dolt_mirror/
+# and runs `dolt sql -r parquet` there, SELECT only, AS OF the commits pinned in params.yaml.
 # Timing labels come from documents, never from IV or the price gap (ADR 0002 section 3). SEC EDGAR
-# 8-K acceptance times are PROPOSED, pending the owner's decision (dashed edge). The default without
-# EDGAR is the press release (hand check, recorded in the committed data/manual/press_release_checks.csv),
+# 8-K acceptance times are accepted (2026-10-28) but gated on the owner's contact string (dashed edge):
+# the client refuses to run until SEC_EDGAR_USER_AGENT is set. The rule in force until then is the
+# press release (hand check, recorded in the committed data/manual/press_release_checks.csv),
 # then the calendar label; the price gap triggers a second reading (daily/mixed) or a look-up
 # (coarse), never a label.
 # Event tests (ADR 0005): the primary is a two-way cluster-robust t (day-0 date x firm for CRUSH,
@@ -25,8 +30,8 @@
 # Kolari-Pynnönen family are robustness, labelled precision-weighted. Regressions: two-way firm x date.
 kind: flow
 title: Earnings vol study architecture
-subtitle: One-way pipeline from DoltHub and index data to the React app (milestone 0)
-direction: LR
+subtitle: One-way pipeline from DoltHub and index data to the React app (milestone 1)
+direction: TB
 
 lanes:
   - {id: sources,  label: Sources}
@@ -47,10 +52,11 @@ nodes:
   - {id: cboe_vx,  label: CBOE VX* indices,          sublabel: "5 names, local only",     type: external, lane: sources}
   - {id: sp500,    label: S&P 500 list,              sublabel: "sector, sub-industry",    type: external, lane: sources}
   - {id: pr,       label: Press releases,            sublabel: "IR time stamp, press_release_checks.csv", type: external, lane: sources}
-  - {id: edgar,    label: SEC EDGAR 8-K (proposed),  sublabel: "only if owner approves",  type: external, lane: sources}
+  - {id: edgar,    label: SEC EDGAR 8-K (accepted),  sublabel: "gated on contact string",  type: external, lane: sources}
 
   # --- Ingest (I/O) --------------------------------------------------------
-  - {id: dolt,    label: dolt sql extraction, sublabel: "read-only, AS OF commit", type: process, lane: ingest}
+  - {id: mirror,  label: Dolt mirrors,        sublabel: "private copies, cache/dolt_mirror", type: store, lane: ingest}
+  - {id: dolt,    label: dolt sql extraction, sublabel: "mirror only, -r parquet, AS OF commit", type: process, lane: ingest}
   - {id: fetch,   label: Price and index fetch, sublabel: "yfinance, FRED, CBOE",  type: process, lane: ingest}
   - {id: cache,   label: Parquet cache,       sublabel: "raw/, cache/ outside repo",  type: store,   lane: ingest}
 
@@ -60,7 +66,7 @@ nodes:
   - {id: epsm,     label: EPS match,          sublabel: "eps: raw, consensus, link", type: process, lane: events}
 
   # --- Measures layer ------------------------------------------------------
-  - {id: ivm,      label: IV measures,        sublabel: "chain_expiry, iv_daily",  type: model,   lane: measures}
+  - {id: ivm,      label: IV measures,        sublabel: "session_snapshot, chain_expiry, iv_daily", type: model,   lane: measures}
 
   # --- Panel layer ---------------------------------------------------------
   - {id: pan,      label: Event panel,        sublabel: "window, baseline, eligible_*", type: process, lane: panel}
@@ -83,14 +89,15 @@ nodes:
 
 edges:
   # Sources -> extraction
-  - {from: dh_cal,   to: dolt, label: SELECT AS OF}
-  - {from: dh_eps,   to: dolt}
-  - {from: dh_chain, to: dolt}
+  - {from: dh_cal,   to: mirror, label: "copy, never queried"}
+  - {from: dh_eps,   to: mirror}
+  - {from: dh_chain, to: mirror}
+  - {from: mirror,   to: dolt,   label: SELECT AS OF}
   - {from: yf,       to: fetch, label: local only}
   - {from: fred,     to: fetch}
   - {from: cboe_vx,  to: fetch, label: local only}
   - {from: sp500,    to: fetch}
-  - {from: edgar,    to: fetch, label: proposed, style: dashed}
+  - {from: edgar,    to: fetch, label: gated on contact string, style: dashed}
   - {from: pr,       to: evt,   label: timing label}
   - {from: dolt,  to: cache, label: monthly extracts}
   - {from: fetch, to: cache, label: raw files}
@@ -132,6 +139,7 @@ edges:
   - {from: results, to: export}
   - {from: abn,     to: export, label: window obs}
   - {from: evt,     to: export, label: funnel, style: dashed}
+  - {from: ivm,     to: export, label: session_snapshot (funnel), style: dashed}
   - {from: export,  to: contract, label: JSON files}
   - {from: export,  to: derived,  label: committed tables}
   - {from: contract, to: app,     label: fetch}

@@ -5,7 +5,7 @@ sequenceDiagram
     autonumber
     participant cal as earnings_calendar
     participant ev as Events builder
-    participant docs as Press release / EDGAR (proposed)
+    participant docs as Press release / EDGAR (gated on contact string)
     participant px as Price-gap diagnostic
     participant ses as Sessions + market_daily
     participant epsm as EPS match
@@ -24,7 +24,7 @@ sequenceDiagram
     px-->>ev: gap_verdict_yf, outside_flag_yf
     opt look-up#58; D from 2024-09-11, NULL label, or (coarse) a gap flag
         ev->>docs: release time for D-1 to D+1
-        Note right of docs: press release#59; EDGAR 8-K only if approved
+        Note right of docs: press release#59; EDGAR 8-K once the contact string is set
         docs-->>ev: time stamp, or none found
     end
     alt a document gives the timing

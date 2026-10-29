@@ -1,0 +1,19 @@
+timing_status: {'confirmed': 16, 'corrected': 2, 'date_corrected': 1, 'inferred': 1, 'not_checked': 1333}
+outside vocabulary: []
+exclusion_reason: {'outside_samples': 62, '(none)': 1258, 'timing_not_checked': 33}
+status mismatches vs ADR table: []
+in-memory build == committed events.parquet on 4 key columns: False
+code violations (with the 20 look-ups): 453 {'gap_trigger': 40, 'daily_or_mixed_era': 402, 'null_label': 29}
+ADR-literal violations: 482 ; code reports: 453
+forbidden by the ADR sentence but NOT reported by the code: 29
+sample  why                       
+none     NULL label                    1
+        after daily end               22
+        after daily end NULL label     6
+reported by the code but allowed by the ADR sentence: []
+violations with no look-ups: 473 {'gap_trigger': 43, 'daily_or_mixed_era': 422, 'null_label': 30}
+gap verdict on calendar labels: {'quiet': 538, 'supports': 725, '(none)': 68, 'contradicts': 22}
+gap verdict on labels in use: {'quiet': 537, 'supports': 729, '(none)': 67, 'contradicts': 20}
+first 21 in look-up order: [(1, 'CRWD:2024-08-28', True), (2, 'NVDA:2024-08-28', True), (3, 'DELL:2024-08-29', True), (4, 'AVGO:2024-09-05', True), (5, 'ORCL:2024-09-09', True), (6, 'MU:2024-09-25', True), (7, 'COST:2024-09-26', True), (8, 'JPM:2024-10-11', True), (9, 'WFC:2024-10-11', True), (10, 'BAC:2024-10-15', True), (11, 'GS:2024-10-15', True), (12, 'JNJ:2024-10-15', True), (13, 'UNH:2024-10-15', True), (14, 'MS:2024-10-17', True), (15, 'NFLX:2024-10-17', True), (16, 'PG:2024-10-18', True), (17, 'GE:2024-10-22', True), (18, 'PM:2024-10-22', True), (19, 'RTX:2024-10-22', True), (20, 'TXN:2024-10-22', False), (21, 'IBM:2024-10-23', False)]
+NFLX 2024-10-17 position: 15 ; GOOGL 2024-10-29 position: 27
+CSV rows not in the first 19: ['GOOGL:2024-10-29']

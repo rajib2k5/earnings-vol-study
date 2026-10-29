@@ -3,9 +3,10 @@
     "data_licence": {
       "applies_to": [
         "DoltHub post-no-preference/earnings",
-        "DoltHub post-no-preference/options"
+        "DoltHub post-no-preference/options",
+        "Wikipedia List of S&P 500 companies"
       ],
-      "attribution": "Contains data from the DoltHub repositories post-no-preference/earnings and post-no-preference/options, licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0). Changes: selected and filtered by this project. CBOE and Yahoo Finance data is downloaded locally for analysis and is never committed to this repository.",
+      "attribution": "Contains data from the DoltHub repositories post-no-preference/earnings and post-no-preference/options, and from the Wikipedia List of S&P 500 companies (revision 1382178819), licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0). Changes: selected, filtered and computed on by this project. CBOE and Yahoo Finance data is downloaded locally for analysis and is never committed to this repository.",
       "name": "CC BY-SA 4.0",
       "url": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
@@ -15,14 +16,28 @@
         "licence": "CC BY-SA 4.0",
         "name": "DoltHub post-no-preference/earnings",
         "url": "https://www.dolthub.com/repositories/post-no-preference/earnings",
-        "uses": "earnings_calendar, eps_history"
+        "uses": "earnings_calendar, eps_history, eps_estimate"
       },
       {
         "committed": true,
         "licence": "CC BY-SA 4.0",
         "name": "DoltHub post-no-preference/options",
         "url": "https://www.dolthub.com/repositories/post-no-preference/options",
-        "uses": "option_chain"
+        "uses": "option_chain, volatility_history"
+      },
+      {
+        "committed": true,
+        "licence": "CC BY-SA 4.0",
+        "name": "Wikipedia List of S&P 500 companies",
+        "url": "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
+        "uses": "company names, GICS sectors and CIKs (revision 1382178819)"
+      },
+      {
+        "committed": false,
+        "licence": "see source",
+        "name": "FRED (Federal Reserve Bank of St. Louis)",
+        "url": "https://fred.stlouisfed.org/",
+        "uses": "DTB3 (3-month T-bill rate); VIXCLS (VIX, a CBOE index)"
       },
       {
         "committed": false,
@@ -36,15 +51,51 @@
         "licence": "see source",
         "name": "Yahoo Finance prices (via yfinance)",
         "url": "https://finance.yahoo.com/",
-        "uses": "daily prices"
+        "uses": "daily prices, market caps (one-time universe rank)"
       }
     ],
-    "milestone": 0,
+    "files": [
+      "meta",
+      "sample_funnel"
+    ],
+    "milestone": 1,
+    "params": {
+      "baseline": [
+        -60,
+        -22
+      ],
+      "baseline_exclusion": [
+        -21,
+        10
+      ],
+      "clock": "NYSE sessions (exchange_calendars XNYS)",
+      "cm30_horizon_sessions": 21,
+      "event_window": [
+        -10,
+        10
+      ]
+    },
     "project": "earnings-vol-study",
+    "provenance": {
+      "code_commit": "3636e98",
+      "dolt_commits": {
+        "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
+        "options": "msfqpodh24viv7prdqdan8517rkjp861"
+      },
+      "params_hash": "5bf1cbed590907414302da30a652ab04c71daad292d6a9dbbd6c6a9a3da5807c",
+      "sample_label": "daily"
+    },
+    "sample": {
+      "day0_from": "2024-12-05",
+      "day0_to": "2026-10-26",
+      "label": "daily",
+      "n_events": 350,
+      "n_securities": 50
+    },
     "title": "Earnings and implied volatility: an event study"
   },
-  "generated_at": "2026-10-28T19:44:25Z",
+  "generated_at": "2026-10-29T16:19:42Z",
   "kind": "meta",
-  "schema_version": "0.1.0",
-  "source_commit": "6e4ef9d"
+  "schema_version": "0.2.0",
+  "source_commit": "3636e98"
 }

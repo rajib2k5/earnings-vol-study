@@ -1,0 +1,11 @@
+# env pin, milestone-1 delta review, 2026-10-29T10:17:39-05:00
+Python 3.12.13
+aarch64
+pandas 3.1.0
+numpy 2.5.4
+pyarrow 26.0.0
+exchange_calendars 4.13.2
+yaml 6.0.3
+uv 0.11.25 (aarch64-unknown-linux-gnu)
+dolt version 2.6.1
+v22.23.1

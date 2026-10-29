@@ -1,0 +1,39 @@
+imports from: $SCRATCH/tree/src/earnings_vol/__init__.py
+baseline (unmutated copy): rc=0 ['249 passed, 2 deselected in 8.86s'] failed=[]
+M1 [day0: BMO and AMC rows swapped]: KILLED rc=1 ['13 failed, 236 passed, 2 deselected in 8.29s']
+      tests/test_calendar.py::test_day0_oracle_table
+      tests/test_calendar.py::test_wrong_label_moves_day0_by_one_session
+      tests/test_events.py::test_a_press_release_reading_changes_day0
+      tests/test_events.py::test_day0_sample_links_and_exclusions
+      tests/test_events.py::test_orphan_nearby
+      tests/test_events.py::test_sample_follows_day0_and_timing_reasons_come_first
+      tests/test_notebooks_sync.py::test_events_notebook_cells_run
+M2 [EPS tie: larger lag wins]: KILLED rc=1 ['4 failed, 245 passed, 2 deselected in 8.83s']
+      tests/test_eps.py::test_a_tie_loser_before_the_calendar_is_an_orphan_not_pre_calendar
+      tests/test_eps.py::test_tie_goes_to_the_smaller_lag_and_the_loser_is_an_orphan
+      tests/test_events_eps_link.py::test_7_on_a_tie_fixture_the_smaller_lag_wins
+      tests/test_notebooks_sync.py::test_events_notebook_cells_run
+M3 [orphan zones never reach the baseline]: KILLED rc=1 ['2 failed, 247 passed, 2 deselected in 8.35s']
+      tests/test_export_app_data.py::test_committed_json_matches_what_the_exporter_writes
+M4 [keep the holiday copy instead of the session's own snapshot]: KILLED rc=1 ['1 failed, 248 passed, 2 deselected in 8.91s']
+      tests/test_measures.py::test_session_snapshot_copy_repeat_and_missing
+M5 [EDGAR: User-Agent no longer checked first (NameError later, cache path unguarded)]: KILLED rc=1 ['7 failed, 242 passed, 2 deselected in 9.30s']
+      tests/test_ingest_sources.py::test_edgar_refuses_without_a_real_contact_and_makes_no_request
+      tests/test_ingest_sources.py::test_edgar_sends_the_owners_user_agent_once_and_caches
+M6 [weekend NULL with no document -> ambiguous]: KILLED rc=1 ['1 failed, 248 passed, 2 deselected in 9.87s']
+      tests/test_timing.py::test_resolve_timing_status_table
+M7 [decimal cast direct (not correctly rounded)]: KILLED rc=1 ['1 failed, 248 passed, 2 deselected in 8.82s']
+      tests/test_dolt.py::test_normalise_turns_dolt_types_into_ours
+M8 [EPS window lower bound exclusive (lag 10 no longer matches)]: SURVIVED rc=0 ['249 passed, 2 deselected in 8.50s']
+M9 [a 16:00 release read as BMO]: KILLED rc=1 ['3 failed, 246 passed, 2 deselected in 8.40s']
+      tests/test_timing.py::test_label_from_time
+      tests/test_timing.py::test_parse_checks_reads_a_valid_row
+M10 [file I/O and a network import inside the pure events layer]: SURVIVED rc=0 ['249 passed, 2 deselected in 8.13s']
+M11 [crush step checks day 0 only]: KILLED rc=1 ['3 failed, 246 passed, 2 deselected in 8.12s']
+      tests/test_baseline_funnel.py::test_funnel_steps_hand_counted
+      tests/test_export_app_data.py::test_committed_json_matches_what_the_exporter_writes
+M12 [invariant: NULL labels outside every sample also require a look-up]: SURVIVED rc=0 ['249 passed, 2 deselected in 8.07s']
+M13 [EPS window starts at -10 days instead of +10 (the fix p06 suggests): do tests pin the window?]: KILLED rc=1 ['2 failed, 247 passed, 2 deselected in 8.66s']
+      tests/test_eps.py::test_an_event_inside_ten_days_is_not_matched
+      tests/test_eps.py::test_pre_calendar_only_when_the_window_starts_before_the_calendar
+working-tree src unchanged: True

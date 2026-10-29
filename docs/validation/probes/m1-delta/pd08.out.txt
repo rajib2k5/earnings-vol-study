@@ -1,0 +1,22 @@
+KILLED    control: open(__file__)                        | 1 failed, 20 passed in 0.06s
+KILLED    control: import urllib.request                 | 1 failed, 20 passed in 0.17s
+SURVIVED  relative: from .. import store                 | 21 passed in 0.14s
+SURVIVED  relative: from ..ingest import dolt            | 21 passed in 0.17s
+SURVIVED  left import: ingest.prices.load                | 21 passed in 0.11s
+SURVIVED  left import: ingest.dolt.query                 | 21 passed in 0.12s
+SURVIVED  np.load                                        | 21 passed in 0.11s
+SURVIVED  np.savetxt                                     | 21 passed in 0.11s
+SURVIVED  pd.read_pickle                                 | 21 passed in 0.12s
+SURVIVED  df.to_pickle                                   | 21 passed in 0.13s
+SURVIVED  pd.read_html (network)                         | 21 passed in 0.10s
+SURVIVED  pd.read_feather                                | 21 passed in 0.06s
+SURVIVED  importlib.import_module(os)                    | 21 passed in 0.06s
+SURVIVED  __import__(socket)                             | 21 passed in 0.07s
+SURVIVED  io.FileIO                                      | 21 passed in 0.06s
+SURVIVED  getattr(builtins, open)                        | 21 passed in 0.06s
+SURVIVED  exec(import os)                                | 21 passed in 0.06s
+5b vacuity (events/ moved out of the package): 1 failed, 20 passed in 0.07s
+restored copy: 21 passed in 0.11s
+# extra (run by hand on the same scratch copy, then restored and cmp-checked against the working tree):
+#   printf '\nfrom ..measures import forward as _fw\n' >> src/earnings_vol/events/eps.py ; pytest -q tests/test_layering.py
+SURVIVED  relative right-layer import (events -> measures) | 21 passed in 0.11s

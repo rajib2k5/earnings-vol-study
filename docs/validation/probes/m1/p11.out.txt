@@ -1,0 +1,14 @@
+files scanned: 319
+absolute home path: []
+secret-like token: []
+gmail/personal: []
+Kaggle/OptionsDX: ['docs/validation/m1-ledger.md']
+data/derived/eps.parquet: restricted-suffix columns []; 14 columns
+data/derived/events.parquet: restricted-suffix columns []; 23 columns
+data/derived/security.parquet: restricted-suffix columns []; 8 columns
+data/derived/session.parquet: restricted-suffix columns []; 5 columns
+data/derived/session_snapshot.parquet: restricted-suffix columns []; 4 columns
+data/derived/ticker_alias.parquet: restricted-suffix columns []; 4 columns
+security.universe_rank: non-null 497 (a Yahoo market-cap ordinal per firm); in_universe 50
+meta.json: byte-identical=False; differing envelope keys: ['generated_at']; source_commit=3636e98
+sample_funnel.json: byte-identical=False; differing envelope keys: ['generated_at']; source_commit=3636e98

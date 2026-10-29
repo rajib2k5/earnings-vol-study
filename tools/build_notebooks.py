@@ -17,7 +17,9 @@
 #   run that check.
 #
 # OUTPUT
-#   notebooks/00_scaffold_tour.ipynb
+#   notebooks/00_scaffold_tour.ipynb   milestone 0: config and the envelope
+#   notebooks/01_events.ipynb          milestone 1: sessions, day 0, the EPS
+#                                      match and the sample funnel
 # =============================================================================
 
 import argparse
@@ -30,10 +32,12 @@ from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
 from earnings_vol import __version__, contract
 
 ROOT = Path(__file__).resolve().parent.parent
-NOTEBOOK_PATH = ROOT / "notebooks" / "00_scaffold_tour.ipynb"
+NOTEBOOK_DIR = ROOT / "notebooks"
+NOTEBOOK_PATH = NOTEBOOK_DIR / "00_scaffold_tour.ipynb"
 
 
-def build_notebook() -> nbformat.NotebookNode:
+def _finish(cells: list) -> nbformat.NotebookNode:
+    """Wrap cells in a notebook with fixed metadata and ids cell-00, cell-01, ..."""
     nb = new_notebook(metadata={
         "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
         "language_info": {"name": "python"},
@@ -42,7 +46,15 @@ def build_notebook() -> nbformat.NotebookNode:
     # a random id, which would change the bytes on every build. We set the ids
     # ourselves, below.
     nb.nbformat_minor = 5
-    nb.cells = [
+    nb.cells = cells
+    for i, cell in enumerate(nb.cells):
+        cell["id"] = f"cell-{i:02d}"
+    nbformat.validate(nb)
+    return nb
+
+
+def build_notebook() -> nbformat.NotebookNode:
+    return _finish([
         new_markdown_cell(
             "# Scaffold tour\n\n"
             "This notebook imports the `earnings_vol` package. It does not "
@@ -90,25 +102,115 @@ def build_notebook() -> nbformat.NotebookNode:
             "\n"
             "print(inspect.getsource(contract.envelope))\n"
         ),
-    ]
-    for i, cell in enumerate(nb.cells):
-        cell["id"] = f"cell-{i:02d}"
-    nbformat.validate(nb)
-    return nb
+    ])
 
 
-def render() -> str:
+def build_events_notebook() -> nbformat.NotebookNode:
+    """notebooks/01_events.ipynb: milestone 1, built from the committed tables."""
+    return _finish([
+        new_markdown_cell(
+            "# Milestone 1: universe and events\n\n"
+            "This notebook imports `earnings_vol` and reads the committed tables in "
+            "`data/derived/`. It defines no logic of its own. The walkthrough is "
+            "`docs/milestones/01-universe-and-events.md`.\n\n"
+            "To rebuild the tables from the sources (it needs the Dolt clones and the "
+            "network):\n\n"
+            "```\n"
+            "uv run python -m earnings_vol.ingest.run\n"
+            "uv run python -m earnings_vol.events.run\n"
+            "uv run python -m earnings_vol.measures.run\n"
+            "uv run python tools/export_app_data.py\n"
+            "```\n\n"
+            f"Contract schema version: `{contract.SCHEMA_VERSION}`."
+        ),
+        new_markdown_cell(
+            "## 1. Day 0 on the NYSE clock (ADR 0002 §2)\n"
+            "Apple reported after the close on Thursday 2025-10-30, so day -1 is 10-30 "
+            "and day 0 is Friday 10-31. Alphabet's calendar row of 2024-10-29 said BMO; "
+            "the press release says after the close, which moves day 0 one session later."
+        ),
+        new_code_cell(
+            "from datetime import date\n"
+            "\n"
+            "from earnings_vol.events import calendar\n"
+            "\n"
+            "eras = {\"weekly_from\": \"2019-02-09\", \"mwf_from\": \"2020-01-06\",\n"
+            "        \"daily_from\": \"2024-09-11\", \"data_end\": \"2026-10-26\"}\n"
+            "table = calendar.build_session_table(date(2024, 1, 1), date(2025, 12, 31), eras)\n"
+            "sessions = calendar.Sessions(table[\"session_date\"].tolist())\n"
+            "for d, label in [(date(2025, 10, 30), \"AMC\"), (date(2024, 10, 29), \"BMO\"),\n"
+            "                 (date(2024, 10, 29), \"AMC\"), (date(2025, 5, 3), None)]:\n"
+            "    day0, day_m1 = calendar.day0(d, label, sessions)\n"
+            "    print(d, label, \"-> day -1\", day_m1, \" day 0\", day0)\n"
+        ),
+        new_markdown_cell(
+            "## 2. The EPS-period match (ADR 0002 §3)\n"
+            "Costco's quarters end mid-month and are stored as month-ends, so its May report "
+            "(2025-05-29) comes 2 days *before* the stored end 2025-05-31. A period's window "
+            "therefore opens early in its month: 14 days after the first, the rule in "
+            "`params.yaml` (the 14 days keep a slow reporter's report out of the next "
+            "period's window until it is 74 days late). The March report is missing from "
+            "the calendar: the February period could reach 05-29 (lag 90), but the May period "
+            "is nearer, so periods and events are paired one-to-one, nearest in total, and "
+            "February is the orphan. It does not take the next quarter's report."
+        ),
+        new_code_cell(
+            "from earnings_vol import params\n"
+            "from earnings_vol.events.eps import match_periods\n"
+            "\n"
+            "em = params.load()[\"eps_match\"]   # window_start \"month_start+14\", lag_max_days 100\n"
+            "out = match_periods([date(2024, 11, 30), date(2025, 2, 28), date(2025, 5, 31), date(2025, 8, 31)],\n"
+            "                    [(date(2024, 12, 12), \"Q1\"), (date(2025, 5, 29), \"Q3\"), (date(2025, 9, 25), \"Q4\")],\n"
+            "                    window_start=em[\"window_start\"], lag_max=em[\"lag_max_days\"],\n"
+            "                    calendar_start=params.load().day(\"eps_match\", \"calendar_start\"))\n"
+            "for period, (event, status) in sorted(out.items()):\n"
+            "    print(period, event, status)\n"
+        ),
+        new_markdown_cell(
+            "## 3. The committed tables and the sample funnel\n"
+            "The same function that writes `app/public/data/sample_funnel.json`. Read the "
+            "counts with its caveats, printed last. **Survivorship:** the 50 companies are "
+            "today's largest S&P 500 members, so firms that shrank or left the index since "
+            "2020 are missing and firms that grew are over-represented."
+        ),
+        new_code_cell(
+            "from earnings_vol import params, schema, store\n"
+            "from earnings_vol.export import funnel\n"
+            "\n"
+            "derived = params.ROOT / \"data\" / \"derived\"\n"
+            "t = {n: store.read_table(derived / f\"{n}.parquet\", schema.REGISTRY[n])\n"
+            "     for n in (\"events\", \"eps\", \"session\", \"session_snapshot\")}\n"
+            "f = funnel.funnel_data(t[\"events\"], t[\"session_snapshot\"], t[\"eps\"], t[\"session\"],\n"
+            "                       params.load(), provenance={})\n"
+            "for s in f[\"steps\"]:\n"
+            "    print(f\"{s['n_events']:5d}  {s['label']}\")\n"
+            "print(f[\"timing_status_counts\"])\n"
+            "for c in f[\"caveats\"]:\n"
+            "    print(\"Caveat:\", c)\n"
+        ),
+    ])
+
+
+# name -> builder. The file is notebooks/<name>.ipynb.
+NOTEBOOKS = {"00_scaffold_tour": build_notebook, "01_events": build_events_notebook}
+
+
+def render(name: str = "00_scaffold_tour") -> str:
     """Return the notebook as the exact text that we write to disk."""
-    text = nbformat.writes(build_notebook())
+    text = nbformat.writes(NOTEBOOKS[name]())
     return text if text.endswith("\n") else text + "\n"
 
 
-def check(path: Path | None = None) -> bool:
-    """True if the file on disk is byte-for-byte what a fresh build gives."""
-    path = NOTEBOOK_PATH if path is None else path
+def check(path: Path | None = None, name: str = "00_scaffold_tour") -> bool:
+    """True if the file on disk is byte-for-byte what a fresh build gives.
+
+    With no path, every notebook in NOTEBOOKS is checked in NOTEBOOK_DIR.
+    """
+    if path is None:
+        return all(check(NOTEBOOK_DIR / f"{n}.ipynb", n) for n in NOTEBOOKS)
     # Compare bytes, not text. read_text() turns "\r\n" and a lone "\r" into
     # "\n" on the way in, so a file with Windows line endings would look equal.
-    return path.exists() and path.read_bytes() == render().encode("utf-8")
+    return path.exists() and path.read_bytes() == render(name).encode("utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -118,17 +220,20 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.check:
-        if check():
-            print(f"OK: {NOTEBOOK_PATH} is in sync with src/")
+        stale = [n for n in NOTEBOOKS if not check(NOTEBOOK_DIR / f"{n}.ipynb", n)]
+        if not stale:
+            print(f"OK: {len(NOTEBOOKS)} notebooks in {NOTEBOOK_DIR} are in sync with src/")
             return 0
-        print(f"OUT OF SYNC: {NOTEBOOK_PATH} differs from a fresh build "
-              "(or does not exist). Run: uv run python tools/build_notebooks.py",
+        print(f"OUT OF SYNC: {', '.join(stale)} differ from a fresh build "
+              "(or do not exist). Run: uv run python tools/build_notebooks.py",
               file=sys.stderr)
         return 1
 
-    NOTEBOOK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    NOTEBOOK_PATH.write_text(render(), encoding="utf-8")
-    print("Wrote", NOTEBOOK_PATH)
+    NOTEBOOK_DIR.mkdir(parents=True, exist_ok=True)
+    for n in NOTEBOOKS:
+        path = NOTEBOOK_DIR / f"{n}.ipynb"
+        path.write_text(render(n), encoding="utf-8")
+        print("Wrote", path)
     return 0
 
 

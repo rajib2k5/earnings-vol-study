@@ -17,6 +17,6 @@ falsifier (must FAIL): the same with time in sessions, i.e. the factor 252 dropp
 
 ADR 0004 §3 crush split (model, two front expiries): dsigma term -0.0410 + event term -0.0818 = -0.1227
 front fixed-expiry (11-14) IV: day -1 0.2826, day 0 0.2364: -4.62 vol points, log -0.1787
-realised move from the 11-14 forwards (ADR 0003 §e): ln(270.55/271.42) + r*1/365 = -0.3112%; Yahoo close-to-close ln(270.37/271.40) = -0.3802%
+realised move from the 11-14 forwards (ADR 0003 §e): ln(270.55/271.42) + r*1/365 = -0.3112%
 
 for the record, the first prototype's rule (median over all 7 strikes): F=271.69 w=0.003401 E=0.00069327 (ADR rule E / old E = 1.273)

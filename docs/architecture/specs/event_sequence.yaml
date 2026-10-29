@@ -4,9 +4,11 @@
 # Worked example in the notes: AAPL, reported after the close on Thu 2025-10-30
 # (ADR 0002 day-0 table, ADR 0003 worked event variance).
 # Step 2 follows ADR 0002 section 3: documents decide the timing label, the price gap only
-# diagnoses. SEC EDGAR 8-K acceptance times are PROPOSED, pending the owner's decision; the default
-# without them is the press release, then the calendar label. The release is looked up for every
-# event with D on or after 2024-09-11 and every NULL label; in the coarse sample only on a gap flag.
+# diagnoses. SEC EDGAR 8-K acceptance times are accepted (2026-10-28) but gated on the owner's
+# contact string: the client refuses to run until it is set, so the rule in force is the press release,
+# then the calendar label. The release is looked up for every event with D on or after 2024-09-11 and
+# every NULL label; in the coarse sample only on a gap flag. At milestone 1 only 20 look-ups are done
+# (the rest wait for EDGAR, owner default 2026-10-29), so most events are still not_checked.
 # There is no audit. A gap contradiction triggers a second reading, which sets gap_check_changed.
 kind: sequence
 title: One announcement through the pipeline
@@ -16,7 +18,7 @@ autonumber: true
 participants:
   - {id: cal,    label: earnings_calendar, type: source}
   - {id: ev,     label: Events builder,    type: process}
-  - {id: docs,   label: Press release / EDGAR (proposed), type: external}
+  - {id: docs,   label: Press release / EDGAR (gated on contact string), type: external}
   - {id: px,     label: Price-gap diagnostic, type: external}
   - {id: ses,    label: Sessions + market_daily, type: store}
   - {id: epsm,   label: EPS match,         type: process}
@@ -37,7 +39,7 @@ messages:
   - {from: px, to: ev,  label: "gap_verdict_yf, outside_flag_yf", kind: return}
   - opt: "look-up: D from 2024-09-11, NULL label, or (coarse) a gap flag"
     messages:
-      - {from: ev, to: docs, label: "release time for D-1 to D+1", note: "press release; EDGAR 8-K only if approved"}
+      - {from: ev, to: docs, label: "release time for D-1 to D+1", note: "press release; EDGAR 8-K once the contact string is set"}
       - {from: docs, to: ev, label: "time stamp, or none found", kind: return}
   - alt:
       - when: "a document gives the timing"

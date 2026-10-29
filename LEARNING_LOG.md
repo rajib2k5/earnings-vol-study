@@ -1,23 +1,32 @@
 # Learning log
 
+Learning mode: queued
+
 The index of what this project teaches, one milestone at a time. Each milestone gets a page in
 [`docs/milestones/`](docs/milestones/). The goal is that the owner can explain the architecture and the code, at a low
 level, in an interview.
 
-Last updated: 2026-10-28 (milestone 0), after the ADRs and the data model were revised.
+Last updated: 2026-10-29 (milestone 1), after the milestone-1 review and its delta review.
 
 ## Milestones
 
-| # | Milestone | Status | Page |
-|---|---|---|---|
-| 0 | Scaffold and design | done, pending owner review | [`docs/milestones/00-scaffold-and-design.md`](docs/milestones/00-scaffold-and-design.md) |
-| 1 | Universe and events | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) |
-| 2 | IV measures | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) |
-| 3 | Event study | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) |
-| 4 | Drivers | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) |
-| 5 | Report | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) |
+| # | Milestone | Status | Page | Checkpoint | Pairs | Re-asks | Explain-it-back |
+|---|---|---|---|---|---|---|---|
+| 0 | Scaffold and design | done, pending owner review | [`docs/milestones/00-scaffold-and-design.md`](docs/milestones/00-scaffold-and-design.md) | queued, 0 of 14 answered | | | |
+| 1 | Universe and events | done, pending owner review (timing labels provisional: 20 of 473 required press-release look-ups done) | [`docs/milestones/01-universe-and-events.md`](docs/milestones/01-universe-and-events.md) | | | | |
+| 2 | IV measures | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
+| 3 | Event study | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
+| 4 | Drivers | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
+| 5 | Report | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
 
 The milestone names come from the [PR/FAQ](docs/prfaq.md).
+
+## Missed topics
+
+| Topic | Lesson | Missed on | Re-asked | Cleared |
+|---|---|---|---|---|
+
+None yet.
 
 ## Reference documents
 
@@ -34,7 +43,7 @@ The milestone names come from the [PR/FAQ](docs/prfaq.md).
 | [`docs/architecture/README.md`](docs/architecture/README.md) | The architecture diagrams. |
 | [`docs/architecture/data-model.md`](docs/architecture/data-model.md) | Every table, key, licence class, and the Python to app JSON contract. |
 | [`research/prototypes/README.md`](research/prototypes/README.md) | The throwaway scripts behind numbers quoted in the ADRs (event spacing, the AAPL worked example, the leak range, the KP and real-design size simulations, why IV levels must not be summed). Not tested to the package's standard. |
-| [`data/derived/README.md`](data/derived/README.md) | The one derived file so far, `earnings_calendar_30_large_caps.json` (a DoltHub extract that the spacing script reads), and the CC BY-SA 4.0 terms. |
+| [`data/derived/README.md`](data/derived/README.md) | The committed derived data: six Parquet tables from milestone 1 (`session`, `security`, `ticker_alias`, `events`, `eps`, `session_snapshot`) plus `earnings_calendar_30_large_caps.json` (a DoltHub extract that the spacing script reads), and the CC BY-SA 4.0 terms. |
 
 ## My predictions
 
@@ -91,15 +100,16 @@ points?
 ## Explain-it-back answers and grades
 
 The questions are in [section 7 of the milestone 0 page](docs/milestones/00-scaffold-and-design.md#7-explain-it-back).
-Answer them in chat. The session grades honestly and fills gaps. Then record the result here.
+They are E1 to E8 in the checkpoint quiz. Each answer is saved to `.learning/milestones/00-checkpoint.md`, which stays
+out of git, as you give it. The grades land here once you send your results.
 
 | # | Topic | Answer | Grade | Gaps filled |
 |---|---|---|---|---|
-| Q1 | The app never computes: the failure it prevents, and where the boundary is | | | |
-| Q2 | `json.dumps` and NaN, the browser parse, and `allow_nan=False` | | | |
-| Q3 | Apple after the close on 30 October 2025: day −1, day 0, and a wrong label | | | |
-| Q4 | Deriving the event variance E, and what E ≤ 0 means | | | |
-| Q5 | Why a fixed [−60, −20] baseline is contaminated, and what ADR 0004 does | | | |
-| Q6 | Why not CAAIV, and what is tested instead | | | |
-| Q7 | The two-way clustered primary (why two dimensions, why season × firm for ramps) and BMP's precision-weighted estimand | | | |
-| Q8 | The notebook sync test and deterministic cell ids | | | |
+| E1 | The app never computes: the failure it prevents, and where the boundary is | | | |
+| E2 | `json.dumps` and NaN, the browser parse, and `allow_nan=False` | | | |
+| E3 | Apple after the close on 30 October 2025: day −1, day 0, and a wrong label | | | |
+| E4 | Deriving the event variance E, and what E ≤ 0 means | | | |
+| E5 | Why a fixed [−60, −20] baseline is contaminated, and what ADR 0004 does | | | |
+| E6 | Why not CAAIV, and what is tested instead | | | |
+| E7 | The two-way clustered primary (why two dimensions, why season × firm for ramps) and BMP's precision-weighted estimand | | | |
+| E8 | The notebook sync test and deterministic cell ids | | | |

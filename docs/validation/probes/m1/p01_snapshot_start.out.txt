@@ -1,0 +1,10 @@
+earnings  2026-10-28T04:08:36.339225+00:00 after_M0_commit=False      0 noms
+earnings  2026-10-28T04:08:36.335226+00:00 after_M0_commit=False    873 noms/manifest
+earnings  2026-10-28T04:08:36.334225+00:00 after_M0_commit=False    725 noms/journal.idx
+earnings  2026-10-28T04:08:36.331226+00:00 after_M0_commit=False      0 stats/.dolt/noms
+earnings  entries=42
+options   2026-10-28T19:11:41.610526+00:00 after_M0_commit=False      0 noms
+options   2026-10-28T19:11:41.607526+00:00 after_M0_commit=False   1604 noms/manifest
+options   2026-10-28T19:11:41.606526+00:00 after_M0_commit=False    725 noms/journal.idx
+options   2026-10-28T19:11:41.604448+00:00 after_M0_commit=False      0 stats/.dolt/noms
+options   entries=62

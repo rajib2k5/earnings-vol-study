@@ -4,7 +4,7 @@ import type { Envelope } from './contract'
 import { META_DATA_FIXTURE } from '../test/metaFixture'
 
 const body = {
-  schema_version: '0.1.0',
+  schema_version: '0.2.0',
   kind: 'meta',
   generated_at: '2026-10-27T12:00:00Z',
   source_commit: 'abc1234',
@@ -78,7 +78,7 @@ describe('summarizeMeta', () => {
   const env = body as Envelope
   it('copies the envelope fields and reads data.milestone when it is an integer (the exporter writes 0 for M0)', () => {
     expect(summarizeMeta(env)).toEqual({
-      schemaVersion: '0.1.0',
+      schemaVersion: '0.2.0',
       kind: 'meta',
       generatedAt: '2026-10-27T12:00:00Z',
       sourceCommit: 'abc1234',
@@ -150,13 +150,15 @@ describe('parseMetaData', () => {
     for (const x of [null, undefined, [], 'meta', 5, true]) expect(errorOf(x), String(x)).toContain('meta data must be a JSON object')
   })
   it('names missing and unexpected keys', () => {
-    expect(errorOf(edited(['data_licence'], undefined))).toBe(
-      'meta data has missing key(s): data_licence (expected exactly: project, milestone, title, data_sources, data_licence)',
-    )
-    expect(errorOf(edited(['sample'], {}))).toBe(
-      'meta data has unexpected key(s): sample (expected exactly: project, milestone, title, data_sources, data_licence)',
-    )
-    expect(errorOf({ milestone: 0 })).toContain('missing key(s): project, title, data_sources, data_licence')
+    const expected = 'project, milestone, title, data_sources, data_licence, sample, params, files, provenance'
+    expect(errorOf(edited(['data_licence'], undefined))).toBe(`meta data has missing key(s): data_licence (expected exactly: ${expected})`)
+    expect(errorOf(edited(['note'], 'x'))).toBe(`meta data has unexpected key(s): note (expected exactly: ${expected})`)
+    expect(errorOf({ milestone: 0 })).toContain('missing key(s): project, title, data_sources, data_licence, sample, params, files, provenance')
+  })
+  it('rejects the five-key data of the previous contract (0.1.0) and names the four new keys', () => {
+    const old: Record<string, unknown> = { ...structuredClone(META_DATA_FIXTURE) }
+    for (const k of ['sample', 'params', 'files', 'provenance']) delete old[k]
+    expect(errorOf(old)).toContain('meta data has missing key(s): sample, params, files, provenance')
   })
 
   // [what is wrong, where, the bad value, a piece of the message]
@@ -232,6 +234,116 @@ describe('parseMetaData', () => {
   it('lets a source that the licence does not cover carry any licence text', () => {
     // The fixture's second source says "see source" and is not in applies_to.
     expect(parseMetaData(edited(['data_sources', 1, 'licence'], 'FIX-OTHER 2.0')).ok).toBe(true)
+  })
+
+  describe('sample, params, files, provenance (new in 0.2.0)', () => {
+    it.each(['sample', 'params', 'files', 'provenance'])('requires the key %s', (key) => {
+      expect(errorOf(edited([key], undefined))).toContain(`meta data has missing key(s): ${key}`)
+    })
+
+    it('returns the new fields with the same values', () => {
+      const r = parseMetaData(META_DATA_FIXTURE)
+      if (!r.ok) throw new Error(r.error)
+      expect(r.data.sample).toEqual({ label: 'fixture-sample', day0_from: '2031-01-02', day0_to: '2031-06-30', n_events: 123, n_securities: 7 })
+      expect(r.data.params).toEqual({
+        event_window: [-3, 4],
+        baseline: [-40, -15],
+        baseline_exclusion: [-14, 6],
+        cm30_horizon_sessions: 17,
+        clock: 'Fixture clock (fixture calendar)',
+      })
+      expect(r.data.files).toEqual(['meta', 'fixture_kind'])
+      expect(r.data.provenance).toEqual({
+        params_hash: 'fixture-params-hash-0123',
+        code_commit: 'fix1234',
+        sample_label: 'fixture-sample',
+        dolt_commits: { earnings: 'fixture-earnings-commit', options: 'fixture-options-commit' },
+      })
+    })
+    it('accepts zero counts and a one-entry files list', () => {
+      expect(parseMetaData(edited(['sample', 'n_events'], 0)).ok).toBe(true)
+      expect(parseMetaData(edited(['sample', 'n_securities'], 0)).ok).toBe(true)
+      expect(parseMetaData(edited(['files'], ['meta'])).ok).toBe(true)
+    })
+    it('returns copies of the arrays, so the caller cannot change the input through them', () => {
+      const input = structuredClone(META_DATA_FIXTURE)
+      const r = parseMetaData(input)
+      if (!r.ok) throw new Error(r.error)
+      expect(r.data.files).not.toBe(input.files)
+      expect(r.data.params.event_window).not.toBe(input.params.event_window)
+      expect(r.data.params.baseline).not.toBe(input.params.baseline)
+      expect(r.data.params.baseline_exclusion).not.toBe(input.params.baseline_exclusion)
+    })
+
+    it.each<[string, Path, unknown, string]>([
+      ['sample is null', ['sample'], null, 'sample must be an object, got null'],
+      ['sample is an array', ['sample'], [], 'sample must be an object, got an array'],
+      ['sample lacks a key', ['sample', 'n_securities'], undefined, 'sample has missing key(s): n_securities'],
+      ['sample has an extra key', ['sample', 'note'], 'x', 'sample has unexpected key(s): note'],
+      ['sample.label is empty', ['sample', 'label'], '', 'sample.label must be a non-empty string, got ""'],
+      ['sample.label is a number', ['sample', 'label'], 3, 'sample.label must be a non-empty string, got number 3'],
+      ['day0_from has the wrong format', ['sample', 'day0_from'], '2031-1-2', 'sample.day0_from must be a date string YYYY-MM-DD, got "2031-1-2"'],
+      ['day0_from is a timestamp', ['sample', 'day0_from'], '2031-01-02T00:00:00Z', 'sample.day0_from must be a date string YYYY-MM-DD'],
+      ['day0_from is not a real date', ['sample', 'day0_from'], '2031-02-30', 'sample.day0_from must be a date string YYYY-MM-DD, got "2031-02-30"'],
+      ['day0_from is a number', ['sample', 'day0_from'], 20310102, 'sample.day0_from must be a date string YYYY-MM-DD, got number 20310102'],
+      ['day0_to is null', ['sample', 'day0_to'], null, 'sample.day0_to must be a date string YYYY-MM-DD, got null'],
+      ['day0_to is not a real date', ['sample', 'day0_to'], '2031-13-01', 'sample.day0_to must be a date string YYYY-MM-DD'],
+      ['n_events is negative', ['sample', 'n_events'], -1, 'sample.n_events must be a non-negative integer, got number -1'],
+      ['n_events is fractional', ['sample', 'n_events'], 1.5, 'sample.n_events must be a non-negative integer, got number 1.5'],
+      ['n_events is a string', ['sample', 'n_events'], '123', 'sample.n_events must be a non-negative integer, got "123"'],
+      ['n_securities is NaN', ['sample', 'n_securities'], NaN, 'sample.n_securities must be a non-negative integer, got number NaN'],
+      ['n_securities is a string', ['sample', 'n_securities'], '7', 'sample.n_securities must be a non-negative integer, got "7"'],
+    ])('rejects sample: %s', (_what, path, value, message) => {
+      expect(errorOf(edited(path, value))).toContain(message)
+    })
+
+    it.each<[string, Path, unknown, string]>([
+      ['params is a string', ['params'], 'x', 'params must be an object, got "x"'],
+      ['params lacks a key', ['params', 'clock'], undefined, 'params has missing key(s): clock'],
+      ['params has an extra key', ['params', 'seed'], 1, 'params has unexpected key(s): seed'],
+      ['event_window has one entry', ['params', 'event_window'], [-3], 'params.event_window must be an array of two integers, got an array'],
+      ['event_window has three entries', ['params', 'event_window'], [-3, 0, 4], 'params.event_window must be an array of two integers'],
+      ['event_window holds a string', ['params', 'event_window'], [-3, '4'], 'params.event_window must be an array of two integers'],
+      ['event_window holds a fraction', ['params', 'event_window'], [-3, 4.5], 'params.event_window must be an array of two integers'],
+      ['event_window is not an array', ['params', 'event_window'], '-3,4', 'params.event_window must be an array of two integers, got "-3,4"'],
+      ['baseline holds null', ['params', 'baseline'], [null, -15], 'params.baseline must be an array of two integers'],
+      ['baseline is an object', ['params', 'baseline'], { from: -40, to: -15 }, 'params.baseline must be an array of two integers, got an object'],
+      ['baseline_exclusion holds NaN', ['params', 'baseline_exclusion'], [-14, NaN], 'params.baseline_exclusion must be an array of two integers'],
+      ['cm30_horizon_sessions is zero', ['params', 'cm30_horizon_sessions'], 0, 'params.cm30_horizon_sessions must be a positive integer, got number 0'],
+      ['cm30_horizon_sessions is negative', ['params', 'cm30_horizon_sessions'], -17, 'params.cm30_horizon_sessions must be a positive integer, got number -17'],
+      ['cm30_horizon_sessions is fractional', ['params', 'cm30_horizon_sessions'], 17.5, 'params.cm30_horizon_sessions must be a positive integer'],
+      ['cm30_horizon_sessions is a string', ['params', 'cm30_horizon_sessions'], '17', 'params.cm30_horizon_sessions must be a positive integer, got "17"'],
+      ['clock is empty', ['params', 'clock'], '', 'params.clock must be a non-empty string, got ""'],
+      ['clock is a number', ['params', 'clock'], 1, 'params.clock must be a non-empty string, got number 1'],
+    ])('rejects params: %s', (_what, path, value, message) => {
+      expect(errorOf(edited(path, value))).toContain(message)
+    })
+
+    it.each<[string, Path, unknown, string]>([
+      ['files is not an array', ['files'], 'meta', 'files must be a non-empty array, got "meta"'],
+      ['files is empty', ['files'], [], 'files must be a non-empty array, got an array'],
+      ['a file kind is empty', ['files', 1], '', 'files[1] must be a non-empty string, got ""'],
+      ['a file kind is a number', ['files', 0], 7, 'files[0] must be a non-empty string, got number 7'],
+      ['a file kind is null', ['files', 1], null, 'files[1] must be a non-empty string, got null'],
+    ])('rejects files: %s', (_what, path, value, message) => {
+      expect(errorOf(edited(path, value))).toContain(message)
+    })
+
+    it.each<[string, Path, unknown, string]>([
+      ['provenance is null', ['provenance'], null, 'provenance must be an object, got null'],
+      ['provenance lacks a key', ['provenance', 'code_commit'], undefined, 'provenance has missing key(s): code_commit'],
+      ['provenance has an extra key', ['provenance', 'branch'], 'main', 'provenance has unexpected key(s): branch'],
+      ['params_hash is empty', ['provenance', 'params_hash'], '', 'provenance.params_hash must be a non-empty string, got ""'],
+      ['code_commit is a number', ['provenance', 'code_commit'], 1234, 'provenance.code_commit must be a non-empty string, got number 1234'],
+      ['sample_label is blank', ['provenance', 'sample_label'], '  ', 'provenance.sample_label must be a non-empty string'],
+      ['dolt_commits is a string', ['provenance', 'dolt_commits'], 'abc', 'provenance.dolt_commits must be an object, got "abc"'],
+      ['dolt_commits lacks options', ['provenance', 'dolt_commits', 'options'], undefined, 'provenance.dolt_commits has missing key(s): options'],
+      ['dolt_commits has an extra key', ['provenance', 'dolt_commits', 'wiki'], 'x', 'provenance.dolt_commits has unexpected key(s): wiki'],
+      ['dolt earnings commit is empty', ['provenance', 'dolt_commits', 'earnings'], '', 'provenance.dolt_commits.earnings must be a non-empty string'],
+      ['dolt options commit is null', ['provenance', 'dolt_commits', 'options'], null, 'provenance.dolt_commits.options must be a non-empty string, got null'],
+    ])('rejects provenance: %s', (_what, path, value, message) => {
+      expect(errorOf(edited(path, value))).toContain(message)
+    })
   })
 
   it('does not coerce or mutate its input, and returns a copy of applies_to', () => {

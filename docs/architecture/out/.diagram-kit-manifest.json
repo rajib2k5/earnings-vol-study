@@ -1,0 +1,28 @@
+{
+ "_comment": "Files written by vol-diagram-kit's build.py, with the sha256 of the bytes it wrote. A build deletes a listed file no spec produces any more only while it still has that hash, and nothing else. Do not edit.",
+ "files": {
+  "architecture.drawio": "89735d15817080499151670ec5ca944619622ec6cc3e04f579a9f220508032b5",
+  "architecture.lucid.xml": "2ba2d1956bc632c47fd82a11421fc77f4a6625b4d9d2fac7fb5b88377d5e9e59",
+  "architecture.mmd": "c6f1e70bc7e0dc409ae85618dc8dbf095e5633b4b2b25263d6bb6553368e3a76",
+  "architecture.png": "d3be1dbd5335b9f0d624f48832808948464598ab30cddc7cd8070038d3a4a821",
+  "architecture.svg": "f48b1746942340575606c4792e725289a95efd7aab0aec975ba0ba816b789d13",
+  "data_flow.drawio": "56e6f2c986a166fb1df2b484b7cc49d3e43725c0e23006db66cd7f361e17bb66",
+  "data_flow.lucid.xml": "44792ea74e196c0798daab4c97e21a6756e23d3917844c5ff99d6dc9d41a54b0",
+  "data_flow.mmd": "310893d073e8627b72bfbb2b2c26d8241c3a4728e3f8697a0040284e533cee84",
+  "data_flow.png": "f1a9f820d51f0e3aa8ea0cd38db25c02ebbb32212de05e27391b46ae6b6344b9",
+  "data_flow.svg": "59325a19ce7fcdfb9b732ac683838dcf9edbeec517e7858a8f8073a7fbff3817",
+  "erd.drawio": "a00f1b7be97c95c73abc43d191a1e4b74edf736038273c44310020f9f15d24b3",
+  "erd.lucid.xml": "9c76913d11fb803a93f8f9260a38daa871911167190faabcb706970778e5388b",
+  "erd.mmd": "eb696833a27cf431fca8c02827fd27b4eb6f06b08b0e40ebfb42453790375413",
+  "erd.png": "ffa9a1332f239de164e2f0e500f74dd91c9d9e277b20f488c019c2afaa8e5042",
+  "erd.svg": "a097ac5420e1e8e355732700079061e214e1ed2833ef4cdfe6922f9662b37b9e",
+  "event_sequence.mmd": "191a2e82aecc18a51a0bb520575e24d8c1bc487f884328d932ab4a778b5a61ad",
+  "event_sequence.png": "9e1a1e5a277449349152c58509c348fe4bc65435eecebb526fcf85f1252350a3",
+  "event_sequence.svg": "21829332d960237cf4293fc08851c21694ace70b83da7d254d3353ead891b179",
+  "process.drawio": "6c3737c91f622bbe2129f37d8b509ee6ee6a636bd5d2227a81f6d597cec43f08",
+  "process.lucid.xml": "38deadf9afb83bbf222fcc577cf5036c4a60ec66bc9b2c02ccefdf9a3ffc1c75",
+  "process.mmd": "1bc12e74abf1d43c17f51817e2f5ef4ea1bf9e777a5cfb10ebccc9e901df0d38",
+  "process.png": "27770d2c1067edc891875fe15c55a127eb4831c45d80a8317c70925f02f6bce6",
+  "process.svg": "3de0f8553bed4ec6fef15bff4b1180a3a2a4d6834f103384bfed54627fb83e9b"
+ }
+}

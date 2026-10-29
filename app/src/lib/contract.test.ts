@@ -3,7 +3,7 @@ import { isIsoUtc, parseEnvelope, SCHEMA_VERSION } from './contract'
 
 // Hand-built fixture: the smallest valid envelope.
 const valid = () => ({
-  schema_version: '0.1.0',
+  schema_version: '0.2.0',
   kind: 'meta',
   generated_at: '2026-10-27T12:00:00Z',
   source_commit: 'abc1234',
@@ -27,19 +27,21 @@ describe('parseEnvelope: accepts a valid envelope', () => {
     expect(r.ok).toBe(true)
   })
   it('exports the version the app understands', () => {
-    expect(SCHEMA_VERSION).toBe('0.1.0')
+    expect(SCHEMA_VERSION).toBe('0.2.0')
   })
 })
 
 describe('parseEnvelope: schema_version', () => {
   it('rejects a different version and names both versions', () => {
-    expectError({ ...valid(), schema_version: '0.2.0' }, 'unsupported schema_version "0.2.0"')
-    expectError({ ...valid(), schema_version: '0.2.0' }, '"0.1.0"')
+    // 0.1.0 is the previous contract: its meta.json lacks the 0.2.0 keys, so it must not be accepted.
+    const r = parseEnvelope({ ...valid(), schema_version: '0.1.0' })
+    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.1.0": this app only understands "0.2.0"' })
+    expectError({ ...valid(), schema_version: '0.3.0' }, 'unsupported schema_version "0.3.0"')
   })
-  it('does not coerce: the number 0.1 or an array is not "0.1.0"', () => {
-    expectError({ ...valid(), schema_version: 0.1 }, 'schema_version must be the string "0.1.0", got number 0.1')
-    expectError({ ...valid(), schema_version: ['0.1.0'] }, 'schema_version must be the string "0.1.0", got an array')
-    expectError({ ...valid(), schema_version: null }, 'schema_version must be the string "0.1.0", got null')
+  it('does not coerce: the number 0.2 or an array is not "0.2.0"', () => {
+    expectError({ ...valid(), schema_version: 0.2 }, 'schema_version must be the string "0.2.0", got number 0.2')
+    expectError({ ...valid(), schema_version: ['0.2.0'] }, 'schema_version must be the string "0.2.0", got an array')
+    expectError({ ...valid(), schema_version: null }, 'schema_version must be the string "0.2.0", got null')
   })
   it('reports the version problem before extra keys, since a newer file may add keys', () => {
     expectError({ ...valid(), schema_version: '9.9.9', brand_new: 1 }, 'unsupported schema_version')

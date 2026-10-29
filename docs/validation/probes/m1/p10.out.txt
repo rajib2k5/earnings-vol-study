@@ -1,0 +1,18 @@
+decimal(5,4) n=100000: normalise mismatches 0; direct-cast mismatches 30763
+decimal(12,2) n=100000: normalise mismatches 0; direct-cast mismatches 13464
+decimal(10,4) n=100000: normalise mismatches 0; direct-cast mismatches 31926
+decimal(18,8) n=100000: normalise mismatches 0; direct-cast mismatches 117
+decimal(38,18) n=100000: normalise mismatches 0; direct-cast mismatches 7084
+eps_history.reported source type decimal(16,2): 1964 values, 0 not the nearest float to a 2-dp decimal; e.g. []
+eps_history.estimate source type decimal(16,2): 1960 values, 0 not the nearest float to a 2-dp decimal; e.g. []
+eps_estimate.consensus source type decimal(7,2): 22827 values, 0 not the nearest float to a 2-dp decimal; e.g. []
+eps_estimate.high source type decimal(7,2): 22827 values, 0 not the nearest float to a 2-dp decimal; e.g. []
+eps_estimate.low source type decimal(7,2): 22827 values, 0 not the nearest float to a 2-dp decimal; e.g. []
+small extract earnings_calendar.parquet mtime 2026-10-29 07:57
+small extract eps_estimate.parquet mtime 2026-10-29 07:58
+small extract eps_history.parquet mtime 2026-10-29 07:57
+option_chain months by NORMALISE_VERSION: {2: 82}
+option_chain strike: values not the nearest float to a 2-dp decimal: 0 of 157176
+option_chain bid: values not the nearest float to a 2-dp decimal: 0 of 157176
+option_chain ask: values not the nearest float to a 2-dp decimal: 0 of 157176
+timestamp with 01:00 time-of-day -> date32 via normalise: [datetime.date(2026, 10, 24), datetime.date(2026, 10, 24)]

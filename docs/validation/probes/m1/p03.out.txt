@@ -1,0 +1,25 @@
+OK  AAPL Q4 FY25                             D=2025-10-30 AMC  -> day-1=2025-10-30 day0=2025-10-31
+OK  JPM Q3 2025 (Columbus Day session)       D=2025-10-14 BMO  -> day-1=2025-10-13 day0=2025-10-14
+OK  Fri AMC, weekend                         D=2025-11-07 AMC  -> day-1=2025-11-07 day0=2025-11-10
+OK  Wed before Thanksgiving AMC              D=2025-11-26 AMC  -> day-1=2025-11-26 day0=2025-11-28
+OK  Thu 2025-07-03 half day AMC              D=2025-07-03 AMC  -> day-1=2025-07-03 day0=2025-07-07
+OK  Sat 2025-05-03, BMO                      D=2025-05-03 BMO  -> day-1=2025-05-02 day0=2025-05-05
+OK  Sat 2025-05-03, AMC                      D=2025-05-03 AMC  -> day-1=2025-05-02 day0=2025-05-05
+OK  Sat 2025-05-03, NULL                     D=2025-05-03 None -> day-1=2025-05-02 day0=2025-05-05
+OK  GOOGL Q3 2024 as corrected (AMC)         D=2024-10-29 AMC  -> day-1=2024-10-29 day0=2024-10-30
+OK  NFLX Q3 2024 as corrected (AMC)          D=2024-10-17 AMC  -> day-1=2024-10-17 day0=2024-10-18
+OK  GOOGL as the calendar's BMO              D=2024-10-29 BMO  -> day-1=2024-10-28 day0=2024-10-29
+OK  Good Friday 2025-04-18 holiday, AMC      D=2025-04-18 AMC  -> day-1=2025-04-17 day0=2025-04-21
+OK  NULL on a session (ambiguous row)        D=2025-10-30 None -> day-1=None day0=None
+OK  xcals: 2025-10-13 session (Columbus)
+OK  xcals: 2025-11-11 session (Veterans)
+OK  xcals: 2025-11-27 holiday (Thanksgiving)
+OK  xcals: 2025-07-04 holiday
+OK  xcals: 2025-04-18 holiday (Good Friday)
+OK  xcals: 2025-11-28 closes 13:00 ET
+OK  xcals: 2025-07-03 closes 13:00 ET
+session_date  session_index  is_half_day close_time_et   era
+  2025-07-03           2388         True         13:00 daily
+  2025-10-14           2459        False         16:00 daily
+  2025-11-28           2491         True         13:00 daily
+mismatches: 0

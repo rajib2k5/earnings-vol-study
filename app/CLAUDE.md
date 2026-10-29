@@ -20,7 +20,7 @@ npm run coverage   # tests with the coverage table
   are fine; statistics are not.
 - **`src/lib/` stays small and pure.** Transforms (`contract`, `terrain`, `illustrative`, `motion`,
   `rng`, `architecture`, `format`) take data and return data: no I/O, no clock, no `Math.random()`.
-  `meta.ts` fetches only through an injected `fetch`. React components in `src/lib/` are thin and
+  `meta.ts` and `funnel.ts` fetch only through an injected `fetch`. React components in `src/lib/` are thin and
   tested in jsdom. WebGL code lives in `src/three/`, outside the coverage gate because it needs a GPU;
   keep it as thin as possible and put every calculation in `src/lib/`.
 - **Seeded randomness only**, via `mulberry32` in `src/lib/rng.ts`, in code and in tests.
@@ -28,7 +28,7 @@ npm run coverage   # tests with the coverage table
   `vite.config.ts` and are never weakened.** Tests are never deleted or `.skip`ped to go green; a test
   goes only together with the code it tests.
 - **Anything illustrative says so on screen**: "Illustrative synthetic shape — not data".
-- **The JSON contract is shared with Python.** Envelope keys are exactly `schema_version` ("0.1.0"),
+- **The JSON contract is shared with Python.** Envelope keys are exactly `schema_version` ("0.2.0"),
   `kind`, `generated_at` (UTC, ends in `Z`), `source_commit`, `data`. Change `contract.ts` and
   `tools/export_app_data.py` together, and bump the version.
 - **Dependencies are pinned exactly** (no `^` or `~`). The lockfile was generated with npm 11

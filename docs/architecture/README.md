@@ -1,9 +1,10 @@
 # Architecture diagrams
 
-Milestone-0 design diagrams for the earnings / implied-vol event study. Each diagram is one YAML spec
-in [`specs/`](specs/) plus a plain Mermaid copy next to it. The specs follow the schema of `vol-diagram-kit`, a
-vendored local diagram toolkit that is deliberately not on GitHub. The specs are the source; the `.mmd` files are
-what the toolkit generates from them.
+Design diagrams for the earnings / implied-vol event study, kept in step with the tables built so far (milestone 1). Each diagram is one YAML spec
+in [`specs/`](specs/); the toolkit builds Mermaid, SVG, PNG, draw.io and Lucid files from it into [`out/`](out/). The
+specs follow the schema of `vol-diagram-kit`, a local toolkit vendored in [`tools/diagrams/`](../../tools/diagrams/)
+(it is also public at <https://github.com/rajib2k5/vol-diagram-kit>). The specs are the source; everything in `out/` is
+generated from them.
 
 The tables, keys and JSON files they show are defined in [`data-model.md`](data-model.md), and the
 decisions behind them are in [`../adr/`](../adr/README.md). If a diagram and `data-model.md` disagree,
@@ -11,29 +12,34 @@ decisions behind them are in [`../adr/`](../adr/README.md). If a diagram and `da
 
 | Diagram | Question it answers | Spec | Mermaid |
 |---|---|---|---|
-| Architecture | Which components exist, and which way does data flow from sources to the app? | [`architecture.yaml`](specs/architecture.yaml) | [`architecture.mmd`](architecture.mmd) |
-| Data flow | Which source columns become which derived table, and which tables feed which JSON file? | [`data_flow.yaml`](specs/data_flow.yaml) | [`data_flow.mmd`](data_flow.mmd) |
-| Process | Who does what in one milestone, and where does work loop back? | [`process.yaml`](specs/process.yaml) | [`process.mmd`](process.mmd) |
-| ERD | What are the stored tables, their keys and cardinalities, and which tables is each JSON file exported from? | [`erd.yaml`](specs/erd.yaml) | [`erd.mmd`](erd.mmd) |
-| Event sequence | What happens to one announcement, from calendar row to exported JSON? | [`event_sequence.yaml`](specs/event_sequence.yaml) | [`event_sequence.mmd`](event_sequence.mmd) |
+| Architecture | Which components exist, and which way does data flow from sources to the app? | [`architecture.yaml`](specs/architecture.yaml) | [`out/architecture.mmd`](out/architecture.mmd) |
+| Data flow | Which source columns become which derived table, and which tables feed which JSON file? | [`data_flow.yaml`](specs/data_flow.yaml) | [`out/data_flow.mmd`](out/data_flow.mmd) |
+| Process | Who does what in one milestone, and where does work loop back? | [`process.yaml`](specs/process.yaml) | [`out/process.mmd`](out/process.mmd) |
+| ERD | What are the stored tables, their keys and cardinalities, and which tables is each JSON file exported from? | [`erd.yaml`](specs/erd.yaml) | [`out/erd.mmd`](out/erd.mmd) |
+| Event sequence | What happens to one announcement, from calendar row to exported JSON? | [`event_sequence.yaml`](specs/event_sequence.yaml) | [`out/event_sequence.mmd`](out/event_sequence.mmd) |
 
 ## Architecture
 
 Raw downloads (yfinance, FRED, CBOE) go to `$VOL_DATA_DIR/earnings-vol-study/raw/`. Dolt extracts and the
-derived stage tables go to `$VOL_DATA_DIR/earnings-vol-study/cache/`. Neither is inside the repository. There is one
+derived stage tables go to `$VOL_DATA_DIR/earnings-vol-study/cache/`. Neither is inside the repository. The ingest
+never queries the shared DoltHub clones: a `SELECT` rewrites a clone's files on dolt 2.6.1, so it copies each clone to
+a private mirror, `$VOL_DATA_DIR/earnings-vol-study/cache/dolt_mirror/{earnings,options}`, and runs
+`dolt sql -r parquet` there (`SELECT` only, `AS OF` the commits pinned in `params.yaml`). Around each batch it checks
+that the shared clone did not change at all (`src/earnings_vol/ingest/dolt.py`). There is one
 lane per layer of [ADR 0001](../adr/0001-overall-architecture.md) (ingest, events, measures, panel, stats, export),
-and each layer reads only from the left.
+and each layer reads only from the layers before it in that list.
 
 Two sources feed the timing label ([ADR 0002 §3](../adr/0002-day-zero-convention.md)). **SEC EDGAR 8-K acceptance
-times are proposed, pending the owner's decision** (dashed edge). If the owner declines, the default is the company's
-press release (its investor-relations time stamp, checked by hand), then the calendar label. The price gap is a local
+times are accepted (2026-10-28) but gated on the owner's contact string** (dashed edge): the client refuses to run
+until `SEC_EDGAR_USER_AGENT` is set, so nothing flows yet. Until then the rule in force is the company's press release
+(its investor-relations time stamp, checked by hand; 20 look-ups are done at milestone 1), then the calendar label. The price gap is a local
 diagnostic: it triggers a second reading (daily/mixed) or a look-up (coarse) and never sets a label. Who writes and who reads which
 table:
 
 | Layer | Writes | Reads |
 |---|---|---|
-| events | `session`, `market_daily`, `security`, `ticker_alias`, `events`, `eps`, `timing_check` | raw and cache extracts: calendar, EPS, Yahoo prices, FRED, S&P list; hand-checked press releases, recorded in the committed `data/manual/press_release_checks.csv`; the SEC EDGAR filing index only if the owner approves it |
-| measures | `chain_expiry`, `iv_daily` | option and vol-history extracts, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0) |
+| events | `session`, `market_daily`, `security`, `ticker_alias`, `events`, `eps`, `timing_check` | raw and cache extracts: calendar, EPS, Yahoo prices, FRED, S&P list; hand-checked press releases, recorded in the committed `data/manual/press_release_checks.csv`; the SEC EDGAR filing index once the owner's contact string is set |
+| measures | `session_snapshot` (milestone 1; `iv_daily` takes it over at milestone 2), `chain_expiry`, `iv_daily` | option and vol-history extracts, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0) |
 | panel | `event_window_obs`, `event_measures`, `event_measures_vx` | `iv_daily`, `chain_expiry`, `events`, `eps`, `security`, `session`, `market_daily`, local Yahoo and VX\* extracts |
 | stats | `results` | `event_measures`, `event_measures_vx`, `event_window_obs`, `events`, `eps`, `security`; for validation also `iv_daily`, `chain_expiry`, the VX\* extract |
 
@@ -51,7 +57,7 @@ because they need the day -1 option forward from `measures`.
 ---
 title: "Earnings vol study architecture"
 ---
-flowchart LR
+flowchart TB
     subgraph sources["Sources"]
         dh_cal(["DoltHub earnings_calendar\ndate, when (BMO / AMC / NULL)"])
         dh_eps(["DoltHub eps_history\nreported, estimate"])
@@ -61,10 +67,11 @@ flowchart LR
         cboe_vx{{"CBOE VX* indices\n5 names, local only"}}
         sp500{{"S#38;P 500 list\nsector, sub-industry"}}
         pr{{"Press releases\nIR time stamp, press_release_checks.csv"}}
-        edgar{{"SEC EDGAR 8-K (proposed)\nonly if owner approves"}}
+        edgar{{"SEC EDGAR 8-K (accepted)\ngated on contact string"}}
     end
     subgraph ingest["Ingest"]
-        dolt["dolt sql extraction\nread-only, AS OF commit"]
+        mirror[("Dolt mirrors\nprivate copies, cache/dolt_mirror")]
+        dolt["dolt sql extraction\nmirror only, -r parquet, AS OF commit"]
         fetch["Price and index fetch\nyfinance, FRED, CBOE"]
         cache[("Parquet cache\nraw/, cache/ outside repo")]
     end
@@ -74,7 +81,7 @@ flowchart LR
         epsm["EPS match\neps#58; raw, consensus, link"]
     end
     subgraph measures["Measures layer"]
-        ivm[["IV measures\nchain_expiry, iv_daily"]]
+        ivm[["IV measures\nsession_snapshot, chain_expiry, iv_daily"]]
     end
     subgraph panel["Panel layer"]
         pan["Event panel\nwindow, baseline, eligible_*"]
@@ -95,14 +102,15 @@ flowchart LR
         nb[/"Notebooks\ngenerated from src"/]
         report[/"Report\nnumbers from results"/]
     end
-    dh_cal -->|"SELECT AS OF"| dolt
-    dh_eps --> dolt
-    dh_chain --> dolt
+    dh_cal -->|"copy, never queried"| mirror
+    dh_eps --> mirror
+    dh_chain --> mirror
+    mirror -->|"SELECT AS OF"| dolt
     yf -->|"local only"| fetch
     fred --> fetch
     cboe_vx -->|"local only"| fetch
     sp500 --> fetch
-    edgar -.->|"proposed"| fetch
+    edgar -.->|"gated on contact string"| fetch
     pr -->|"timing label"| evt
     dolt -->|"monthly extracts"| cache
     fetch -->|"raw files"| cache
@@ -134,6 +142,7 @@ flowchart LR
     results --> export
     abn -->|"window obs"| export
     evt -.->|"funnel"| export
+    ivm -.->|"session_snapshot (funnel)"| export
     export -->|"JSON files"| contract
     export -->|"committed tables"| derived
     contract -->|"fetch"| app
@@ -142,7 +151,7 @@ flowchart LR
     classDef source fill:#E0F2FE,stroke:#0284C7,color:#0F172A
     class dh_cal,dh_eps,dh_chain source
     classDef store fill:#FEF3C7,stroke:#D97706,color:#0F172A
-    class cache,results,derived store
+    class mirror,cache,results,derived store
     classDef process fill:#E0E7FF,stroke:#4F46E5,color:#0F172A
     class dolt,fetch,ses,evt,epsm,pan,surp,valid,export process
     classDef model fill:#EDE9FE,stroke:#7C3AED,color:#0F172A
@@ -160,19 +169,20 @@ flowchart LR
     style panel fill:#FFF7ED,stroke:#FFEDD5,color:#64748B
     style stats fill:#FDF2F8,stroke:#FCE7F3,color:#64748B
     style delivery fill:#F1F5F9,stroke:#E2E8F0,color:#64748B
-    linkStyle 7 stroke:#94A3B8
-    linkStyle 23 stroke:#94A3B8
-    linkStyle 30 stroke:#94A3B8
-    linkStyle 32 stroke:#94A3B8
-    linkStyle 38 stroke:#94A3B8
-    linkStyle 42 stroke:#94A3B8
-    linkStyle 43 stroke:#94A3B8
+    linkStyle 8 stroke:#94A3B8
+    linkStyle 24 stroke:#94A3B8
+    linkStyle 31 stroke:#94A3B8
+    linkStyle 33 stroke:#94A3B8
+    linkStyle 39 stroke:#94A3B8
+    linkStyle 40 stroke:#94A3B8
+    linkStyle 44 stroke:#94A3B8
+    linkStyle 45 stroke:#94A3B8
 ```
 
 ## Entity-relationship diagram
 
-Thirteen stored tables (all columns, types, nullability and keys as in `data-model.md` section 3; the local-only
-`event_measures_vx` is the newest) on the left, and the Python to app JSON files (`meta.json` and the eight view
+Fourteen stored tables (all columns, types, nullability and keys as in `data-model.md` section 3; `session_snapshot`
+is the newest, built at milestone 1) on the left, and the Python to app JSON files (`meta.json` and the eight view
 files) on the right. Column names carry the licensing suffix (`_yf`, `_cboe`) exactly as in the data model: a
 suffixed column never leaves the machine, so dropping them gives the committed shape. Relationship labels start with
 the row number of data-model section 5 (R1, R2, ...), so each line can be checked against that table. The `from_*`
@@ -180,11 +190,12 @@ columns in the JSON entities are lineage links that say which tables a file is e
 foreign keys, and their cardinality marks carry no meaning. The `envelope (all files)` entity is the wrapper that
 every JSON file shares. A JSON entity lists the top-level keys of `data`; nested fields such as
 `tests.rows[].estimand`, `tests.rows[].n_clusters_firm` or `drivers.models[].n_clusters_season` are in data-model
-section 4. All view files except `meta.json` arrive with schema version 0.2.0. `meta.json` exists today with `project`,
-`milestone`, `title`, `data_sources` (each source with `name`, `uses`, `url`, `licence`, `committed`) and
-`data_licence`. Its `sample`, `params`, `files` and `provenance` keys and its `from_events` link arrive with 0.2.0, and
-their type ends in `_planned`. The `events` entity's label says that `edgar_accession` and `edgar_accepted_utc` exist
-only if the owner approves SEC EDGAR.
+section 4. At milestone 1 two files are written, `meta.json` and `sample_funnel.json`, both at schema version 0.2.0;
+the other view files do not exist yet. `meta.json` has `project`, `milestone`, `title`, `data_sources` (each source
+with `name`, `uses`, `url`, `licence`, `committed`), `data_licence`, `sample`, `params`, `files` and `provenance`.
+In `sample_funnel.json`, `by_move_tercile` and `evar_nonpositive` are null until milestone 2, and their status strings
+say why. The `events` entity's label says that `edgar_accession` and `edgar_accepted_utc` are gated on the owner's
+contact string: they stay null until it is set.
 
 ```mermaid
 ---
@@ -196,8 +207,8 @@ erDiagram
         string name
         enum gics_sector
         string gics_sub_industry
+        string cik "nullable"
         bool in_universe
-        int16 universe_rank "nullable"
         enum cboe_vx_index "nullable"
     }
     ticker_alias {
@@ -283,11 +294,18 @@ erDiagram
         float64 vendor_iv_current "nullable"
         string flags
     }
-    events["events (edgar#95;#42; only if the owner approves EDGAR)"] {
+    session_snapshot {
+        string security_id PK, FK
+        date32 session_date PK, FK
+        date32 snapshot_date "nullable"
+        enum snapshot_status
+    }
+    events["events (edgar#95;#42;#58; gated on the owner's contact string)"] {
         string event_id PK
         string security_id FK
         string ticker_at_event
         date32 announce_date
+        date32 announce_date_used
         enum timing_raw "nullable"
         enum timing_used "nullable"
         enum timing_status
@@ -325,15 +343,15 @@ erDiagram
     }
     timing_check {
         string event_id PK, FK
-        float64 gap_bmo_yf
-        float64 gap_amc_yf
-        float64 gap_scale_yf
-        float64 z_bmo_yf
-        float64 z_amc_yf
-        float64 z_max_outside_yf
+        float64 gap_bmo_yf "nullable"
+        float64 gap_amc_yf "nullable"
+        float64 gap_scale_yf "nullable"
+        float64 z_bmo_yf "nullable"
+        float64 z_amc_yf "nullable"
+        float64 z_max_outside_yf "nullable"
         int16 rel_day_max_outside_yf "nullable"
-        enum gap_verdict_yf
-        bool outside_flag_yf
+        enum gap_verdict_yf "nullable"
+        bool outside_flag_yf "nullable"
     }
     event_window_obs {
         string event_id PK, FK
@@ -466,19 +484,24 @@ erDiagram
         string title
         array data_sources
         object data_licence
-        object_planned sample
-        object_planned params
-        array_planned files
-        object_planned provenance
-        string_planned from_events FK "nullable"
+        object sample
+        object params
+        array files
+        object provenance
+        string from_events FK "nullable"
     }
     json_sample_funnel["sample#95;funnel.json"] {
         string kind PK
         array steps
         object timing_status_counts
-        array by_move_tercile
-        object evar_nonpositive
+        array timing_status_by_sample
+        array by_move_tercile "nullable"
+        string by_move_tercile_status
+        object evar_nonpositive "nullable"
+        string evar_nonpositive_status
         array by_sample
+        object lookups
+        array caveats
         object provenance
         string from_events FK "nullable"
         string from_event_measures FK "nullable"
@@ -566,6 +589,8 @@ erDiagram
     events |o--o{ iv_daily : "R19b prev event"
     events |o--o{ chain_expiry : "R20 next event"
     events ||--o| event_measures_vx : "R21 cboe5 member"
+    security ||--o{ session_snapshot : "R22 observed on"
+    session ||--o{ session_snapshot : "R23 has"
     events |o--o{ json_meta : "feeds"
     events |o--o{ json_sample_funnel : "feeds"
     event_measures |o--o{ json_sample_funnel : "feeds"
@@ -585,7 +610,7 @@ erDiagram
 
 ## Where the drawings differ from `data-model.md`
 
-These are limits of the diagram toolkit (`vol-diagram-kit`, a local tool, not in this repository). `data-model.md` is the source, and the drawings are generated to match it as
+These are limits of the diagram toolkit (`vol-diagram-kit`, vendored in `tools/diagrams/`). `data-model.md` is the source, and the drawings are generated to match it as
 closely as the kit allows. The kit has one foreign-key target per column, no composite keys, no self references, and
 no way to show enum members or unique constraints.
 
@@ -612,31 +637,65 @@ no way to show enum members or unique constraints.
   unique constraints on `session.session_index` and `eps.event_id` have no marker in the kit.
 - **Licensing classes (U, R, S, F) are not drawn.** Only the `_yf` / `_cboe` suffixes show which columns are class R.
   The class of every other column is in `data-model.md` section 2.1.
-- **Columns cannot carry a note.** `events.edgar_accession` and `events.edgar_accepted_utc` exist only if the owner
-  approves SEC EDGAR (ADR 0002, *Proposed: pending owner decision*). The kit has no per-column note, so the `events`
-  entity's label says it. The `edgar` value of `timing_source` is an enum member and is not drawn.
+- **Columns cannot carry a note.** `events.edgar_accession` and `events.edgar_accepted_utc` stay null until the
+  owner's contact string is set (ADR 0002: EDGAR accepted 2026-10-28, gated on that string). The kit has no per-column
+  note, so the `events` entity's label says it. The `edgar` value of `timing_source` is an enum member and is not drawn.
+- **`session_snapshot` is temporary.** It holds the first four columns of `iv_daily` and is folded into it at
+  milestone 2 (data model §3.6a, R22 and R23). The ERD draws it as its own table until then.
 - **JSON entities show top-level keys only.** Nested fields (for example `tests.rows[].estimand`) and the members of
   `sample_funnel.timing_status_counts` (`confirmed`, `corrected`, `inferred`, `date_corrected`, `no_document`,
   `not_checked`, `ambiguous`) are in data-model section 4.
-- **The ERD against the data model.** After this sync a throwaway script (not in the repository) read `erd.mmd` and
-  `data-model.md` and compared them: 13 tables, 235 columns (name, order, type, nullability, PK, FK) and the 24
-  relationship lines of section 5, with 0 differences. The only items it does not count as differences are the kit
-  limits listed above.
+- **The ERD against the data model.** After the milestone-1 sync a throwaway script (not in the repository) read
+  `erd.yaml` and `data-model.md` and compared them: 14 tables, 241 columns (name, order, type, nullability, PK, FK) and
+  the 26 relationship lines of section 5, with 0 differences. The only items it does not count as differences are the
+  kit limits listed above. *Updated after the milestone-1 review:* `security.universe_rank` is gone (a Yahoo-derived
+  rank, data model §3.1), so the stored tables have **240 columns** (counted from `erd.yaml`). The six `timing_check`
+  cells of §3.9 that read not-null (`gap_scale_yf`, `z_bmo_yf`, `z_amc_yf`, `z_max_outside_yf`, `gap_verdict_yf`,
+  `outside_flag_yf`) now read nullable, and `security.cik` is fifth in §3.1, in `erd.yaml` and in the registry. Checked
+  again on 2026-10-29 with a throwaway script: `security`, `timing_check` and `eps` in §3 equal `erd.yaml` column for
+  column (name, order, nullability), and the eight built tables of `src/earnings_vol/schema.py` equal `erd.yaml`.
 - **Data flow.** There is no `iv_daily` to `events` edge any more: `events` needs no IV data (the per-measure
   `eligible_*` columns moved to `event_measures`). One dashed edge feeds `events` from `eps` (`match_status` to
   `orphan_nearby`). It stays inside the events layer, whose fixed internal order makes it legal. Two more dashed edges
-  enter `events`: the proposed SEC EDGAR input, and `timing_check`, which triggers a second reading (daily/mixed) or a
-  look-up (coarse) and never sets `timing_used` (ADR 0002 §3).
+  enter `events`: the SEC EDGAR input (accepted, gated on the contact string), and `timing_check`, which triggers a second reading (daily/mixed) or a
+  look-up (coarse) and never sets `timing_used` (ADR 0002 §3). The five DoltHub source tables are fed by one
+  "Dolt mirrors" node (the private copies of the clones), and `session_snapshot` (from `option_chain`, `ticker_alias`
+  and `session`) feeds `sample_funnel.json`.
 
-## Formats
+## Diagrams
 
-Only the YAML specs and the plain Mermaid files are committed so far. SVG, PNG, draw.io and Lucid files will be
-generated once the diagram toolkit is vendored into this repository (`tools/diagrams/`). They are made from the same
-spec, so they will not drift from the Mermaid files. The Figma / FigJam import (drag the SVG onto the canvas) and the
-Lucidchart import (draw.io XML) are untested, as the kit's own README says. Mermaid is laid out by Mermaid itself, so
-its geometry differs from the kit's SVG and PNG.
+The five specs in `specs/` are built by the vendored toolkit in `tools/diagrams/` into `out/`: `.mmd` (Mermaid, which
+GitHub renders), `.svg`, `.png`, and for the flows and the ERD also `.drawio` and `.lucid.xml`, plus the toolkit's
+`.diagram-kit-manifest.json`. Edit a spec, never a file in `out/`. The two fenced diagrams above are copies of
+`out/architecture.mmd` and `out/erd.mmd` and must be updated with them. The Figma / FigJam import (drag the SVG onto the
+canvas) and the Lucidchart import (draw.io XML) are untested, as the kit's own README says. Mermaid is laid out by
+Mermaid itself, so its geometry differs from the kit's SVG and PNG.
 
-To regenerate the Mermaid files, run the kit's `build.py` on `docs/architecture/specs` and copy the `.mmd` files
-here. The two fenced diagrams above are copies of `architecture.mmd` and `erd.mmd` and must be updated with them.
+Rebuild (the kit refuses to overwrite a file it did not write; never pass `--overwrite`):
+
+```bash
+uv run --frozen --group diagrams python tools/diagrams/build.py docs/architecture/specs --out docs/architecture/out
+```
+
+Check that `out/` is up to date with the specs (`tests/test_diagrams.py` runs this with `--no-png`):
+
+```bash
+uv run --frozen --group diagrams python tools/diagrams/build.py docs/architecture/specs --out docs/architecture/out --check
+```
+
+Render gate, to run before every commit that changes a spec. It renders each `.mmd` in headless Chromium with Mermaid
+12.2.0 (the version GitHub uses) and checks that every label is drawn once, in its own element, and reads as written.
+Set up once per machine with `npm install --prefix ~/.cache/diagram-kit mermaid@12.2.0`, then:
+
+```bash
+DIAGRAM_KIT_MERMAID_JS=~/.cache/diagram-kit/node_modules/mermaid/dist/mermaid.min.js \
+DIAGRAM_KIT_CHROMIUM=$HOME/.cache/ms-playwright/chromium-1234/chrome-linux/chrome \
+  uv run --frozen --group diagrams --with playwright==1.64.1 python tools/diagrams/build.py docs/architecture/specs --verify-mermaid
+```
+
+`DIAGRAM_KIT_CHROMIUM` points at an existing Chromium; without it, run `uv run --with playwright==1.64.1 playwright install chromium`.
+
+PNG bytes are verified on aarch64 only: the kit never compared them across CPU architectures. On an x86_64 machine or
+runner use `--check --no-png`, which still compares every `.mmd`, `.svg`, `.drawio` and `.lucid.xml` byte for byte.
 
 The 3D "event-time IV terrain" hero render is separate: see [`../../tools/blender/README.md`](../../tools/blender/README.md).

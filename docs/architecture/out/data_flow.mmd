@@ -2,6 +2,7 @@
 title: "Earnings vol study data flow"
 ---
 flowchart TB
+    s_mirror[("Dolt mirrors (private copies)\ncache/dolt_mirror; dolt sql -r parquet")]
     s_cal(["earnings_calendar\nact_symbol, date, when"])
     s_eps(["eps_history\nperiod_end_date, reported, estimate"])
     s_est(["eps_estimate\ndate, period, consensus, high, low"])
@@ -13,7 +14,7 @@ flowchart TB
     s_yf{{"yfinance\nOpen, Close, shares (local only)"}}
     s_vx{{"CBOE VX*\nVXAPL ... VXIBM closes"}}
     s_pr{{"press releases\nIR time stamp, in press_release_checks.csv"}}
-    s_edgar{{"SEC EDGAR 8-K (proposed)\nacceptanceDateTime, if approved"}}
+    s_edgar{{"SEC EDGAR 8-K (accepted)\nacceptanceDateTime; gated on contact string"}}
     t_security[("security\nPK security_id")]
     t_alias[("ticker_alias\nPK ticker, valid_from")]
     t_session[("session\nPK session_date, session_index")]
@@ -23,6 +24,7 @@ flowchart TB
     t_eps[("eps\nsurprise, consensus, event_id")]
     t_chain[("chain_expiry\nforward, w_atm, tau")]
     t_iv[("iv_daily\ncm30_iv, event_var, sigma_d_iv")]
+    t_snap[("session_snapshot\nsnapshot_status (milestone 1)")]
     t_ewo[("event_window_obs\nrel_day, aliv_mean_adj, in_baseline")]
     t_em[("event_measures\ncrush, runup, persist, price_ref, eligible_*")]
     t_vx[("event_measures_vx\ncboe5 members, local only")]
@@ -36,6 +38,11 @@ flowchart TB
     j_tests[/"tests.json"/]
     j_drivers[/"drivers.json"/]
     j_valid[/"validation.json"/]
+    s_mirror -->|"copy of the clone"| s_cal
+    s_mirror --> s_eps
+    s_mirror --> s_est
+    s_mirror --> s_chain
+    s_mirror --> s_vol
     s_sp -->|"name, GICS"| t_security
     s_xnys -->|"sessions"| t_session
     s_fred -->|"DTB3, VIXCLS"| t_market
@@ -58,6 +65,9 @@ flowchart TB
     t_chain -->|"w_atm, forward, tau"| t_iv
     t_events -->|"next / prev event"| t_iv
     s_vol -.->|"iv_current"| t_iv
+    s_chain -->|"date, act_symbol"| t_snap
+    t_alias -->|"security_id"| t_snap
+    t_session -->|"session_date"| t_snap
     s_eps -->|"reported, estimate"| t_eps
     s_est -->|"consensus, high, low"| t_eps
     t_alias -->|"security_id"| t_eps
@@ -91,6 +101,7 @@ flowchart TB
     t_events -->|"timing_status, gap_check_changed, exclusion_reason, sample"| j_funnel
     t_em -->|"eligible_*, abs_move_cand_max terciles, crush_mean_adj"| j_funnel
     t_timing -.->|"gap_verdict_yf share by tercile"| j_funnel
+    t_snap -->|"observed sessions (baseline step)"| j_funnel
     t_ewo -->|"per-event aliv_mean_adj"| j_paths
     t_results -->|"aliv_path"| j_paths
     t_em -->|"crush_mean_adj by season"| j_heat
@@ -105,25 +116,25 @@ flowchart TB
     classDef source fill:#E0F2FE,stroke:#0284C7,color:#0F172A
     class s_cal,s_eps,s_est,s_chain,s_vol source
     classDef store fill:#FEF3C7,stroke:#D97706,color:#0F172A
-    class t_security,t_alias,t_session,t_market,t_timing,t_events,t_eps,t_chain,t_iv,t_ewo,t_em,t_vx,t_results store
+    class s_mirror,t_security,t_alias,t_session,t_market,t_timing,t_events,t_eps,t_chain,t_iv,t_snap,t_ewo,t_em,t_vx,t_results store
     classDef output fill:#D1FAE5,stroke:#059669,color:#0F172A
     class j_meta,j_funnel,j_paths,j_heat,j_terrain,j_ivr,j_tests,j_drivers,j_valid output
     classDef external fill:#F1F5F9,stroke:#475569,color:#0F172A
     class s_sp,s_xnys,s_fred,s_yf,s_vx,s_pr,s_edgar external
-    linkStyle 6 stroke:#94A3B8
     linkStyle 11 stroke:#94A3B8
-    linkStyle 12 stroke:#94A3B8
-    linkStyle 13 stroke:#94A3B8
-    linkStyle 21 stroke:#94A3B8
-    linkStyle 30 stroke:#94A3B8
-    linkStyle 31 stroke:#94A3B8
-    linkStyle 37 stroke:#94A3B8
+    linkStyle 16 stroke:#94A3B8
+    linkStyle 17 stroke:#94A3B8
+    linkStyle 18 stroke:#94A3B8
+    linkStyle 26 stroke:#94A3B8
     linkStyle 38 stroke:#94A3B8
     linkStyle 39 stroke:#94A3B8
-    linkStyle 40 stroke:#94A3B8
-    linkStyle 41 stroke:#94A3B8
-    linkStyle 44 stroke:#94A3B8
+    linkStyle 45 stroke:#94A3B8
+    linkStyle 46 stroke:#94A3B8
+    linkStyle 47 stroke:#94A3B8
     linkStyle 48 stroke:#94A3B8
     linkStyle 49 stroke:#94A3B8
-    linkStyle 50 stroke:#94A3B8
-    linkStyle 54 stroke:#94A3B8
+    linkStyle 52 stroke:#94A3B8
+    linkStyle 56 stroke:#94A3B8
+    linkStyle 57 stroke:#94A3B8
+    linkStyle 58 stroke:#94A3B8
+    linkStyle 62 stroke:#94A3B8
