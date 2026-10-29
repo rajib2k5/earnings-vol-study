@@ -1177,7 +1177,7 @@ whether `daily` and `mixed` fall back to the gap-triggered rule with its stated 
   outside the repository. The repository files were not changed by them.
 - The prototypes `worked.py`, `leak_grid.py`, `spacing.py`, `h2h3_size_sim.py` and `h2h3_followup_sim.py`. Apart from
   timing lines, each printed exactly its kept `*.out.txt` (`spacing.py` keeps none).
-- The five diagram specs were built with the diagram kit and passed its Mermaid render check, and `erd.mmd` was compared
+- The five diagram specs were built with the diagram kit and passed its Mermaid render check, and `docs/architecture/out/erd.mmd` was compared
   with data-model sections 3 and 5 by a script: 0 differences, apart from limits of the kit.
 
 **Not done:**

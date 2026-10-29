@@ -1,0 +1,8 @@
+SEEN   hidden file beside .dolt               diff=['.', '.hidden']
+SEEN   file in a new nested dir               diff=['.', 'a', 'a/b', 'a/b/f']
+SEEN   new empty dir                          diff=['.', 'emptydir']
+SEEN   file inside .dolt/                     diff=['.dolt', '.dolt/LOCK']
+SEEN   file in .dolt/noms                     diff=['.dolt/noms', '.dolt/noms/LOCK']
+SEEN   symlink to a file outside              diff=['.', 'link']
+RAISES dangling symlink                       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpnyc51lw5/dangling_symlink/dangling'
+UNSEEN same-size overwrite, mtime restored    diff=[]

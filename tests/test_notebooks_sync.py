@@ -1,4 +1,4 @@
-# Tests for tools/build_notebooks.py. The notebook on disk must be exactly what
+# Tests for tools/build_notebooks.py. The notebooks on disk must be exactly what
 # the builder makes from src/. If you change src/ or the builder and forget to
 # run tools/build_notebooks.py, the first test fails.
 
@@ -16,6 +16,12 @@ def builder(load_tool):
 
 def test_notebook_on_disk_is_in_sync(builder):
     assert builder.check(), "Run: uv run python tools/build_notebooks.py"
+
+
+def test_every_notebook_is_built_and_checked(builder):
+    assert list(builder.NOTEBOOKS) == ["00_scaffold_tour", "01_events"]
+    for name in builder.NOTEBOOKS:
+        assert builder.check(builder.NOTEBOOK_DIR / f"{name}.ipynb", name), name
 
 
 def test_modified_notebook_is_reported_out_of_sync(builder, tmp_path):
@@ -48,46 +54,48 @@ def test_missing_notebook_is_reported_out_of_sync(builder, tmp_path):
 
 
 def test_main_check_exit_codes(builder, monkeypatch, tmp_path, capsys):
-    path = tmp_path / "nb.ipynb"
-    monkeypatch.setattr(builder, "NOTEBOOK_PATH", path)
+    monkeypatch.setattr(builder, "NOTEBOOK_DIR", tmp_path)
+    path = tmp_path / "01_events.ipynb"
 
     # Nothing on disk yet: out of sync, exit code 1, and a clear message.
     assert builder.main(["--check"]) == 1
     assert "OUT OF SYNC" in capsys.readouterr().err
 
-    # Build it, and now the check passes with exit code 0.
+    # Build them, and now the check passes with exit code 0.
     assert builder.main([]) == 0
-    assert path.read_text(encoding="utf-8") == builder.render()
+    assert path.read_text(encoding="utf-8") == builder.render("01_events")
     assert builder.main(["--check"]) == 0
     assert "OK" in capsys.readouterr().out
 
-    # Edit it by hand: out of sync again.
+    # Edit one by hand: out of sync again, and the message names it.
     path.write_text(path.read_text(encoding="utf-8") + " ", encoding="utf-8")
     assert builder.main(["--check"]) == 1
+    assert "01_events" in capsys.readouterr().err
 
 
-def test_build_is_deterministic(builder):
-    assert builder.render() == builder.render()
+@pytest.mark.parametrize("name", ["00_scaffold_tour", "01_events"])
+def test_build_is_deterministic(builder, name):
+    assert builder.render(name) == builder.render(name)
 
 
-def test_notebook_has_no_outputs_and_fixed_ids_and_metadata(builder):
-    nb = nbformat.reads(builder.render(), as_version=4)
+@pytest.mark.parametrize("name, n_cells", [("00_scaffold_tour", 7), ("01_events", 7)])
+def test_notebook_has_no_outputs_and_fixed_ids_and_metadata(builder, name, n_cells):
+    nb = nbformat.reads(builder.render(name), as_version=4)
     assert (nb.nbformat, nb.nbformat_minor) == (4, 5)
     assert nb.metadata["kernelspec"]["name"] == "python3"
-    # 7 cells: ids cell-00 .. cell-06, in order.
-    assert [c["id"] for c in nb.cells] == [f"cell-{i:02d}" for i in range(len(nb.cells))]
+    # ids cell-00, cell-01, ... in order.
+    assert [c["id"] for c in nb.cells] == [f"cell-{i:02d}" for i in range(n_cells)]
     for cell in nb.cells:
         if cell.cell_type == "code":
             assert cell.outputs == []
             assert cell.execution_count is None
 
 
-def test_notebook_code_cells_run(builder, monkeypatch, tmp_path):
-    # Run the code cells of the freshly built notebook (the sync test above
-    # says the file on disk is the same), one after another in one shared
-    # namespace (like a kernel), and read what they print.
-    monkeypatch.setenv("VOL_DATA_DIR", str(tmp_path))
-    nb = nbformat.reads(builder.render(), as_version=4)
+def run_cells(builder, name):
+    """Run the code cells of a freshly built notebook (the sync test says the file
+    on disk is the same), one after another in one shared namespace (like a
+    kernel), and return what each prints."""
+    nb = nbformat.reads(builder.render(name), as_version=4)
     namespace = {}
     printed = []
     for cell in nb.cells:
@@ -97,6 +105,30 @@ def test_notebook_code_cells_run(builder, monkeypatch, tmp_path):
         with contextlib.redirect_stdout(buffer):
             exec(compile(cell.source, cell["id"], "exec"), namespace)
         printed.append(buffer.getvalue())
+    return printed
+
+
+def test_events_notebook_cells_run(builder, monkeypatch, tmp_path):
+    monkeypatch.setenv("VOL_DATA_DIR", str(tmp_path))   # it must not need the cache
+    printed = run_cells(builder, "01_events")
+    lines = printed[0].splitlines()
+    # ADR 0002 §2: AAPL AMC 10-30 -> day -1 10-30, day 0 10-31; GOOGL as BMO vs AMC.
+    assert lines[0] == "2025-10-30 AMC -> day -1 2025-10-30  day 0 2025-10-31"
+    assert lines[1] == "2024-10-29 BMO -> day -1 2024-10-28  day 0 2024-10-29"
+    assert lines[2] == "2024-10-29 AMC -> day -1 2024-10-29  day 0 2024-10-30"
+    assert lines[3] == "2025-05-03 None -> day -1 2025-05-02  day 0 2025-05-05"
+    assert printed[1].splitlines() == ["2024-11-30 Q1 matched", "2025-02-28 None orphan", "2025-05-31 Q3 matched",
+                                       "2025-08-31 Q4 matched"]
+    # The funnel from the committed tables: its first line is the calendar count.
+    assert "Calendar events of the 50 companies" in printed[2].splitlines()[0]
+    assert "'not_checked'" in printed[2]
+    # The survivorship caveat is printed with the counts (milestone-1 review, claim 14).
+    assert any(line.startswith("Caveat: Survivorship:") for line in printed[2].splitlines())
+
+
+def test_notebook_code_cells_run(builder, monkeypatch, tmp_path):
+    monkeypatch.setenv("VOL_DATA_DIR", str(tmp_path))
+    printed = run_cells(builder, "00_scaffold_tour")
 
     # Cell 1: data_dir() prints the folder that we set.
     assert printed[0].strip() == str(tmp_path)

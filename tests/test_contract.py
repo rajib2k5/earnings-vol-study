@@ -1,5 +1,5 @@
 # Tests for src/earnings_vol/contract.py. The React app expects exactly five
-# keys and schema_version "0.1.0", so these tests pin both.
+# keys and schema_version "0.2.0", so these tests pin both.
 
 import math
 from datetime import datetime, timedelta, timezone, tzinfo
@@ -19,7 +19,7 @@ def make(**overrides):
 
 
 def test_schema_version_is_what_the_app_expects():
-    assert contract.SCHEMA_VERSION == "0.1.0"
+    assert contract.SCHEMA_VERSION == "0.2.0"
 
 
 def test_envelope_has_exactly_the_five_keys():
@@ -29,7 +29,7 @@ def test_envelope_has_exactly_the_five_keys():
 
 def test_envelope_values():
     env = make(data={"answer": 42})
-    assert env["schema_version"] == "0.1.0"
+    assert env["schema_version"] == "0.2.0"
     assert env["kind"] == "demo"
     assert env["source_commit"] == "abc1234"
     assert env["data"] == {"answer": 42}
@@ -88,7 +88,7 @@ def test_dumps_exact_text_sorted_keys_indent_two_trailing_newline():
         "  },\n"
         '  "generated_at": "2026-10-27T12:00:00Z",\n'
         '  "kind": "demo",\n'
-        '  "schema_version": "0.1.0",\n'
+        '  "schema_version": "0.2.0",\n'
         '  "source_commit": "abc1234"\n'
         "}\n"
     )

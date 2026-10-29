@@ -1,0 +1,12 @@
+[throwaway] rc=0 stdout="HASHOF('HEAD')\njme08fecgk34u2l46g78no6058lrqpor"
+[throwaway] stat-changed: ['noms', 'noms/journal.idx', 'noms/manifest', 'noms/vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv', 'stats/.dolt/noms', 'stats/.dolt/noms/journal.idx', 'stats/.dolt/noms/manifest', 'stats/.dolt/noms/vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv']
+[throwaway] bytes-changed (sha256, every file): []
+[mirror-copy] rc=0 stdout="HASHOF('HEAD')\nfjrb6h5le9h1qiif2j4pl6cpaas7pnee"
+[mirror-copy] stat-changed: ['noms', 'noms/journal.idx', 'noms/manifest', 'noms/vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv', 'stats/.dolt/noms', 'stats/.dolt/noms/journal.idx', 'stats/.dolt/noms/manifest', 'stats/.dolt/noms/vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv']
+[mirror-copy] bytes-changed (sha256, every file): []
+[guard] SELECT inside guard: DoltWriteError: the shared clone $SCRATCH/p02/t changed durin
+[guard] nothing inside guard: no error
+[guard] same-size byte flip in mirror noms/manifest: DoltWriteError (True)
+[guard] same-size byte flip in mirror noms/0tvu865jf8f0tevh09g4lfotuljqoipt: NOT DETECTED
+[content_fingerprint] hashed: ['config.json', 'noms/journal.idx', 'noms/manifest', 'noms/vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv', 'repo_state.json']
+[content_fingerprint] size-only: ['noms/0tvu865jf8f0tevh09g4lfotuljqoipt', 'noms/1cevu547a0a74nh93mb70d6fn1df48bm', 'noms/1ka1smmj3sh0k3qgp92rcot5qahmqlt6', 'noms/2i2hldmtum9prq7phcdmsqpv7cojd1cd', 'noms/30aevb25e0ipp2vap6pdl25ohg3s5an0', 'noms/5ifjftvc1ftt8oimhrqke27p1i6o22mf', 'noms/5lb7vf540oi1c7f3585qokr85p22uvau', 'noms/86gm9o64epp2141dsg05lfail3dv6m49', 'noms/89end7lh83hjctt81hvsoi5vfrqi990c', 'noms/LOCK', 'noms/a8depjs9bmolnjsau9aa37ap71q3vtb9', 'noms/bascifurvjr1m24ag10e33hc0a03c5ad', 'noms/e9jka2v5eaeqalrf0t0akq5fogo9n91g', 'noms/fi57ljd1di4oci0npin9tdthbg068l4i', 'noms/hpn48pnevtre03t7muv9vr13q59kj7v8', 'noms/i2hlm9184m5pvm7bkbmusl9vrjf9b53r', 'noms/i807nvrrpa8mg4vsit8bu5ce9vp6im3b', 'noms/oldgen/LOCK', 'noms/p6nh0psh2q1l1k2brrtq6k6gvnh17aou', 'noms/rcpo01uk5q6aoqaf0mqaitk1mq1n4kss', 'noms/tlle2dfebgldm5j9d8nmpmof94m70egp', 'noms/vee137k6o5a7h43dn2vl05c2qm485ec1']

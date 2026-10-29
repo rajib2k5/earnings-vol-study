@@ -3,18 +3,22 @@
  * every file in `public/data/`. The app never computes results; it only reads these files, so the
  * first thing it does with any of them is check the envelope.
  *
- * Contract (schema 0.1.0) - exactly these five keys, no more, no fewer:
- *   schema_version  the string "0.1.0"
- *   kind            string, says what `data` holds (e.g. "meta")
+ * Contract (schema 0.2.0) - exactly these five keys, no more, no fewer:
+ *   schema_version  the string "0.2.0"
+ *   kind            string, says what `data` holds ("meta" or "sample_funnel")
  *   generated_at    ISO-8601 UTC timestamp ending in "Z", e.g. "2026-10-27T12:00:00Z"
  *   source_commit   string, the git commit of the Python code that produced the file
  *   data            JSON object with the payload
+ *
+ * The version covers the whole contract: this envelope AND the `data` shape of every kind
+ * (`meta.ts` checks "meta", `funnel.ts` checks "sample_funnel"). A change to either bumps it, in
+ * the Python exporter and here together.
  *
  * Nothing here throws and nothing is coerced: bad input comes back as `{ ok: false, error }`
  * with a message that says which rule failed.
  */
 
-export const SCHEMA_VERSION = '0.1.0'
+export const SCHEMA_VERSION = '0.2.0'
 
 const ENVELOPE_KEYS = ['schema_version', 'kind', 'generated_at', 'source_commit', 'data'] as const
 

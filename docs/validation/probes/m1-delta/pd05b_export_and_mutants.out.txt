@@ -1,0 +1,17 @@
+# pd05b (claim 2b, 3, 4b, 1): re-export and test-mutation record. All mutations ran on a scratch copy of the tree.
+
+## Re-export to a scratch folder (claim 2b)
+$ uv run --frozen python tools/export_app_data.py --out-dir <scratch>/export
+Wrote <scratch>/export/meta.json
+Wrote <scratch>/export/sample_funnel.json
+sample_funnel.json equal except generated_at: True | generated_at 2026-10-29T15:44:00Z 2026-10-29T14:39:37Z
+meta.json equal except generated_at: True | generated_at 2026-10-29T15:44:00Z 2026-10-29T14:39:37Z
+
+## Whole-suite runs on single mutants (pytest -q -p no:cacheprovider tests), each file restored and cmp-checked
+M-a params coarse ends 09-09 (gap)          | 3 failed, 302 passed, 36 warnings in 17.14s
+M-b lookup_reasons without the scope        | 2 failed, 303 passed, 36 warnings in 17.17s
+M-c build without check_sample_ranges        | 305 passed, 36 warnings in 11.40s      <- SURVIVED
+M-d window starts on the 2nd                 | 2 failed, 303 passed, 36 warnings in 9.09s
+M-e unlinked cost 101 -> 200                 | 305 passed, 36 warnings in 8.93s       <- SURVIVED
+M-f .local no longer reserved                | 1 failed, 304 passed, 36 warnings in 8.90s
+restored: params.yaml, events/timing.py, events/run.py, events/eps.py, ingest/edgar.py (cmp identical to the working tree)

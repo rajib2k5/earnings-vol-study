@@ -1,7 +1,7 @@
 ---
 title: "Earnings vol study architecture"
 ---
-flowchart LR
+flowchart TB
     subgraph sources["Sources"]
         dh_cal(["DoltHub earnings_calendar\ndate, when (BMO / AMC / NULL)"])
         dh_eps(["DoltHub eps_history\nreported, estimate"])
@@ -11,10 +11,11 @@ flowchart LR
         cboe_vx{{"CBOE VX* indices\n5 names, local only"}}
         sp500{{"S#38;P 500 list\nsector, sub-industry"}}
         pr{{"Press releases\nIR time stamp, press_release_checks.csv"}}
-        edgar{{"SEC EDGAR 8-K (proposed)\nonly if owner approves"}}
+        edgar{{"SEC EDGAR 8-K (accepted)\ngated on contact string"}}
     end
     subgraph ingest["Ingest"]
-        dolt["dolt sql extraction\nread-only, AS OF commit"]
+        mirror[("Dolt mirrors\nprivate copies, cache/dolt_mirror")]
+        dolt["dolt sql extraction\nmirror only, -r parquet, AS OF commit"]
         fetch["Price and index fetch\nyfinance, FRED, CBOE"]
         cache[("Parquet cache\nraw/, cache/ outside repo")]
     end
@@ -24,7 +25,7 @@ flowchart LR
         epsm["EPS match\neps#58; raw, consensus, link"]
     end
     subgraph measures["Measures layer"]
-        ivm[["IV measures\nchain_expiry, iv_daily"]]
+        ivm[["IV measures\nsession_snapshot, chain_expiry, iv_daily"]]
     end
     subgraph panel["Panel layer"]
         pan["Event panel\nwindow, baseline, eligible_*"]
@@ -45,14 +46,15 @@ flowchart LR
         nb[/"Notebooks\ngenerated from src"/]
         report[/"Report\nnumbers from results"/]
     end
-    dh_cal -->|"SELECT AS OF"| dolt
-    dh_eps --> dolt
-    dh_chain --> dolt
+    dh_cal -->|"copy, never queried"| mirror
+    dh_eps --> mirror
+    dh_chain --> mirror
+    mirror -->|"SELECT AS OF"| dolt
     yf -->|"local only"| fetch
     fred --> fetch
     cboe_vx -->|"local only"| fetch
     sp500 --> fetch
-    edgar -.->|"proposed"| fetch
+    edgar -.->|"gated on contact string"| fetch
     pr -->|"timing label"| evt
     dolt -->|"monthly extracts"| cache
     fetch -->|"raw files"| cache
@@ -84,6 +86,7 @@ flowchart LR
     results --> export
     abn -->|"window obs"| export
     evt -.->|"funnel"| export
+    ivm -.->|"session_snapshot (funnel)"| export
     export -->|"JSON files"| contract
     export -->|"committed tables"| derived
     contract -->|"fetch"| app
@@ -92,7 +95,7 @@ flowchart LR
     classDef source fill:#E0F2FE,stroke:#0284C7,color:#0F172A
     class dh_cal,dh_eps,dh_chain source
     classDef store fill:#FEF3C7,stroke:#D97706,color:#0F172A
-    class cache,results,derived store
+    class mirror,cache,results,derived store
     classDef process fill:#E0E7FF,stroke:#4F46E5,color:#0F172A
     class dolt,fetch,ses,evt,epsm,pan,surp,valid,export process
     classDef model fill:#EDE9FE,stroke:#7C3AED,color:#0F172A
@@ -110,10 +113,11 @@ flowchart LR
     style panel fill:#FFF7ED,stroke:#FFEDD5,color:#64748B
     style stats fill:#FDF2F8,stroke:#FCE7F3,color:#64748B
     style delivery fill:#F1F5F9,stroke:#E2E8F0,color:#64748B
-    linkStyle 7 stroke:#94A3B8
-    linkStyle 23 stroke:#94A3B8
-    linkStyle 30 stroke:#94A3B8
-    linkStyle 32 stroke:#94A3B8
-    linkStyle 38 stroke:#94A3B8
-    linkStyle 42 stroke:#94A3B8
-    linkStyle 43 stroke:#94A3B8
+    linkStyle 8 stroke:#94A3B8
+    linkStyle 24 stroke:#94A3B8
+    linkStyle 31 stroke:#94A3B8
+    linkStyle 33 stroke:#94A3B8
+    linkStyle 39 stroke:#94A3B8
+    linkStyle 40 stroke:#94A3B8
+    linkStyle 44 stroke:#94A3B8
+    linkStyle 45 stroke:#94A3B8

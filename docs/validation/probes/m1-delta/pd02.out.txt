@@ -1,0 +1,36 @@
+FAIL S1 slow reporter (lag 66), Q2 report missing
+      2024-03-31  linked=None    truth=Q1      status=orphan
+      2024-06-30  linked=Q1      truth=None    status=matched
+      2024-09-30  linked=Q3      truth=Q3      status=matched
+FAIL S2 slow reporter (lags 65-66), all reports present
+      2023-12-31  linked=None    truth=Q4      status=orphan
+      2024-03-31  linked=Q4      truth=Q1      status=matched
+      2024-06-30  linked=Q1      truth=Q2      status=matched
+      2024-09-30  linked=Q2      truth=Q3      status=matched
+FAIL S3 BRK.B duplicate: Fri 2024-11-01 row + real Sat 2024-11-02 release
+      2024-09-30  linked=dup_fri  truth=real_sat  status=matched
+FAIL S4 BRK-shaped Q4 release on Sat 2025-03-01 (lag 60), Q1 report missing
+      2024-12-31  linked=None    truth=Q4      status=orphan
+      2025-03-31  linked=Q4      truth=None    status=matched
+      2025-06-30  linked=Q2      truth=Q2      status=matched
+OK   S5 COST FY2023 (53 weeks, true end 09-03, stored 08-31)
+      2023-05-31  linked=Q3      truth=Q3      status=matched
+      2023-08-31  linked=Q4      truth=Q4      status=matched
+      2023-11-30  linked=Q1      truth=Q1      status=matched
+OK   S6 52/53-week year ending 2022-01-01 stored 2021-12-31
+      2021-09-30  linked=Q3      truth=Q3      status=matched
+      2021-12-31  linked=Q4      truth=Q4      status=matched
+OK   S7 quarters end the 15th (stored month-end); report 5 days after the true end; previous report missing
+      2024-01-31  linked=None    truth=None    status=orphan
+      2024-04-30  linked=Q2      truth=Q2      status=matched
+      2024-07-31  linked=Q3      truth=Q3      status=matched
+OK   S8 PLTR: 2020-03-31 and 06-30 periods before the 2020-09-30 listing
+      2020-03-31  linked=None    truth=None    status=orphan
+      2020-06-30  linked=None    truth=None    status=orphan
+      2020-09-30  linked=Q3      truth=Q3      status=matched
+PLTR statuses: {datetime.date(2020, 3, 31): 'orphan', datetime.date(2020, 6, 30): 'orphan', datetime.date(2020, 9, 30): 'matched'}
+
+brute force vs match_periods, 20000 random instances: {'cost': 0, 'dup': 0, 'order': 0, 'window': 0}
+falsifier (greedy first-in-window) through the same checker: {'cost': 5140, 'dup': 0, 'order': 0, 'window': 0}
+
+shape results: {'S1 slow reporter, next report missing': 'FAIL', 'S2 slow chain complete': 'FAIL', 'S3 duplicate row one day early': 'FAIL', 'S4 BRK Q4 on Mar 1, Q1 missing': 'FAIL', 'S5 COST 53-week': 'OK', 'S6 year ends Jan 1': 'OK', 'S7 mid-month end, fast report, previous missing': 'OK', 'S8 PLTR pre-IPO': 'OK'}

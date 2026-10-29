@@ -19,6 +19,12 @@
 > 4. **Gaps (ledger claim 6).** The coarse sample's span changes and the run-up/persistence representation across
 >    unobserved sessions are specified in ADR 0005 §1.
 
+> **Revised after the milestone-1 review** ([ledger](../validation/m1-ledger.md), 2026-10-29). The sample ranges of §5
+> left day 0 on 2024-09-10 and 2024-09-11 in no sample (`coarse` ended 09-09, `mixed` started 09-12), so ORCL's
+> confirmed 2024-09-09 release ended as `outside_samples`. **Changed:** `coarse` now ends 2024-09-11. A day 0 on
+> either date has no daily day −1, so its crush spans two sessions as in §4, and it belongs with `coarse`. The ranges
+> are now contiguous, and a test checks that they partition the timeline.
+
 ## In one paragraph
 
 The event window is [−10, +10] sessions. The baseline is **[−60, −22]**, minus every session that falls in another
@@ -72,7 +78,9 @@ those levels directly:
 - **Baseline:** start from [−60, −22], then remove every session that is
   1. inside **[−21, +10] of any other event of the same security**: that event's 30-day run-up or its event window.
      Orphan-period and pre-calendar zones from ADR 0002 count as events here. An event whose timing stayed
-     ambiguous (ADR 0002 §2) has no day 0, so its zone is [−21, +10] around **both** candidate days.
+     ambiguous (ADR 0002 §2) has no day 0, so its zone is [−21, +10] around **both** candidate days. A
+     `duplicate_row` (a second calendar row of another event's release, ADR 0002 §3; *added after the milestone-1
+     delta review*) is not an event: it has no zone of its own, because its release's zone is the kept row's.
   2. not observed (`missing` or `stale_repeat`, ADR 0002 §1), or missing `cm30_iv`.
 - **Minimum:** at least 20 clean sessions and at least 15 one-session changes (both ends clean). Below that, the event
   gets no baseline and is excluded from every measure that needs one. Measured on the spacing above, *before* data
@@ -182,11 +190,12 @@ and the drivers question (milestone 4) needs exactly that.**
 |---|---|---|---|
 | `daily` | 2024-12-05 → 2026-10-26 | everything from −60 onward | **primary.** Per-measure eligibility: PERSIST_h needs +h ≤ 2026-10-26, so PERSIST_10 needs day 0 ≤ 2026-10-12 |
 | `mixed` | 2024-09-12 → 2024-12-04 | the crush, not the whole baseline | robustness (the Oct–Nov 2024 season) |
-| `coarse` | ≈ 2020-04-01 → 2024-09-09 (day 0 in the Mon/Wed/Fri era; a post-window that runs past 2024-09-10 is simply denser) | none | robustness, longer history |
+| `coarse` | ≈ 2020-04-01 → 2024-09-11 (day 0 in the Mon/Wed/Fri era, or on Tue 09-10 or Wed 09-11, whose day −1 has no daily snapshot; a post-window that runs past 2024-09-10 is simply denser) | none | robustness, longer history |
 | `cboe5` | about 2020-04 → 2026-10-26, five names | VX\* only | robustness on the VX\* series (ADR 0003) |
 
 The first three labels **partition events by day-0 date** (`events.sample`, with `none` for events outside every
-range). `cboe5` is **not** part of that partition. It is an overlay, an analysis sample that can contain events from
+range). The three ranges are contiguous; the `events` layer checks that before it assigns a sample
+(`events.check_sample_ranges`). `cboe5` is **not** part of that partition. It is an overlay, an analysis sample that can contain events from
 all three date samples, measured on VX\* instead of `cm30_iv`. So it appears only in `results.sample`, and membership is a row in
 the local-only `event_measures_vx` (data model §3.12). Membership needs a null `exclusion_reason`, so `cboe5` inherits
 the day-0 ranges of the three date samples. It starts around 2020-04-01, not 2011 as first written. That start is

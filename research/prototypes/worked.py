@@ -139,7 +139,7 @@ print(f"front fixed-expiry (11-14) IV: day -1 {iv_m1:.4f}, day 0 {iv_0:.4f}: {10
       f"log {np.log(iv_0 / iv_m1):.4f}")
 F_m1, F_0 = res[('2025-10-30', '2025-11-14')]['F'], res[('2025-10-31', '2025-11-14')]['F']
 print(f"realised move from the 11-14 forwards (ADR 0003 §e): ln({F_0:.2f}/{F_m1:.2f}) + r*1/365 = "
-      f"{np.log(F_0 / F_m1) + r / 365:.4%}; Yahoo close-to-close ln(270.37/271.40) = {np.log(270.37 / 271.40):.4%}")
+      f"{np.log(F_0 / F_m1) + r / 365:.4%}")
 
 old = atm_w('2025-10-30', '2025-11-14', chain, rule='all')
 print(f"\nfor the record, the first prototype's rule (median over all 7 strikes): F={old['F']:.2f} w={old['w']:.6f} "

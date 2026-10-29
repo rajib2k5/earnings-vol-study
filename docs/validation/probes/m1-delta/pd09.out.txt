@@ -1,0 +1,26 @@
+== should be refused ==
+  ACCEPTED  RFC 8375 home.arpa                 'Study x@router.home.arpa'
+  ACCEPTED  RFC 7686 .onion                    'Study x@abcdefghijklmnop.onion'
+  ACCEPTED  RFC 9476 .alt                      'Study x@foo.alt'
+  ACCEPTED  ICANN .internal (2024)             'Study x@corp.internal'
+  refused   RFC 6762 local (control)           'Study x@printer.local'
+  refused   RFC 2606 example.com (control)     'Study x@example.com'
+  ACCEPTED  leading dot                        'Study .x@realdomain.net'
+  ACCEPTED  double dot                         'Study x..y@realdomain.net'
+  ACCEPTED  trailing dot                       'Study x.@realdomain.net'
+  ACCEPTED  local part only symbols            'Study %+-@realdomain.net'
+  ACCEPTED  label > 63 chars                   'Study x@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  ACCEPTED  domain > 253 chars                 'Study x@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  ACCEPTED  placeholder yourdomain.com         'Study you@yourdomain.com'
+  ACCEPTED  placeholder email@domain.com       'Study email@domain.com'
+== should be accepted ==
+  accepted  plain                              'Earnings Study first.last@gmail.com'
+  REFUSED   sentence with full stop            'Earnings Study, contact first.last@gmail.com.'
+  accepted  angle brackets                     'Earnings Study <first.last@gmail.com>'
+  accepted  apostrophe in local part           "Study o'brien@uni.edu"
+  REFUSED   IDN (punycode TLD)                 'Study x@example-shop.xn--p1ai'
+  REFUSED   IDN (unicode local part)           'Study josé@uni.edu'
+  accepted  long new gTLD                      'Study x@lab.photography'
+  accepted  SEC sample form                    'Sample Company Name AdminContact@samplecompany.com'
+6c outcomes: ['EdgarNotConfigured', 'EdgarNotConfigured', 'EdgarNotConfigured (cache present)', 'with contact: OSError']
+6c network attempts (all unset cases + the falsifier): 1

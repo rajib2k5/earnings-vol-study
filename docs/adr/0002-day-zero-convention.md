@@ -1,9 +1,11 @@
 # ADR 0002: Day 0 is the first session whose closing snapshot reflects the news
 
-- **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review**, and **again
-  after the milestone-0 delta review** (notes below). **The EDGAR rule (§3, source 1) is Proposed: pending owner
-  decision** (status note). If the owner approves it, it is validated at milestone 1. Until the owner decides, the
-  **default rule** of §3 applies: the press release of every `daily` and `mixed` event is looked up.
+- **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review**, **again
+  after the milestone-0 delta review**, **on 2026-10-29 after the milestone-1 review**, and **again the same day after
+  its delta review** (notes below). **The EDGAR rule (§3, source 1) is Accepted 2026-10-28; it
+  runs once the owner's contact string is set** (milestone-1 note). Until then the **default rule** of §3 applies: the
+  press release decides, then the calendar label. At milestone 1 only the first 20 look-ups were done; the rest wait
+  for EDGAR (owner default, 2026-10-29), so most labels are still the calendar's (`not_checked`).
 - **Date:** 2026-10-28
 - **Related:** [0001](0001-overall-architecture.md), [0003](0003-iv-measures.md), [0004](0004-baseline-and-event-windows.md),
   [data model](../architecture/data-model.md) (`events`, `timing_check`, `session`)
@@ -102,6 +104,119 @@
 >    also puts a Yahoo-derived bit into `timing_status`. So "class U under the EDGAR rule" (Consequences, data model
 >    §2.1, ADR 0001 §7) holds only if job 1 is dropped. That is settled when the owner decides on EDGAR.
 
+> **Milestone 1, 2026-10-29: owner decisions and what was measured.**
+>
+> 1. **EDGAR: Accepted 2026-10-28; runs once the owner's contact string is set.** The owner approved EDGAR on
+>    2026-10-28 and will supply the contact string for the User-Agent. It has not arrived. The client
+>    (`src/earnings_vol/ingest/edgar.py`) refuses to run while `SEC_EDGAR_USER_AGENT` is unset or holds a placeholder;
+>    it has no default. **No request was made to sec.gov or data.sec.gov at milestone 1**; the client is tested on
+>    hand-written fixtures. Until the string is set, the default rule below is operative, `timing_source` is never
+>    `edgar`, and the milestone-1 EDGAR check (coverage, the 50-event audit) has not run.
+> 2. **Look-ups: default taken 2026-10-29: the remaining look-ups wait for EDGAR; the owner can override.** The first
+>    20 look-ups were done and timed. Choice: the first 19 events in look-up order (announce date from 2024-08-27,
+>    10 sessions before 2024-09-11, then ticker), plus GOOGL 2024-10-29; NFLX 2024-10-17 was 15th in that order
+>    anyway. Each is one row of `data/manual/press_release_checks.csv`.
+>    - Result: 16 `confirmed`, 2 `corrected` (GOOGL and NFLX, both BMO → AMC), 1 `date_corrected` (MS: the calendar
+>      says 2024-10-17, the release came out on 2024-10-16 at 07:29 ET, BMO), 1 `inferred` (WFC 2024-10-11, a NULL
+>      label, BMO).
+>    - No gap contradicted a press-release label and no outside flag fired on these 20, so **no blind re-read was
+>      triggered**; the re-read error rate is still unmeasured.
+>    - Time: 10.72 minutes of agent wall-clock in total (the sum of `lookup_minutes`), mean 0.54, median 0.35, range 0.27 to 1.99 minutes per look-up
+>      (the slowest was the MS date correction, then GOOGL, whose release PDF the fetcher could not read). The 20 are
+>      20 different companies, so the "one archive per company" saving is not measured.
+>    - The default rule requires 473 look-ups for the 50 companies (422 because D falls from 2024-08-27 to the data
+>      end, 30 NULL labels in a sample, 43 gap-triggered `coarse` events; some events have two reasons). At the mean
+>      that is about 4.3 hours of agent time; the 453 left would take about 4.1 hours.
+>    - Every other event keeps the calendar label as `not_checked`. The build invariant ("any other `not_checked`
+>      event is a build error") is therefore **reported, not enforced**, while `params.yaml` says
+>      `timing.lookups_complete: false`; the manifests, the funnel JSON and the app say the labels are provisional.
+>      A NULL-label event on a session day that nobody looked up has no day 0; it is excluded as
+>      `timing_not_checked` (32 events, 2 of them in the daily range; *revised after the delta review:* this said 33,
+>      which counted BRK.B's duplicate row of 2024-11-01, now excluded as `duplicate_row`, note 3).
+>    - The calendar's error rate cannot be read off these 20: GOOGL was added because it was a known error. Among the
+>      18 labelled events of the first 19, 1 was corrected (NFLX) and 1 had another date (MS).
+> 3. **Missing calendar events (GS, COST): default taken 2026-10-29: left as orphan zones, no second source. The owner
+>    can override.** Measured with the EPS match as revised after the milestone-1 review (§3, "Missing events are
+>    detected"): **35 orphan periods against 1,324 matched, 2.58% of expected events, below the "about 3%" line** of
+>    "How we'll know it's wrong", so the decision stays optional and **the owner flag is withdrawn**.
+>    The 35, as a partition: **18** are 2021-12-31 periods whose reports fall on 8 sessions of early 2022 for which the
+>    DoltHub calendar has no row for any company (2022-01-18, 2022-01-24 to 01-28, 2022-02-10 and 02-11; one of them
+>    is GS's); of the other 17, **COST 7** (its February quarters: the calendar has none of its March reports),
+>    **GS 2** (2024-06-30, 2024-12-31), **AVGO 2** (2022-04-30, 2023-04-30), **PLTR 2** (2020-03-31 and 06-30, before
+>    its 2020-09-30 listing; without them, 33 / 1,357 = 2.43%) and **one each for ANET, MS, PG and WMT**.
+>    *Revised after the delta review:* this said "GS 3", which counted GS's 2021-12-31 period twice. The counts are
+>    unchanged by the delta review's two fixes to the match (§3), re-measured.
+>    - *Revised after the milestone-1 review* ([ledger](../validation/m1-ledger.md), claims 5a–5b). This note first
+>      said 43 orphans against 1,316 matched, 3.16%, and flagged the decision for the owner. That count came from the
+>      first window (10 to 100 days after the period end): it made 8 false orphans (ORCL ×5, COST ×2, CSCO ×1, whose
+>      reports came 8–9 days after a month-end) and gave every COST February period the May event.
+>    Also found: one duplicate (BRK.B has a Friday 2024-11-01 row with no label next to the real Saturday 2024-11-02
+>    release), and BRK.B's labels are NULL on 19 of 29 rows (Berkshire reports on Saturdays; mostly Friday rows).
+>    *Revised after the delta review:* the duplicate is now excluded as `duplicate_row` before the EPS match (§3,
+>    "Duplicate calendar rows"). Until then the 2024-09-30 period was linked to it, the nearer row (lag 32 against
+>    33), so the sampled release had no EPS.
+> 4. **"The snapshot is the close", widened from one event to every after-close event of the daily era**
+>    (`src/earnings_vol/measures/snapshot_close.py`; Yahoo closes, local only; only these summaries are published):
+>    224 after-close events with D from 2024-09-11 on; 211 had a parity spot (4-strike forward of the shortest
+>    expiry with at least 5 sessions, plus the present value of dividends before it).
+>    - **The level test of "How we'll know it's wrong" trips as written.** Median |ln(S/Close_D)| is 11.2 bp on AMC
+>      days against 6.3 bp on 24,514 ordinary company-days (no event within D−1 … next(D)+1); the difference, 4.9 bp,
+>      has a bootstrap 95% interval of 3.0 to 7.4 bp, which excludes zero.
+>    - **The direction test says there is no after-hours leak.** If the snapshot were taken after the news, ln(S/Close_D)
+>      would move with the next morning's gap ln(Open_{D+1}/Close_D), whose median size on these days is 594 bp. The
+>      slope is 0.0018 (SE 0.0030, correlation 0.04, n = 211): at most about 0.8% of the overnight move (upper 95%
+>      bound) shows up in the snapshot. Large deviations are rarer on AMC days than on ordinary days (1.4% against 6.7%
+>      above 1%).
+>    - Reading: the snapshots are closing quotes, and quotes are wider into a release (Context, item 3), which makes the
+>      parity spot noisier on AMC days. §2 is **not** changed. Because the rule as written fires, **this is flagged for
+>      the owner**: either accept the direction test as the criterion (and amend this bullet), or treat the level test
+>      as a failure.
+> 5. **The stale-copy evidence, widened.** Over the 50 companies, 2,649 option snapshots fall on non-session days.
+>    2,101 of them map to a session that has its own snapshot and were dropped as `stale_copy`: **1,905 are exact
+>    copies** of that session's snapshot (the same quotes, row for row; AAPL's Labor Day 2024 quotes have the same
+>    digest as Friday 2024-08-30's), and **196 share its quotes but differ in their row set** (most on 2022-01-17,
+>    2022-06-20, 2026-05-25 and 2024-01-15). The other **548 are kept as the only snapshot of their session**
+>    (all before 2024-09-11, 410 of them dated on a Friday holiday such as Good Friday). No weekday snapshot
+>    repeated the previous one exactly (`stale_repeat` = 0 of 57,749 observed company-sessions).
+>    - *Revised after the milestone-1 review* (claim 7): this said the 2,101 were all copies; 196 are not exact
+>      copies. Dropping them is still right, because the session they map to has its own snapshot.
+
+> **Revised after the milestone-1 review** ([ledger](../validation/m1-ledger.md)), 2026-10-29.
+>
+> 1. **Refuted (claim 5a, material): "the 10–100-day window assigns each period its own announcement".** Period ends
+>    are month-end normalised, so a report can come before the stored end (Costco) or under 10 days after it
+>    (Oracle, Cisco). **Changed:** §3, "Missing events are detected": the window starts on the first day of the
+>    period end's month, and periods and events are paired one-to-one, in order, nearest in total. The orphan rate
+>    is 2.58%, not 3.16%, and the owner flag of milestone-1 note 3 is withdrawn. The primary funnel ends at 350
+>    events, not 348.
+> 2. **Refuted (claim 3b): the build invariant's sentence and the code disagreed on 29 events.** **Changed:** §3,
+>    "Build invariant", is scoped to events that can enter a sample, which is what the code checks, with the reason.
+> 3. **Defects in the press-release record (claim 3d).** **Changed:** a fourth basis, `announced_time`, and a
+>    `source_kind` column (§3, "How a press release is read", "The record"); JPM's and PM's times are their wire
+>    time stamps (06:55, 06:59), and URLs to third-party re-hosts were replaced where a company or newswire page was
+>    found.
+> 4. **Wording.** Note 5 now separates exact copies from snapshots that only share quotes (claim 7). Current-state
+>    passages that still called the EDGAR rule "proposed" now say it was accepted 2026-10-28 and is gated on the
+>    owner's contact string; the dated history notes above are left as they were. Context item 3 no longer quotes
+>    Yahoo prices.
+
+> **Revised after the milestone-1 delta review** ([ledger](../validation/m1-delta-ledger.md)), 2026-10-29.
+>
+> 1. **Refuted (claim 1a): a duplicate calendar row took the EPS link.** BRK.B's Friday 2024-11-01 row (no label)
+>    sits one day before its Saturday 2024-11-02 release, and min-total-|lag| gave the 2024-09-30 period the nearer
+>    row. **Changed:** §3, "Duplicate calendar rows": rows of one security within 14 days of each other are one
+>    release; the row with the strongest timing evidence is kept and the others are excluded as `duplicate_row`
+>    before the match. Now 2024-09-30 is linked to 2024-11-02 (lag 33).
+> 2. **Refuted (claim 1b): "a whole chain never shifts by a quarter to gain a link, because every shifted link costs
+>    about 90 days more".** That held only while every lag was under about 45 days. With the window opening on the
+>    first of the month, a report 60–73 days late was inside the next period's window, and the minimum total moved
+>    it there (the review's shapes S1, S2 and S4). **Changed:** §3, "The window": it opens 14 days after the first
+>    of the period end's month, so a link can move only from 74 days late; the sentence is replaced by the exact
+>    condition. No count of the real data changed (no link is longer than 59 days).
+> 3. **The record (claim 8):** NFLX's and JPM's URLs pointed to a pre-announcement and a call announcement; they now
+>    point to the results (Netflix's letter to shareholders, JPMorgan Chase's earnings release). A `time_source`
+>    column holds the page each stored time was read on (§3, "The record").
+
 ## In one paragraph
 
 Event time is counted in NYSE sessions. **Day 0 is the first session whose *closing* option snapshot was taken
@@ -109,8 +224,9 @@ after the announcement.** For a before-market-open (BMO) report that is the anno
 after-market-close (AMC) report it is the next session. Day −1 is the last session whose closing snapshot came
 *before* the news, so the crush is `X(0) − X(−1)` for any IV measure `X`. The calendar's timing label is checked
 against **documents**. By default that is the company's press release, looked up for every event in the `daily` and
-`mixed` samples. Using the acceptance time of the company's SEC 8-K earnings filing (Item 2.02) instead is
-**proposed, pending the owner's decision** (see Status). The label is never checked against IV, because that would
+`mixed` samples. Using the acceptance time of the company's SEC 8-K earnings filing (Item 2.02) instead was
+**accepted 2026-10-28, gated on the owner's contact string** (see Status); until that string is set, the press
+release decides. The label is never checked against IV, because that would
 be circular. It is never *decided* by the stock's price move either, because big moves make price evidence strong,
 and a rule driven by them corrects and keeps big movers selectively. The overnight price gap stays as a local
 diagnostic. No event is dropped because of how much its stock moved. Two move-dependent steps remain (§3), and
@@ -143,8 +259,8 @@ There is no "during market" value. For 30 large S&P 500 names (2020 → 2026, 78
 
 | Finding | Evidence |
 |---|---|
-| GOOGL 2024-10-29 is labelled BMO; Alphabet reported after the close | Overnight gap into 10-29: +0.61%. Overnight gap into 10-30: **+6.48%** (official open 180.68 against the official close of 169.68). |
-| NFLX 2024-10-17 is labelled BMO; Netflix reported after the close | Gap into 10-17: +0.33%. Gap into 10-18: **+7.27%** (split-adjusted prices). |
+| GOOGL 2024-10-29 is labelled BMO; Alphabet reported after the close | Overnight gap into 10-29: under 1%. Overnight gap into 10-30: **over 6%** (the official open against the previous official close; Yahoo values, so only their size is given, 2026-10-29). |
+| NFLX 2024-10-17 is labelled BMO; Netflix reported after the close | Gap into 10-17: under 1%. Gap into 10-18: **over 7%** (split-adjusted Yahoo prices; only their size is given, 2026-10-29). |
 | ADBE 2020-12-10 and 2021-12-16 are labelled BMO | Adobe reports after the close; not price-checked (outside the daily sample). |
 | GS has no calendar row for July 2024 or January 2025 | The calendar jumps 2024-04-15 → 2024-10-15 → 2025-04-14, yet `eps_history` has GS periods 2024-06-30 and 2024-12-31. |
 | COST has 20 rows where 27 are expected | Gaps of 113–114 sessions between events. Costco's 16-week Q4 explains gaps of about 82 sessions, but not 113–114. |
@@ -160,10 +276,11 @@ says each snapshot shows the **closing market of the session named in `date`**:
    New York time. The scrape therefore happens some time after D's close.
 2. *The forward matches the close.* AAPL on 2025-10-31: the put-call-parity forward from four near-the-money
    strikes of the 2025-11-14 expiry is 270.543 to 270.555. Remove 14 days of carry at 3.9% and the $0.26 dividend
-   (ex-date 2025-11-10), and the implied spot is ≈ 270.41. The official close was 270.37.
+   (ex-date 2025-11-10), and the implied spot is ≈ 270.41, within a few cents of the official close.
 3. *After-hours prices were not used on an AMC day.* On 2025-10-30 Apple reported after the close. The vendor
-   deltas on that snapshot imply a spot of ≈ 270.9. The official close was 271.40, and the next morning's official
-   open was 276.99.
+   deltas on that snapshot imply a spot of ≈ 270.9, within a fraction of a percent of the official close and far
+   below the next morning's official open. *(Edited 2026-10-29: the official prices are no longer quoted here;
+   they are Yahoo values, which the repository does not publish.)*
    Quotes were also visibly wider into the release: the 262.5 call was 10.85/13.35 on 10-30, against 11.20/11.70
    the day before and 10.05/10.20 the day after. That is what closing quotes into an after-close release look like.
 4. *Non-session dates are stale copies.* `volatility_history` on Labor Day 2024 (2024-09-02) repeats AAPL's
@@ -223,8 +340,8 @@ Worked cases. These become the oracle table for `events.day0()`:
 | hypothetical | Wed 2025-11-26 | AMC | 2025-11-26 | Fri 2025-11-28 | Thanksgiving skipped; day 0 is a 13:00 half session |
 | hypothetical | Thu 2025-07-03 (half day) | AMC | 2025-07-03 | Mon 2025-07-07 | 07-04 holiday |
 | hypothetical | Sat 2025-05-03 | any | Fri 2025-05-02 | Mon 2025-05-05 | weekend release |
-| GOOGL Q3 2024 | Tue 2024-10-29 | BMO (calendar); AMC per the 8-K (proposed source) and the price gap | 2024-10-29 | Wed 2024-10-30 | 8-K accepted 16:01 ET (measured, §3). Under the default the press release decides; it is not yet looked up. |
-| NFLX Q3 2024 | Thu 2024-10-17 | BMO (calendar); AMC per the 8-K (proposed source) and the price gap | 2024-10-17 | Fri 2024-10-18 | 8-K accepted 16:01 ET (measured, §3). Under the default the press release decides; it is not yet looked up. |
+| GOOGL Q3 2024 | Tue 2024-10-29 | BMO (calendar); AMC per the 8-K and the price gap | 2024-10-29 | Wed 2024-10-30 | 8-K accepted 16:01 ET (measured, §3). Press release looked up 2026-10-29: call at 13:30 PT, after the close, so `corrected` to AMC. |
+| NFLX Q3 2024 | Thu 2024-10-17 | BMO (calendar); AMC per the 8-K and the price gap | 2024-10-17 | Fri 2024-10-18 | 8-K accepted 16:01 ET (measured, §3). Press release looked up 2026-10-29: results at about 13:00 PT (16:00 ET), so `corrected` to AMC. |
 
 `rel_day` counts sessions from day 0. It is negative before and positive after. There is no day "−0".
 
@@ -252,8 +369,8 @@ never excludes an event.**
 
 **Sources, in order:**
 
-*Source 1 is Proposed: pending owner decision (status note at the top). Until the owner approves it, sources 2 and 3
-are the chain, applied as "The default rule" below.*
+*Source 1 was accepted by the owner on 2026-10-28 and runs once the owner's contact string is set (milestone-1 note).
+Until then sources 2 and 3 are the chain, applied as "The default rule" below.*
 
 1. **SEC EDGAR, Form 8-K Item 2.02 ("Results of Operations"), acceptance time.**
    - EDGAR is US-government public data, with licence class U (data model §2.1).
@@ -278,7 +395,7 @@ are the chain, applied as "The default rule" below.*
        (below).
 2. **The company's press release (hand look-up).** Under the default rule (below) it is read for every event that
    can fall in `daily` or `mixed`, for every NULL-label event, and for `coarse` events the gap flags. Under the
-   proposed EDGAR rule it is used when:
+   EDGAR rule (accepted 2026-10-28, gated on the owner's contact string) it is used when:
    - EDGAR contradicts the calendar label;
    - EDGAR says `during_session`;
    - no matching 8-K exists;
@@ -287,13 +404,13 @@ are the chain, applied as "The default rule" below.*
    The release decides, read as "How a press release is read" below says.
 3. **The calendar label** (`earnings_calendar.when`). It is the label of last resort when a look-up finds no
    document (`no_document`), and, in the `coarse` sample only, the label of an event nobody looked up
-   (`not_checked`). Under the proposed EDGAR rule it is also used when EDGAR agrees with it.
+   (`not_checked`). Under the EDGAR rule it is also used when EDGAR agrees with it.
 
 | Situation | Status | Label used | Kept in its sample? |
 |---|---|---|---|
-| A document agrees with the calendar label (the press release; the 8-K under the proposed EDGAR rule) | `confirmed` | the label | yes |
-| A document contradicts the label (under the proposed EDGAR rule: the 8-K, with the press release agreeing) | `corrected` | the document's | yes |
-| *Proposed EDGAR rule only:* the 8-K contradicts the label, but the press release agrees with the label | `confirmed` (`timing_source = press_release`) | the label | yes. Counted as an EDGAR timing error in the milestone-1 check. |
+| A document agrees with the calendar label (the press release; the 8-K under the EDGAR rule) | `confirmed` | the label | yes |
+| A document contradicts the label (under the EDGAR rule: the 8-K, with the press release agreeing) | `corrected` | the document's | yes |
+| *EDGAR rule only:* the 8-K contradicts the label, but the press release agrees with the label | `confirmed` (`timing_source = press_release`) | the label | yes. Counted as an EDGAR timing error in the milestone-1 check. |
 | The label is NULL, and a document gives the timing | `inferred` | the document's | yes |
 | The documents put the announcement on another date | `date_corrected` | the documents' date and timing | yes |
 | Looked up, no document found; a label is given | `no_document` | the label | yes |
@@ -317,32 +434,51 @@ not be checked, the second one whose label nobody tried to check.
   `date_suspect` exclusion is gone. A date the price diagnostic doubts is checked against the documents and then
   kept, either confirmed or corrected.
 
-**The default rule (no EDGAR; it applies until the owner decides).** *Rewritten after the delta review*
+**The default rule (no EDGAR; it applies until the owner's contact string is set).** *Rewritten after the delta review*
 ([delta ledger](../validation/m0-delta-ledger.md) 4b, 4c, N1, N7).
 
 - **Who is looked up.**
   - **Every event whose calendar date D is on or after 2024-09-11.** That is every event that can land in `mixed`
     or `daily` under either timing (ADR 0004 §5). Its release is looked up whatever the gap says.
-  - **Every event with a NULL label** whose D falls in any sample's date range (ADR 0004 §5), `coarse` included.
-    Without a label there is nothing for the gap to contradict, so no trigger could decide.
+  - **Every event with a NULL label** that can enter a sample: one of its candidate day-0 sessions, D or next(D),
+    falls in any sample's date range (ADR 0004 §5), `coarse` included. Without a label there is nothing for the gap
+    to contradict, so no trigger could decide.
   - **A labelled event with D before 2024-09-11** only when the gap contradicts its label or the nearby-session flag
     fires (the diagnostic below). The others keep the calendar label as `not_checked`. In practice these are the
     `coarse` events.
-  - **Build invariant** (tested at milestone 1; *one statement, revised after the delta-2 review, claim 3*): `not_checked` is allowed only for an event with `announce_date` before 2024-09-11, a non-NULL label and no gap trigger; any other `not_checked` event is a build error. Labelled events with `announce_date` in the 10 sessions before 2024-09-11 are looked up too, because a wrong label or date can move their day 0 into `mixed`. The `events` layer stops with an error otherwise, so a half-done
-    set of look-ups can never reach the tests or the export.
+  - **Build invariant** (tested at milestone 1; *one statement, revised after the delta-2 review, claim 3, and
+    scoped after the milestone-1 review, claim 3b*): **for an event that can enter a sample**, one whose candidate
+    day 0, D (if D is a session) or next(D), lies in a sample's date range (ADR 0004 §5), `not_checked` is allowed
+    only with `announce_date` more than 10 sessions before 2024-09-11, a non-NULL label and no gap trigger; any other
+    `not_checked` event that can enter a sample is a build error. Labelled events with `announce_date` in the 10
+    sessions before 2024-09-11 are looked up because a wrong label or date can move their day 0 into `mixed`.
+    - *Why the scope.* A look-up matters only through day 0 and the sample. An event that no timing can put in a
+      sample never reaches a test or the export: at milestone 1 these are 28 dates scheduled after the data end
+      (2026-10-26), whose releases do not exist yet, and 1 NULL-label event of March 2020, before the `coarse`
+      sample starts. The unscoped sentence called those 29 build errors, while the code never did (the milestone-1
+      review measured 482 against 453). The code (`timing.can_enter_sample`, `timing.lookup_reasons`) and this
+      sentence now say the same thing.
+    - The `events` layer stops with an error otherwise, so a half-done set of look-ups can never reach the tests or
+      the export.
 - **How a press release is read.** The company's own release for the quarter, from its investor-relations page or
   the newswire copy it links to. The timing comes from, in order of preference:
-  1. the release's time stamp;
-  2. the release's own words ("after the market close");
-  3. the earnings-call time it announces.
+  1. the release's time stamp (`time_stamp`);
+  2. the release's own words, "after the market close" (`release_text`);
+  3. the release time the company announced beforehand (`announced_time`; *added after the milestone-1 review*,
+     which found such times recorded as call times);
+  4. the earnings-call time it announces (`call_time`).
 
   Before 09:30 New York time on a session: BMO on that session. At or after 16:00 (13:00 on a half day): AMC.
   *Added after the delta review:* a time in between, which is rare, gives day 0 = D, because D's close follows the
   news. It is stored as `BMO`, which maps to the same day 0, and the record keeps the time. A release on a
-  non-session day gives day 0 = the next session (§2). The basis used (1, 2 or 3) is recorded.
+  non-session day gives day 0 = the next session (§2). The basis used is recorded, and it says what the stored time
+  is: a time is stored only with `time_stamp` or `announced_time`, and the parser refuses any other pairing.
 - **The record.** Each look-up is one row of a committed, hand-maintained file, `data/manual/press_release_checks.csv`
-  (data model §1.3). The row holds the event, whether a release was found, its date and time, the basis, the URL
-  and the date of the look-up. The `events` layer reads it; an event with no row is `not_checked`. Anyone can then
+  (data model §1.3). The row holds the event, whether a release was found, its date and time, the basis, the URL,
+  what kind of source the URL is (`source_kind`: `company`, `newswire`, or `aggregator` for a third-party re-host,
+  kept only where neither of the others could be found), the page on which the stored time was read (`time_source`,
+  *added after the delta review*: the URL itself when that page shows the time; required with a time and only with
+  one) and the date of the look-up. The `events` layer reads it; an event with no row is `not_checked`. Anyone can then
   re-check any hand label. The old rule's look-ups could not offer that, because their trigger was local Yahoo data.
 - **The gap re-checks the reading, blind.** When the gap contradicts a press-release label, or the nearby-session flag
   fires, the release is read again by a reader who sees neither the gap's side nor the first reading. The label
@@ -439,14 +575,14 @@ A separate flag marks a session in [D−3, D+4], other than the candidates, with
 These are the first version's thresholds. They now do three jobs:
 
 1. **Re-check of a document label.** Under the default, a gap that contradicts a press-release label triggers one
-   more reading of the release (above). Under the proposed EDGAR rule, a gap that contradicts the 8-K's label
+   more reading of the release (above). Under the EDGAR rule, a gap that contradicts the 8-K's label
    triggers a press-release check, and an EDGAR error found that way is corrected and counted.
    - *This is the one move-dependent step left wherever every event has a document* (second review). The gap can
      only contradict a label when the stock moved, so document errors are found more often among big movers.
    - It is kept because it fixes real errors. **No audit bounds it.** *Revised after the delta review (4c):* this
      used to say that its effect "is bounded by EDGAR's own error rate, which the stratified audit below measures per
      |r₀| tercile". At 17 events per tercile the audit cannot measure a rate of a few percent. Its size is limited
-     by the misreading rate under the default, and by EDGAR's error rate under the proposed rule. Neither is known.
+     by the misreading rate under the default, and by EDGAR's error rate under the EDGAR rule. Neither is known.
    - Its effect is measured directly instead. The report gives the primary results with these corrections, and as a
      sensitivity analysis without them. If the two differ by more than the primary estimate's standard error, the
      difference is reported as a finding.
@@ -476,7 +612,7 @@ These are the first version's thresholds. They now do three jobs:
    - The mean crush may trend for real reasons: bigger moves come with bigger event variance. It is reported, but it
      is not a test of label quality.
 
-**Milestone-1 check of the EDGAR rule** (only if the owner approves EDGAR). On the daily sample:
+**Milestone-1 check of the EDGAR rule** (it runs once the owner's contact string is set). On the daily sample:
 
 - **Coverage:** at least 95% of events have an Item 2.02 8-K on D−1…D+1.
 - **Agreement:** every disagreement with the calendar label is hand-checked.
@@ -497,26 +633,76 @@ Three design points that matter:
     of the `not_contradicted` rule alone, but false of the rule as a whole: the `date_suspect` exclusion and the
     price-triggered corrections both selected on move size.
   - Where every event has a document, one move-dependent step remains: a gap contradiction can *trigger* a second
-    reading (default) or a press-release check (proposed EDGAR rule) that corrects a document error (job 1 above).
+    reading (default) or a press-release check (EDGAR rule) that corrects a document error (job 1 above).
     *Revised after the delta review (4c):* this said "its size is bounded and measured". It is measured, by the
     sensitivity analysis without those corrections, but no audit bounds it. It is not claimed to be zero. The
     `coarse` sample keeps a larger step, whose simulated size is stated under "The default rule".
   - Whether a release is found could itself depend on the event. The funnel reports `no_document` and `ambiguous` by
     `abs_move_cand_max` tercile (job 3).
-  - *Under the proposed EDGAR rule:* whether a filing exists, or is late, could depend on the event too. In the three
+  - *Under the EDGAR rule:* whether a filing exists, or is late, could depend on the event too. In the three
     securities checked, no 8-K was late or missing, but nobody has measured whether lateness relates to the move. The
     milestone-1 coverage check would report missing and late (acceptance after D+1) filings by `abs_move_cand_max`
     tercile.
-- **Missing events are detected, not invented.** An `eps_history` period with no calendar event *of its own* 10 to
-  100 days after its period end (GS 2024-06-30 and 2024-12-31 are examples) is an **orphan period**. "Of its own"
-  matters in one edge case. If a later period's match claims the first event in the window, this period's event is
-  the one that is missing, and this period is an orphan. A period that finds no event, is not such a tie loser, and has a
-  window starting before the calendar does (the calendar starts 2020-01-22) is `pre_calendar`, not an orphan. That
-  can only happen to periods ending on or before 2019-12-31. Its event was not missed; the
-  calendar simply does not reach back that far. Both kinds of zone, period end + 10 to + 60 sessions, are marked as
-  contaminated for neighbouring events' baselines (ADR 0004).
+- **Missing events are detected, not invented.** *Rewritten after the milestone-1 review* ([ledger](../validation/m1-ledger.md),
+  claims 5a–5b). Each `eps_history` period is linked to the calendar event that announced it, in two steps.
+  - **The window.** `eps_history` stores each period end as the last day of the month the quarter ended in
+    (Costco's quarter that ended on Sunday 2025-05-11 is stored as 2025-05-31). The true end is therefore no
+    earlier than the first day of that month, and a report comes after the true end. So a period can take an event
+    from **14 days after the first day of its period end's month** to **100 days after the stored end**
+    (`params.yaml`: `window_start: month_start+14`).
+    - *Why 14 days.* Over the 1,324 links, the earliest report comes 24 days after the first of its month
+      (Costco's 2023-05-25 report of its quarter stored as 2023-05-31; the next earliest is Oracle at 36), so 14
+      days leaves 10 days of margin. The 14 days are what stop a long lag from moving a link (below): a report
+      must be at least 74 days late to fall in the next period's window. From +0 to +21 days the real counts do
+      not change (milestone 1 §6.5).
+    - *History.* The first version's window started 10 days after the stored end. It missed Oracle's and Cisco's
+      reports 8–9 days after a month-end and Costco's reports inside the same month, and so made 8 false orphans and
+      8 links to the next quarter's report (every Costco February period took the May event). *Revised after the
+      delta review:* the window then opened on the first of the month itself, which let a report 60–73 days late
+      into the next period's window (below).
+  - **The assignment.** Periods and events are paired **one-to-one and in order** (a later period never gets an
+    earlier event), choosing the pairing with the smallest total distance, where a link costs |lag| days and a
+    period left without an event costs 101 days (`lag_max_days` + 1), more than any link it could have had. 101 is
+    derived, not a parameter: it is the smallest cost that never gives a link up for nothing, and a larger one would
+    only pull harder towards extra links. When one report is missing, the remaining event goes to the period it is
+    nearest to, and the period whose report is missing is the **orphan**. Costco's 2025-02-28 period (its March
+    report is absent from the calendar) does not take 2025-05-29 (lag 90) from the 2025-05-31 period (lag −2).
+  - **When a link can still move to another period.** *Rewritten after the delta review* (claim 1b). The first
+    revision said "a whole chain never shifts by a quarter to gain a link, because every shifted link costs about 90
+    days more". That is false for long lags: moving a report of lag L to the next period changes its cost from L to
+    about 91 − L, which is cheaper once L passes about 45 days. What is true now:
+    - A link can move to the **next** period only when its report lies in that period's window, i.e. **at least 74
+      days after its own stored end** (60 days to the first of the month two months on for a December or January
+      end, 61–63 otherwise, plus the 14; so 74–77 days). Below that, no pairing can move it.
+    - From there, the minimum total moves it whenever the next period's own report is missing, and also when that
+      report is present but the late lag is long enough: from 81–82 days when the next report comes 30 days after
+      its period. A run of such reports shifts as a chain.
+    - A move to the **previous** period never lowers the total, unless a second calendar row of the same release
+      sits within about 10 days of it: hence duplicate rows are removed first (below).
+    - On the real data the longest lag is 59 days (Berkshire's Q4), so no link is near the 74-day line. These
+      statements are checked by tests (`test_a_link_moves_to_the_next_period_only_from_74_days_late`, the delta
+      review's shapes S1, S2, S4) and, for the last two, by 30,000 random chains each (0 wrong links with every lag
+      at most 73 days; 0 backward moves with lags up to 100).
+  - **Duplicate calendar rows.** *Added after the delta review* (claim 1a; note 3 above). Calendar rows of one
+    security whose dates in use lie within **14 days** of each other (`eps_match.duplicate_within_days`) are one
+    release; two real releases of one company are at least 63 days apart in the data. The row with the strongest
+    timing evidence is the release: a press-release (or EDGAR) reading beats a calendar label, which beats nothing.
+    If two rows tie, the build stops, because which one is the release is then a look-up's to decide. Every other
+    row of the group is excluded as **`duplicate_row`**, the first exclusion reason (data model §3.7). It is never
+    linked to an EPS period, and it has **no zone of its own** in other events' baselines: its release's zone is the
+    kept row's (ADR 0004 §1). It stays in the `events` table and its prev/next chain, which list calendar rows, and
+    it still counts as a required look-up while it is `not_checked` (a look-up of it would settle which row is the
+    release). The data hold one: BRK.B 2024-11-01 (Friday, no label) beside the 2024-11-02 release (Saturday, BMO).
+  - **Orphan or pre-calendar.** A period left without an event is an orphan (GS 2024-06-30 and 2024-12-31 are
+    examples), unless its window starts before the calendar does (2020-01-22) **and** holds no event at all; then
+    it is `pre_calendar`. That can only happen to periods ending on or before 2020-01-31. Its event was not missed;
+    the calendar simply does not reach back that far. A period whose window holds an event that went to another
+    period is an orphan even then: its own event is the one missing.
+  - Both kinds of zone, period end + 10 to + 60 sessions, are marked as contaminated for neighbouring events'
+    baselines (ADR 0004). The sensitivity of the counts to the window's lower bound is in milestone 1 §6.5.
   Recovering the missing date from a second source is a **milestone-1 decision for the owner**.
-  - EDGAR's Item 2.02 8-Ks would be the obvious candidate if the owner approves EDGAR, being public domain (not
+  - EDGAR's Item 2.02 8-Ks are the obvious candidate once EDGAR runs (accepted 2026-10-28, gated on the owner's
+    contact string), being public domain (not
     checked for GS).
   - Under the default, the press-release look-up of a neighbouring period can supply the date by hand.
   - Yahoo's earnings-dates endpoint would make some event dates Yahoo-derived facts.
@@ -555,7 +741,7 @@ $$
   convention is the same for BMO and AMC, so mixing them does not smear the crush across two days.
 - Good: label errors like GOOGL and NFLX 2024 are caught by a source that depends neither on the variable being
   studied (IV) nor on the size of the move. Under the default, the press release of every `daily` and `mixed` event
-  is read. Under the proposed EDGAR rule, EDGAR timestamps would resolve both from the filing alone (measured for
+  is read. Under the EDGAR rule, EDGAR timestamps would resolve both from the filing alone (measured for
   these two, §3).
 - Good: under the default, the label of every `daily` and `mixed` event that has a release is a document fact. So the
   calendar's own errors no longer differ in accuracy between quiet events and big movers.
@@ -568,7 +754,7 @@ $$
   - Under the default, a gap contradiction decides which labels get a second reading, and in `coarse` which events
     are looked up at all. The status then encodes one Yahoo-derived bit per event, so it is class F, as before: the
     label is still a document fact, and no Yahoo value can be recovered from it.
-  - *Under the proposed EDGAR rule* (only if approved), `timing_used` and `timing_status` would come from the DoltHub
+  - *Under the EDGAR rule* (once the contact string is set), `timing_used` and `timing_status` would come from the DoltHub
     calendar, EDGAR (US-government public data) and hand-checked press releases, with no Yahoo value in them: **class
     U** (data model §2.1). That holds only if job 1's gap-triggered check is dropped (delta revision note, item 9).
   - The gap values themselves (`timing_check`, all `_yf`) stay local in every case.
@@ -576,7 +762,7 @@ $$
   simulation), plus the `coarse` sample's gap-triggered and NULL-label look-ups. The old default needed 58.8–79.2
   per 365 events. Each look-up is a row of a committed file. The time per look-up is not yet measured; milestone 1
   times the first 20.
-- Cost, *under the proposed EDGAR rule* (only if approved): EDGAR becomes an input of the `events` layer. That means
+- Cost, *under the EDGAR rule* (once the contact string is set): EDGAR becomes an input of the `events` layer. That means
   one extra fetch per security and a parser for its JSON, pinned and cached like the Dolt reads (ADR 0001). Then a
   hand check for every disagreement, every `during_session` filing and every event without an 8-K, plus a 50-event
   audit. At about 365 primary events and a 3% label-error rate, that is a few dozen press releases.
@@ -596,7 +782,7 @@ $$
 | Let the price gap correct labels and exclude `date_suspect` events (the milestone-0 rule) | Selection and differential mislabelling by move size, measured by the review (§3): exclusion 9.2% against 0.4%, wrong day 0 among kept events 6.8% against 0.4%, lowest against highest \|move\| tercile. | No documentary timing source exists, and then only as in the `coarse` sample of §3, where a gap only *triggers* a look-up. |
 | Use the calendar label for every event, with no check | Uniform across move sizes, but it keeps known errors such as GOOGL and NFLX 2024 inside the daily sample. | Documents unavailable *and* hand checks unaffordable. |
 | Keep the old default for `daily` and `mixed`: gap-triggered look-ups, every NULL looked up, a 17/17/16 audit (route (b); added after the delta review) | It leaves a measured selection on the move, a wrong day 0 in 2.1–2.6% of quiet events against 0.3–0.6% of big movers (`d4`), that no audit of practical size can bound. Kept for `coarse` only. | Milestone 1 measures the look-ups as too costly for about 415 events, and the owner switches before any IV measure is computed (§3). |
-| *Under the proposed EDGAR rule:* hand-check every event's press release | About 365 manual look-ups for the primary sample alone, while EDGAR gives the same fact mechanically. **Under the default it is the rule** (§3). *Revised after the delta review (N1):* the row used to reject it outright, but its reason, EDGAR, disappears if the owner declines EDGAR. | EDGAR fails its milestone-1 check, and then it is the rule anyway. |
+| *Under the EDGAR rule:* hand-check every event's press release | About 365 manual look-ups for the primary sample alone, while EDGAR gives the same fact mechanically. **Under the default it is the rule** (§3). *Revised after the delta review (N1):* the row used to reject it outright, but its reason, EDGAR, disappears if the owner declines EDGAR. | EDGAR fails its milestone-1 check, and then it is the rule anyway. |
 | Treat a holiday snapshot as a session | It is a stale copy of the previous session. It would add a fake "zero change" day and break session counting. | Never. |
 
 ## How we'll know it's wrong
@@ -608,7 +794,8 @@ $$
 - **The mean IV path has its biggest one-day drop on day +1, not day 0**, for either the BMO or the AMC subsample.
   This check uses IV, but it is *after* the fact and is not used to assign labels. It means the convention or the
   snapshot timing is off for that subsample.
-- *Only if the owner approves EDGAR:* **EDGAR fails its milestone-1 check** (§3): coverage below 95%, or more than
+- *Once EDGAR runs (accepted 2026-10-28, gated on the owner's contact string):* **EDGAR fails its milestone-1
+  check** (§3): coverage below 95%, or more than
   one error in the 50-event audit. Then the default rule of §3 applies, and this ADR says so. (*Revised after the
   delta review:* "audit errors concentrated in one |r₀| tercile" is dropped, because 17 events per tercile cannot
   show it.)

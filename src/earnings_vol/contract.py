@@ -19,7 +19,10 @@
 import json
 from datetime import datetime, timezone
 
-SCHEMA_VERSION = "0.1.0"
+# 0.2.0 (milestone 1): meta.json gained sample, params, files and provenance,
+# and sample_funnel.json is new. The version covers the whole contract, so
+# every file moves to it together (ADR 0001 §4).
+SCHEMA_VERSION = "0.2.0"
 
 # The largest whole number that a JavaScript number (a 64-bit float) holds
 # exactly: 2**53 - 1. Above it, JSON.parse silently rounds an integer to the

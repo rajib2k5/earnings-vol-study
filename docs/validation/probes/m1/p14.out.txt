@@ -1,0 +1,10 @@
+rows 499; ranked 497; in_universe 50; ranks of the 50: [1, 2, 3]..[48, 49, 50]
+unranked constituents: ['SKYD', 'VYLR']
+VX names: [{'security_id': 'AAPL', 'universe_rank': 2.0, 'cboe_vx_index': 'VXAPL'}, {'security_id': 'AMZN', 'universe_rank': 5.0, 'cboe_vx_index': 'VXAZN'}, {'security_id': 'GOOGL', 'universe_rank': 3.0, 'cboe_vx_index': 'VXGOG'}, {'security_id': 'GS', 'universe_rank': 42.0, 'cboe_vx_index': 'VXGS'}, {'security_id': 'IBM', 'universe_rank': 48.0, 'cboe_vx_index': 'VXIBM'}]
+aliases that are not the identity: [{'ticker': 'FB', 'valid_from': datetime.date(2012, 5, 18), 'valid_to': datetime.date(2022, 6, 8), 'security_id': 'META'}, {'ticker': 'UTX', 'valid_from': datetime.date(2016, 1, 1), 'valid_to': datetime.date(2020, 4, 2), 'security_id': 'RTX'}]
+share classes dropped by params: ('GOOG', 'BRK.A', 'FOX', 'NWS') ; any of them in security: []
+universe companies whose calendar starts after 2020-04: {'COST': '2020-05-28', 'PLTR': '2020-11-12'}
+  COST starts 2020-05-28: tickers whose rows end in the 200 days before: ['AGN', 'APY', 'AVH', 'AXE', 'BGG', 'CARO', 'CSFL', 'CVTI', 'CY', 'ELGX', 'EQM', 'ERI', 'FNJN', 'GNC', 'I', 'IBKC', 'INNT', 'JCP', 'KEM', 'MCC', 'MFSF', 'MINI', 'MLNX', 'NGHC', 'PTLA'] ... (34)
+  PLTR starts 2020-11-12: tickers whose rows end in the 200 days before: ['AAXN', 'ADRO', 'ADSW', 'AFI', 'AGN', 'AIMT', 'AKCA', 'AMAG', 'AMTD', 'APY', 'ARA', 'AVH', 'AXE', 'BBX', 'BDGE', 'BFYT', 'BGG', 'BITA', 'BMCH', 'BPFH', 'BREW', 'BROG', 'CARO', 'CBMG', 'CCR'] ... (144)
+P1: 4 NULL of 417 rows = 0.9592%: ['BRK.B:2024-11-01', 'BRK.B:2025-02-28', 'BRK.B:2026-02-27', 'WFC:2024-10-11']
+P1 over the daily sample by day 0: 2 of 368; all rows: 37 of 1353 = 2.7347%

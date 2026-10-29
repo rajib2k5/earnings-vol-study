@@ -1,0 +1,11 @@
+docs/milestones/01-universe-and-events.md:273: 2.58% == MRK.pct% on 2022-01-10  | | EPS match | same | 1,324 matched, 35 orphan, 606 pre_calendar, 0 ticker_conflict; **orphan rate 35 / 1,359 =
+docs/milestones/01-universe-and-events.md:278: 4.9 == DTB3 on 2024-09-11  | | Snapshot is the close | `python -m earnings_vol.measures.run --only close` | 224 AMC events in the daily era
+docs/milestones/01-universe-and-events.md:278: 1.4% == META.pct% on 2024-09-11  | | Snapshot is the close | `python -m earnings_vol.measures.run --only close` | 224 AMC events in the daily era
+tests/test_timing.py:26: 4.0 == DTB3 on 2026-10-26  | GAP = {"scale_window": [-60, -22], "z_min": 4.0, "ratio": 3.0, "outside_window": [-3, 4], "outside_z_min": 6.0
+docs/adr/0001-overall-architecture.md:92: 4.0 == DTB3 on 2026-10-27  | 4.0 International* (read from their `dolt_docs` table on 2026-10-28). CBOE index history and Yahoo prices are
+docs/architecture/data-model.md:119: 1.1% == AMAT.pct% on 2020-01-22  | | NULL `when`, 30 large caps | 9 of 784 rows (1.1%) |
+research/prototypes/worked.out.txt:1: 0.26% == AMGN.pct% on 2025-11-28  | 2025-10-30 exp 2025-11-14: F_K used 267.5:272.06, 272.5:271.35, 275:271.49, 277.5:271.34 -> F=271.42 (dispersi
+research/prototypes/worked.out.txt:2: 0.35% == JNJ.pct% on 2025-11-14  | 2025-10-30 exp 2025-11-28: F_K used 265:272.45, 270:271.50, 275:272.07, 280:272.05 -> F=272.06 (dispersion 0.3
+research/prototypes/worked.out.txt:2: 0.35% == CAT.pct% on 2025-11-28  | 2025-10-30 exp 2025-11-28: F_K used 265:272.45, 270:271.50, 275:272.07, 280:272.05 -> F=272.06 (dispersion 0.3
+
+hits: 9 in 192 files

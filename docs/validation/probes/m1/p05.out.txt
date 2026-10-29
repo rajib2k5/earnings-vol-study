@@ -1,0 +1,15 @@
+unset, no cache                                      -> EdgarNotConfigured (SEC_EDGAR_USER_AGENT is not set: EDGAR runs only w); network attempts: 0
+unset, cache present                                 -> EdgarNotConfigured (SEC_EDGAR_USER_AGENT is not set: EDGAR runs only w); network attempts: 0
+empty string                                         -> EdgarNotConfigured (SEC_EDGAR_USER_AGENT is not set: EDGAR runs only w); network attempts: 0
+whitespace                                           -> EdgarNotConfigured (SEC_EDGAR_USER_AGENT is not set: EDGAR runs only w); network attempts: 0
+no @                                                 -> EdgarNotConfigured (SEC_EDGAR_USER_AGENT must hold a real contact emai); network attempts: 0
+placeholder admin@example.org                        -> EdgarNotConfigured (SEC_EDGAR_USER_AGENT must hold a real contact emai); network attempts: 0
+placeholder x@test                                   -> EdgarNotConfigured (SEC_EDGAR_USER_AGENT must hold a real contact emai); network attempts: 0
+placeholder x@localhost                              -> EdgarNotConfigured (SEC_EDGAR_USER_AGENT must hold a real contact emai); network attempts: 0
+RFC 2606 subdomain x@mail.example.com                -> TRIED THE NETWORK; network attempts: 1
+RFC 2606 TLD x@foo.example                           -> TRIED THE NETWORK; network attempts: 1
+RFC 2606 TLD x@foo.test                              -> TRIED THE NETWORK; network attempts: 1
+bare '@'                                             -> TRIED THE NETWORK; network attempts: 1
+'a@b' (no domain dot)                                -> TRIED THE NETWORK; network attempts: 1
+real-looking (blocked here) owner@realdomain.net     -> TRIED THE NETWORK; network attempts: 1
+total network attempts: 6

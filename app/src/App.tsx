@@ -1,5 +1,6 @@
 import { AboutPage } from './lib/about'
 import { ArchitecturePage } from './lib/ArchitecturePage'
+import { FunnelPage } from './lib/FunnelPage'
 import { MetaFooter } from './lib/MetaFooter'
 import { AppShell, type ShellPage } from './lib/shell'
 import { StudySections } from './lib/StudySections'
@@ -16,6 +17,7 @@ const PAGES: ShellPage[] = [
       </AboutPage>
     ),
   },
+  { id: 'sample', label: 'Sample', render: () => <FunnelPage /> },
   { id: 'architecture', label: 'Architecture', render: () => <ArchitecturePage slug={PROJECT_SLUG} /> },
   { id: '3d', label: '3D preview', render: () => <ThreeDPreview /> },
 ]

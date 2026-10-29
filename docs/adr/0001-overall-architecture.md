@@ -1,7 +1,7 @@
 # ADR 0001: Overall architecture
 
-- **Status:** Accepted (milestone 0), revised 2026-10-28 after the milestone-0 methodology and delta reviews (notes
-  below)
+- **Status:** Accepted (milestone 0), revised 2026-10-28 after the milestone-0 methodology and delta reviews, and
+  2026-10-29 after the milestone-1 review (notes below)
 - **Date:** 2026-10-28
 - **Deciders:** project owner. Drafted by the architect agent; to be attacked by the adversarial reviewer.
 - **Related:** [0002 day 0](0002-day-zero-convention.md), [0003 IV measures](0003-iv-measures.md),
@@ -25,6 +25,42 @@
 >   by hand (ADR 0002 §3, route (a)). The look-ups are recorded in a committed file,
 >   `data/manual/press_release_checks.csv`, which the `events` layer reads. The class-F text in §7 now names
 >   ADR 0002's *default* rule (it said "fallback") and marks the EDGAR alternative "proposed".
+
+> **Milestone 1, 2026-10-29: measured, and one planned fallback taken.**
+>
+> - **The fingerprint guard tripped on a pure SELECT, so the pipeline reads a private copy** ("How we'll know it's
+>   wrong", first bullet). Tested on a copy of the `earnings` clone before anything ran in the shared one: with dolt
+>   2.6.1, `dolt sql -q "SELECT HASHOF('HEAD')"` rewrites `noms/manifest`, `noms/journal.idx`, the chunk journal and
+>   the `stats/` store. The bytes stay the same; the modification times change. A test reproduces it on a throw-away
+>   `dolt init` repository (`tests/test_dolt.py`). As this ADR decided for that case, each clone is now copied to
+>   `cache/dolt_mirror/<repo>/` (`ingest/dolt.py`, `refresh_mirror`), every query runs there with `--disable-auto-gc`,
+>   and each batch checks that the shared clone's (path, size, mtime) fingerprint did not change at all and that the
+>   mirror's data files kept their bytes. Dolt was never run inside a shared clone by this project. The copy took
+>   0.30 s (`earnings`, 1.8 GB) and 5.23 s (`options`, 8.3 GB) on this machine. **The hub session has not been told**:
+>   this project cannot write to the hub's `STATUS.md`, so the owner should pass it on. The hub's own clones show the
+>   same touches (the `options` clone's manifest was rewritten at 2026-10-28 14:11 CDT, before this milestone ran).
+> - **`dolt sql -r parquet` works and replaces CSV** (§3): typed dates, decimals and real nulls, at the same speed (one
+>   month of `option_chain` for 50 names: 40.75 s Parquet, 40.25 s CSV). The `'<NULL>'` sentinel is therefore not used.
+> - **Pinning** reads the commits named in `params.yaml` (earnings `fjrb6h5le9h1qiif2j4pl6cpaas7pnee`, options
+>   `msfqpodh24viv7prdqdan8517rkjp861`, both HEAD on 2026-10-29) and checks that they exist, instead of reading HEAD on
+>   every run, so a re-run reads the same data after the hub pulls. They go into `params_hash` and every manifest.
+> - **Extraction wall time** ("Consequences", "How we'll know it's wrong"): 82 monthly `option_chain` queries for the 52
+>   source tickers of the 50 companies, 2020-01 to 2026-10, took 1,294 s of query time in total (21.6 minutes;
+>   8,174,225 rows). A daily-era month took 41 s at the median and 51 s at most, a Mon/Wed/Fri month 6.4 s. That is
+>   under the 2-minute-per-month line, so the batching stays.
+
+> **Revised after the milestone-1 review** ([ledger](../validation/m1-ledger.md), 2026-10-29).
+>
+> - **The layer table lacked `session_snapshot`**, which `measures` writes at milestone 1. It is now listed.
+> - **"`test_layering` enforces purity" was refuted (claim 15).** It checked only the direction of imports. It now
+>   also fails when a module of `events`, `measures`, `panel`, `stats` or `export` other than its `run.py` imports
+>   a file, network or process module or calls `open()` or a read/write method.
+> - **The shared-clone fingerprint now covers the whole clone folder**, not only `.dolt/` (claim 1b), so a file
+>   created beside `.dolt/` is caught. The mirror's content fingerprint still sizes, but does not hash, the large
+>   content-addressed table files; a same-size change to one of them would go unseen. Hashing them would read
+>   about 10 GB around every batch.
+> - **§7's class-F example** no longer names a committed market-cap rank: `security.universe_rank` was a per-row
+>   Yahoo-derived number for 497 firms (claim 10) and was removed from the committed table.
 
 ## In one paragraph
 
@@ -71,19 +107,19 @@ What has to be true:
  (I/O)      (pure)         (pure)       (pure)         (pure)    (I/O)
    │          │               │           │              │         │
    ▼          ▼               ▼           ▼              ▼         ▼
- raw/*    session,         chain_expiry, event_window_  results  app/public/data/*.json
- cache/*  market_daily,    iv_daily      obs,                    data/derived/*.parquet
-          security,                      event_measures,
-          ticker_alias,                  event_measures_vx
+ raw/*    session,         session_      event_window_  results  app/public/data/*.json
+ cache/*  market_daily,    snapshot,     obs,                    data/derived/*.parquet
+          security,        chain_expiry, event_measures,
+          ticker_alias,    iv_daily      event_measures_vx
           events, eps,
           timing_check
 ```
 
 | Layer | Modules (planned) | Reads | Writes (tables in data-model.md) |
 |---|---|---|---|
-| `ingest` | `dolt.py`, `prices.py`, `fred.py`, `cboe.py`, `edgar.py` (only if the owner approves EDGAR), `universe.py` | Dolt clones, yfinance, FRED, CBOE, SEC EDGAR submissions JSON (one per security; only if approved), S&P 500 list | `raw/…` downloads, `cache/…` extracts |
+| `ingest` | `dolt.py`, `prices.py`, `fred.py`, `cboe.py`, `edgar.py` (accepted 2026-10-28; runs only once the owner sets the `SEC_EDGAR_USER_AGENT` contact string), `universe.py` | Dolt clones, yfinance, FRED, CBOE, SEC EDGAR submissions JSON (one per security; only if approved), S&P 500 list | `raw/…` downloads, `cache/…` extracts |
 | `events` | `calendar.py` (NYSE sessions), `market.py`, `events.py`, `timing.py`, `eps.py` | raw and cache extracts (calendar, EPS, Yahoo prices, FRED, S&P list, and the SEC EDGAR 8-K filing index only if the owner approves EDGAR); the committed press-release look-up record `data/manual/press_release_checks.csv` (ADR 0002 §3, data model §1.3) | `session`, `market_daily`, `security`, `ticker_alias`, `events`, `eps`, `timing_check` |
-| `measures` | `black.py`, `chain.py`, `termstructure.py`, `realised.py` | option and vol-history extracts, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0, to classify spanning expiries) | `chain_expiry`, `iv_daily` |
+| `measures` | `black.py`, `chain.py`, `termstructure.py`, `realised.py`; at milestone 1 `snapshots.py`, `forward.py`, `snapshot_close.py` | option and vol-history extracts, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0, to classify spanning expiries) | `session_snapshot` (milestone 1: which sessions have a usable snapshot; milestone 2 folds it into `iv_daily`, data model §3.6), `chain_expiry`, `iv_daily` |
 | `panel` | `panel.py`, `abnormal.py`, `eligibility.py` | `iv_daily`, `chain_expiry`, `events`, `eps`, `security` (`cboe_vx_index`), `session`, `market_daily`, Yahoo and VX\* extracts (local `_yf`/`_cboe` columns) | `event_window_obs`, `event_measures`, `event_measures_vx` |
 | `stats` | `eventtests.py`, `regress.py`, `multiple.py`, `validate.py` | `event_measures`, `event_measures_vx`, `event_window_obs`, `events`, `eps`, `security`, and for validation `iv_daily`, `chain_expiry` and the VX\* extract | `results` |
 | `export` | `contract.py` (exists), `export.py`; runner `tools/export_app_data.py` (exists) | everything above | JSON views, `data/derived/` |
@@ -229,6 +265,13 @@ under test. A new assertion is seen to fail before it passes. Coverage is not ev
 
 ### 7. Licensing
 
+> **Owner decision, 2026-10-29 (data policy).** Keep the strict rule. No new commit may hold a real vendor
+> value or a vendor data file: no Yahoo, Cboe (including VIX via FRED), Kaggle or OptionsDX values. Tests use
+> made-up values, and DoltHub rows are preferred made up there too. Public history stays as it is: commit `3636e98`
+> holds two quoted Yahoo values (ADR 0002 and `research/prototypes/worked.py`, both AAPL around 2025-10-30). They are
+> left in place, with no rewrite and no force-push. Before every push, `tools/licensing/scan_real_rows.py` must report
+> 0 lines flagged.
+
 - **Code:** MIT (root `LICENSE`).
 - **`data/derived/`:** CC BY-SA 4.0 with attribution (`data/derived/README.md`, `LICENSE`). Only tables derived from
   DoltHub, plus small reference tables, may go there: `security`, `ticker_alias`, `session`, `events`, `eps`,
@@ -263,8 +306,9 @@ under test. A new assertion is seen to fail before it passes. Coverage is not ev
     either a fact that Yahoo prices only helped check (`timing_used`, `timing_status`, and through them day 0, under
     ADR 0002's default rule; under its proposed EDGAR rule, only if the owner approves it, they would have no Yahoo
     lineage and be class U, with the caveat in ADR 0002's delta revision note, item 9), or a
-    coarse label with at most 5 levels (`vix_regime`), or a one-time rank of firms (a market-cap `universe_rank`). A
-    finer label on a per-date series is R. Committed by default.
+    coarse label with at most 5 levels (`vix_regime`), or a one-time selection of firms (`security.in_universe`;
+    the market-cap rank behind it is not committed, milestone-1 review). A finer label on a per-date series is R.
+    Committed by default.
 - **Column-provenance suffixes make the rule mechanical.** Every class-R column ends in `_yf` (Yahoo) or `_cboe`
   (CBOE). **That includes VIX**: FRED's `VIXCLS` is a CBOE index republished by FRED, so it is CBOE data. A
   market-adjusted measure is therefore `crush_cboe`, and its mean-adjusted twin `crush_mean_adj` is committed. The

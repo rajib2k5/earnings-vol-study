@@ -7,8 +7,8 @@ erDiagram
         string name
         enum gics_sector
         string gics_sub_industry
+        string cik "nullable"
         bool in_universe
-        int16 universe_rank "nullable"
         enum cboe_vx_index "nullable"
     }
     ticker_alias {
@@ -94,11 +94,18 @@ erDiagram
         float64 vendor_iv_current "nullable"
         string flags
     }
-    events["events (edgar#95;#42; only if the owner approves EDGAR)"] {
+    session_snapshot {
+        string security_id PK, FK
+        date32 session_date PK, FK
+        date32 snapshot_date "nullable"
+        enum snapshot_status
+    }
+    events["events (edgar#95;#42;#58; gated on the owner's contact string)"] {
         string event_id PK
         string security_id FK
         string ticker_at_event
         date32 announce_date
+        date32 announce_date_used
         enum timing_raw "nullable"
         enum timing_used "nullable"
         enum timing_status
@@ -136,15 +143,15 @@ erDiagram
     }
     timing_check {
         string event_id PK, FK
-        float64 gap_bmo_yf
-        float64 gap_amc_yf
-        float64 gap_scale_yf
-        float64 z_bmo_yf
-        float64 z_amc_yf
-        float64 z_max_outside_yf
+        float64 gap_bmo_yf "nullable"
+        float64 gap_amc_yf "nullable"
+        float64 gap_scale_yf "nullable"
+        float64 z_bmo_yf "nullable"
+        float64 z_amc_yf "nullable"
+        float64 z_max_outside_yf "nullable"
         int16 rel_day_max_outside_yf "nullable"
-        enum gap_verdict_yf
-        bool outside_flag_yf
+        enum gap_verdict_yf "nullable"
+        bool outside_flag_yf "nullable"
     }
     event_window_obs {
         string event_id PK, FK
@@ -277,19 +284,24 @@ erDiagram
         string title
         array data_sources
         object data_licence
-        object_planned sample
-        object_planned params
-        array_planned files
-        object_planned provenance
-        string_planned from_events FK "nullable"
+        object sample
+        object params
+        array files
+        object provenance
+        string from_events FK "nullable"
     }
     json_sample_funnel["sample#95;funnel.json"] {
         string kind PK
         array steps
         object timing_status_counts
-        array by_move_tercile
-        object evar_nonpositive
+        array timing_status_by_sample
+        array by_move_tercile "nullable"
+        string by_move_tercile_status
+        object evar_nonpositive "nullable"
+        string evar_nonpositive_status
         array by_sample
+        object lookups
+        array caveats
         object provenance
         string from_events FK "nullable"
         string from_event_measures FK "nullable"
@@ -377,6 +389,8 @@ erDiagram
     events |o--o{ iv_daily : "R19b prev event"
     events |o--o{ chain_expiry : "R20 next event"
     events ||--o| event_measures_vx : "R21 cboe5 member"
+    security ||--o{ session_snapshot : "R22 observed on"
+    session ||--o{ session_snapshot : "R23 has"
     events |o--o{ json_meta : "feeds"
     events |o--o{ json_sample_funnel : "feeds"
     event_measures |o--o{ json_sample_funnel : "feeds"

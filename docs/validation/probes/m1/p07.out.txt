@@ -1,0 +1,41 @@
+funnel (independent): [1353, 1320, 366, 356, 348]
+removed at crush_observed:
+   AAPL:2026-04-30    day-1 2026-04-30 ok day0 2026-05-01 missing
+   AMAT:2026-05-14    day-1 2026-05-14 missing day0 2026-05-15 ok
+   AMGN:2026-04-30    day-1 2026-04-30 ok day0 2026-05-01 missing
+   BRK.B:2026-05-02   day-1 2026-05-01 missing day0 2026-05-04 ok
+   CSCO:2026-05-13    day-1 2026-05-13 missing day0 2026-05-14 missing
+   CVX:2026-05-01     day-1 2026-04-30 ok day0 2026-05-01 missing
+   LIN:2026-05-01     day-1 2026-04-30 ok day0 2026-05-01 missing
+   PLTR:2026-05-04    day-1 2026-05-04 ok day0 2026-05-05 missing
+   TXN:2026-10-21     day-1 2026-10-21 ok day0 2026-10-22 missing
+   XOM:2026-05-01     day-1 2026-04-30 ok day0 2026-05-01 missing
+removed at baseline_minimum:
+   BRK.B:2025-05-03   clean=(12, 11)
+   COST:2025-09-25    clean=(0, 0)
+   COST:2026-09-24    clean=(0, 0)
+   GS:2025-04-14      clean=(0, 0)
+   MS:2025-07-16      clean=(0, 0)
+   ORCL:2025-03-10    clean=(0, 0)
+   ORCL:2025-12-10    clean=(0, 0)
+   PM:2026-04-22      clean=(19, 18)
+P3: 357 of 366 daily events with day 0 have >=20 clean & >=15 changes; clean sessions median 30.0, p5 23.25
+securities among the final events: 50 ; among the 368 daily: 50
+
+funnel with zones from the corrected EPS match: [1353, 1320, 366, 356, 350]
+  gained: ['COST:2025-09-25', 'COST:2026-09-24', 'ORCL:2025-03-10', 'ORCL:2025-12-10'] 
+  lost:   ['COST:2025-05-29', 'COST:2026-05-28']
+  COST:2024-12-12    as built (21, 20)  corrected (21, 20)
+  COST:2025-05-29    as built (39, 38)  corrected (7, 6)
+  COST:2025-09-25    as built (0, 0)  corrected (38, 37)
+  COST:2025-12-11    as built (22, 21)  corrected (22, 21)
+  COST:2026-05-28    as built (39, 38)  corrected (8, 7)
+  COST:2026-09-24    as built (0, 0)  corrected (39, 38)
+  ORCL:2024-12-09    as built (32, 31)  corrected (32, 31)
+  ORCL:2025-03-10    as built (0, 0)  corrected (28, 27)
+  ORCL:2025-06-11    as built (33, 32)  corrected (33, 32)
+  ORCL:2025-09-09    as built (29, 28)  corrected (29, 28)
+  ORCL:2025-12-10    as built (0, 0)  corrected (33, 32)
+  ORCL:2026-03-10    as built (28, 27)  corrected (28, 27)
+  ORCL:2026-06-10    as built (30, 27)  corrected (30, 27)
+  ORCL:2026-09-10    as built (31, 30)  corrected (31, 30)

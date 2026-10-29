@@ -1,6 +1,9 @@
 # Entity-relationship diagram of every stored table (data-model.md section 3) plus the
 # Python -> app JSON contract files (section 4). Keys and cardinalities follow section 5
-# (R1-R21; R4, R7 and R14 are retired and not drawn).
+# (R1-R23; R4, R7 and R14 are retired and not drawn). Milestone 1 added session_snapshot (R22, R23),
+# security.cik, events.announce_date_used and nullable timing_check value columns. The milestone-1
+# review removed security.universe_rank (a Yahoo-derived rank; data-model 3.1) and put cik in the
+# code's column order.
 #
 # Kit limits that shaped this file (also listed in docs/architecture/README.md):
 #  - the kit rejects self-referencing foreign keys, so events.prev_event_id / next_event_id
@@ -21,11 +24,12 @@
 # JSON entities: `kind` is the file stem. Their columns are the top-level keys of `data`; nested
 # fields (tests.rows[].estimand, drivers.models[].n_clusters_season, ...) are listed in data-model
 # section 4. The from_* columns are lineage links, not stored foreign keys: they join a file to the
-# table(s) it is exported from, and carry no cardinality meaning. A type ending in _planned marks a
-# key or link that arrives with schema 0.2.0 and does not exist in today's meta.json.
-# events.edgar_accession / edgar_accepted_utc exist only if the owner approves SEC EDGAR (ADR 0002:
-# Proposed: pending owner decision). A column cannot carry a note in the kit, so the events entity
-# label says it.
+# table(s) it is exported from, and carry no cardinality meaning. At milestone 1 meta.json and
+# sample_funnel.json are written at schema 0.2.0 with the keys drawn here; the other view files do
+# not exist yet. (The _planned type suffix that marked meta.json's not-yet-written keys is gone.)
+# events.edgar_accession / edgar_accepted_utc: SEC EDGAR is accepted (2026-10-28), gated on the
+# owner's contact string. The client refuses to run until SEC_EDGAR_USER_AGENT is set, so both columns
+# stay null until then. A column cannot carry a note in the kit, so the events entity label says it.
 kind: erd
 title: Earnings vol study schema
 subtitle: Stored tables (Parquet) and the JSON contract files exported from them
@@ -36,8 +40,8 @@ entities:
       - {name: name, type: string}
       - {name: gics_sector, type: enum}
       - {name: gics_sub_industry, type: string}
+      - {name: cik, type: string, nullable: true}
       - {name: in_universe, type: bool}
-      - {name: universe_rank, type: int16, nullable: true}
       - {name: cboe_vx_index, type: enum, nullable: true}
   - id: ticker_alias
     columns:
@@ -122,13 +126,20 @@ entities:
       - {name: forward_front, type: float64, nullable: true}
       - {name: vendor_iv_current, type: float64, nullable: true}
       - {name: flags, type: string}
+  - id: session_snapshot
+    columns:
+      - {name: security_id, type: string, pk: true, fk: security.security_id}
+      - {name: session_date, type: date32, pk: true, fk: session.session_date}
+      - {name: snapshot_date, type: date32, nullable: true}
+      - {name: snapshot_status, type: enum}
   - id: events
-    label: "events (edgar_* only if the owner approves EDGAR)"
+    label: "events (edgar_*: gated on the owner's contact string)"
     columns:
       - {name: event_id, type: string, pk: true}
       - {name: security_id, type: string, fk: security.security_id}
       - {name: ticker_at_event, type: string}
       - {name: announce_date, type: date32}
+      - {name: announce_date_used, type: date32}
       - {name: timing_raw, type: enum, nullable: true}
       - {name: timing_used, type: enum, nullable: true}
       - {name: timing_status, type: enum}
@@ -166,15 +177,15 @@ entities:
   - id: timing_check
     columns:
       - {name: event_id, type: string, pk: true, fk: events.event_id}
-      - {name: gap_bmo_yf, type: float64}
-      - {name: gap_amc_yf, type: float64}
-      - {name: gap_scale_yf, type: float64}
-      - {name: z_bmo_yf, type: float64}
-      - {name: z_amc_yf, type: float64}
-      - {name: z_max_outside_yf, type: float64}
+      - {name: gap_bmo_yf, type: float64, nullable: true}
+      - {name: gap_amc_yf, type: float64, nullable: true}
+      - {name: gap_scale_yf, type: float64, nullable: true}
+      - {name: z_bmo_yf, type: float64, nullable: true}
+      - {name: z_amc_yf, type: float64, nullable: true}
+      - {name: z_max_outside_yf, type: float64, nullable: true}
       - {name: rel_day_max_outside_yf, type: int16, nullable: true}
-      - {name: gap_verdict_yf, type: enum}
-      - {name: outside_flag_yf, type: bool}
+      - {name: gap_verdict_yf, type: enum, nullable: true}
+      - {name: outside_flag_yf, type: bool, nullable: true}
   - id: event_window_obs
     columns:
       - {name: event_id, type: string, pk: true, fk: events.event_id}
@@ -309,20 +320,25 @@ entities:
       - {name: title, type: string}
       - {name: data_sources, type: array}
       - {name: data_licence, type: object}
-      - {name: sample, type: object_planned}
-      - {name: params, type: object_planned}
-      - {name: files, type: array_planned}
-      - {name: provenance, type: object_planned}
-      - {name: from_events, type: string_planned, fk: events.event_id, nullable: true}
+      - {name: sample, type: object}
+      - {name: params, type: object}
+      - {name: files, type: array}
+      - {name: provenance, type: object}
+      - {name: from_events, type: string, fk: events.event_id, nullable: true}
   - id: json_sample_funnel
     label: "sample_funnel.json"
     columns:
       - {name: kind, type: string, pk: true}
       - {name: steps, type: array}
       - {name: timing_status_counts, type: object}
-      - {name: by_move_tercile, type: array}
-      - {name: evar_nonpositive, type: object}
+      - {name: timing_status_by_sample, type: array}
+      - {name: by_move_tercile, type: array, nullable: true}
+      - {name: by_move_tercile_status, type: string}
+      - {name: evar_nonpositive, type: object, nullable: true}
+      - {name: evar_nonpositive_status, type: string}
       - {name: by_sample, type: array}
+      - {name: lookups, type: object}
+      - {name: caveats, type: array}
       - {name: provenance, type: object}
       - {name: from_events, type: string, fk: events.event_id, nullable: true}
       - {name: from_event_measures, type: string, fk: event_measures.event_id, nullable: true}
@@ -421,6 +437,8 @@ relations:
   - {from: iv_daily.prev_event_id, to: events.event_id, cardinality: "0..*", label: "R19b prev event"}
   - {from: chain_expiry.next_event_id, to: events.event_id, cardinality: "0..*", label: "R20 next event"}
   - {from: event_measures_vx.event_id, to: events.event_id, cardinality: "0..1", label: "R21 cboe5 member"}
+  - {from: session_snapshot.security_id, to: security.security_id, cardinality: "0..*", label: "R22 observed on"}
+  - {from: session_snapshot.session_date, to: session.session_date, cardinality: "0..*", label: "R23 has"}
 
   # JSON files: lineage links, not stored foreign keys (README notes)
   - {from: json_meta.from_events, to: events.event_id, cardinality: "0..*", label: feeds}

@@ -474,7 +474,7 @@ r_0 = \ln\frac{F_0(T)}{F_{-1}(T)} + r\,\frac{\Delta_{cal}}{365}.
 $$
 
 The carry term is about 1 bp per calendar day. Because the forward already nets out dividends, this is a total return, even
-across an ex-dividend date. Example: $\ln(270.55/271.42) + 0.011\% = -0.31\%$, against the official close-to-close −0.38%. Yahoo
+across an ex-dividend date. Example: $\ln(270.55/271.42) + 0.011\% = -0.31\%$, within 0.1 point of the official close-to-close return (a Yahoo value, so not quoted). Yahoo
 closes are used locally to cross-check, with the median |difference| reported. Why not use Yahoo directly: (1) a per-event
 realised move then counts as Yahoo data in the exported scatter (ADR 0001 §7); (2) the parity spot is taken at the *same
 instant* as the IVs it is compared with.

@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "An event study of how earnings announcements move options implied volatility."
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "exchange-calendars==4.13.2",
     "matplotlib==3.11.2",
     "nbformat==5.11.1",
     "numpy==2.5.4",
@@ -26,10 +27,17 @@ packages = ["src/earnings_vol"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "dolt: runs the dolt binary (skipped when dolt is not installed)",
+]
 
 [dependency-groups]
 dev = [
     "ipykernel==7.4.0",
     "jupyterlab==4.6.4",
     "pytest==9.2.0",
+]
+diagrams = [
+    "pyyaml==6.0.3",
+    "resvg-py==0.5.0",
 ]

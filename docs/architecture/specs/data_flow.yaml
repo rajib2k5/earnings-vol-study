@@ -4,10 +4,15 @@
 # layer table of ADR 0001 section 1 (who writes and who reads each table).
 # Dashed edges are inputs that are local only (class R, never committed) or validation-only, the
 # one same-layer feed from eps back to events (match_status -> orphan_nearby), which the fixed
-# order inside the events layer makes legal (README notes), or the PROPOSED SEC EDGAR input
-# (ADR 0002: pending the owner's decision; the default without it is the press release, then the
-# calendar label). timing_check never sets a label: it triggers a second reading (daily/mixed) or a
-# look-up (coarse) of the press release, and feeds the sample funnel's by-tercile share.
+# order inside the events layer makes legal (README notes), or the SEC EDGAR input (ADR 0002:
+# accepted 2026-10-28, gated on the owner's contact string: the client refuses to run until
+# SEC_EDGAR_USER_AGENT is set, so the edge carries nothing yet and the rule in force is the press
+# release, then the calendar label). timing_check never sets a label: it triggers a second reading
+# (daily/mixed) or a look-up (coarse) of the press release, and feeds the sample funnel's by-tercile share.
+# The DoltHub tables are not queried in the shared clones. ingest/dolt.py copies each clone to a
+# private mirror, $VOL_DATA_DIR/earnings-vol-study/cache/dolt_mirror/{earnings,options}, and runs
+# `dolt sql -r parquet` (SELECT only, AS OF the commits pinned in params.yaml) there, because a
+# SELECT rewrites a clone's files on dolt 2.6.1. s_mirror is that copy.
 # The press-release look-ups are recorded in the committed file data/manual/press_release_checks.csv.
 # There is no iv_daily -> events edge any more: eligible_* moved to event_measures, and
 # events.sample / orphan_nearby need no IV data (ADR 0001 section 1).
@@ -20,6 +25,7 @@ direction: TB
 
 nodes:
   # --- Source columns ------------------------------------------------------
+  - {id: s_mirror, label: Dolt mirrors (private copies), sublabel: "cache/dolt_mirror; dolt sql -r parquet", type: store}
   - {id: s_cal,    label: earnings_calendar, sublabel: "act_symbol, date, when",            type: source}
   - {id: s_eps,    label: eps_history,       sublabel: "period_end_date, reported, estimate", type: source}
   - {id: s_est,    label: eps_estimate,      sublabel: "date, period, consensus, high, low", type: source}
@@ -31,7 +37,7 @@ nodes:
   - {id: s_yf,     label: yfinance,          sublabel: "Open, Close, shares (local only)",  type: external}
   - {id: s_vx,     label: CBOE VX*,          sublabel: "VXAPL ... VXIBM closes",            type: external}
   - {id: s_pr,     label: press releases,    sublabel: "IR time stamp, in press_release_checks.csv", type: external}
-  - {id: s_edgar,  label: SEC EDGAR 8-K (proposed), sublabel: "acceptanceDateTime, if approved", type: external}
+  - {id: s_edgar,  label: SEC EDGAR 8-K (accepted), sublabel: "acceptanceDateTime; gated on contact string", type: external}
 
   # --- Reference tables (events layer) -------------------------------------
   - {id: t_security, label: security,     sublabel: "PK security_id",              type: store}
@@ -47,6 +53,7 @@ nodes:
   # --- Chain and IV (measures layer) ---------------------------------------
   - {id: t_chain,    label: chain_expiry, sublabel: "forward, w_atm, tau",         type: store}
   - {id: t_iv,       label: iv_daily,     sublabel: "cm30_iv, event_var, sigma_d_iv", type: store}
+  - {id: t_snap,     label: session_snapshot, sublabel: "snapshot_status (milestone 1)", type: store}
 
   # --- Panel layer ---------------------------------------------------------
   - {id: t_ewo,      label: event_window_obs, sublabel: "rel_day, aliv_mean_adj, in_baseline", type: store}
@@ -68,6 +75,13 @@ nodes:
   - {id: j_valid,    label: validation.json,          type: output}
 
 edges:
+  # Dolt mirror -> the DoltHub tables it serves
+  - {from: s_mirror, to: s_cal,   label: "copy of the clone"}
+  - {from: s_mirror, to: s_eps}
+  - {from: s_mirror, to: s_est}
+  - {from: s_mirror, to: s_chain}
+  - {from: s_mirror, to: s_vol}
+
   # Source -> reference tables
   - {from: s_sp,       to: t_security, label: "name, GICS"}
   - {from: s_xnys,     to: t_session,  label: sessions}
@@ -95,6 +109,11 @@ edges:
   - {from: t_chain,   to: t_iv,    label: "w_atm, forward, tau"}
   - {from: t_events,  to: t_iv,    label: "next / prev event"}
   - {from: s_vol,     to: t_iv,    label: iv_current, style: dashed}
+
+  # -> session_snapshot (measures layer, milestone 1; folded into iv_daily at milestone 2)
+  - {from: s_chain,   to: t_snap,  label: "date, act_symbol"}
+  - {from: t_alias,   to: t_snap,  label: security_id}
+  - {from: t_session, to: t_snap,  label: session_date}
 
   # -> eps
   - {from: s_eps,   to: t_eps, label: "reported, estimate"}
@@ -136,6 +155,7 @@ edges:
   - {from: t_events,  to: j_funnel, label: "timing_status, gap_check_changed, exclusion_reason, sample"}
   - {from: t_em,      to: j_funnel, label: "eligible_*, abs_move_cand_max terciles, crush_mean_adj"}
   - {from: t_timing,  to: j_funnel, label: "gap_verdict_yf share by tercile", style: dashed}
+  - {from: t_snap,    to: j_funnel, label: "observed sessions (baseline step)"}
   - {from: t_ewo,     to: j_paths,  label: per-event aliv_mean_adj}
   - {from: t_results, to: j_paths,  label: aliv_path}
   - {from: t_em,      to: j_heat,   label: crush_mean_adj by season}

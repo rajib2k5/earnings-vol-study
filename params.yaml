@@ -1,0 +1,117 @@
+# =============================================================================
+# params.yaml — every tunable choice the pipeline makes, in one file.
+#
+# ADR 0001 §1: "One parameter file". src/earnings_vol/params.py loads this file
+# into a frozen dataclass and computes params_hash, the SHA-256 of its
+# canonical form. Every stage writes params_hash into its manifest, so a stage
+# built with other parameters is never mistaken for this one.
+#
+# Milestone 1 uses the sections below. Later milestones add their own.
+# Dates are ISO strings (YYYY-MM-DD). Session offsets count NYSE sessions.
+# =============================================================================
+
+universe:
+  # The selection rule (milestone 1): the n_largest current S&P 500
+  # constituents by Yahoo market cap on rank_date, among those with DoltHub
+  # calendar rows and option snapshots; then the CBOE VX* names are added if
+  # the rank left them out. One security per company: share classes listed in
+  # drop_share_classes are removed before ranking.
+  n_largest: 50
+  rank_date: "2026-10-29"
+  force_include: [AAPL, AMZN, GOOGL, GS, IBM]
+  drop_share_classes: [GOOG, BRK.A, FOX, NWS]
+  # The Wikipedia "List of S&P 500 companies" revision read for names,
+  # sectors and CIKs (pinned, so a re-run reads the same table).
+  wikipedia_revision: 1382178819
+
+dolt:
+  # Commits read with AS OF. Pinned so that a re-run reads the same data even
+  # after the hub pulls; the manifest records them too (ADR 0001 §3).
+  earnings_commit: fjrb6h5le9h1qiif2j4pl6cpaas7pnee
+  options_commit: msfqpodh24viv7prdqdan8517rkjp861
+
+sessions:
+  # data model §3.3
+  calendar: XNYS
+  start: "2016-01-01"
+  end: "2027-12-31"
+
+snapshot_eras:
+  # data model §1.2: when the option snapshots are weekly, Mon/Wed/Fri, daily.
+  weekly_from: "2019-02-09"
+  mwf_from: "2020-01-06"
+  daily_from: "2024-09-11"
+  # The last option snapshot at options_commit.
+  data_end: "2026-10-26"
+
+samples:
+  # ADR 0004 §5: day-0 ranges, both ends inclusive. They must be contiguous
+  # (events.check_sample_ranges stops the build otherwise). coarse ends on
+  # 2024-09-11, not 09-09 (milestone-1 review): a day 0 on Tue 09-10 or Wed
+  # 09-11 has no daily day -1, so its crush spans two sessions as in coarse.
+  daily: ["2024-12-05", "2026-10-26"]
+  mixed: ["2024-09-12", "2024-12-04"]
+  coarse: ["2020-04-01", "2024-09-11"]
+
+windows:
+  # ADR 0004 §1
+  event_window: [-10, 10]
+  baseline: [-60, -22]
+  exclusion_zone: [-21, 10]
+  baseline_min_sessions: 20
+  baseline_min_changes: 15
+  # ADR 0002 §3: an orphan or pre-calendar EPS period contaminates the
+  # sessions from period end + 10 to + 60.
+  orphan_zone_sessions: [10, 60]
+
+iv:
+  # ADR 0003 §b: the event-aware constant-maturity IV covers 21 sessions.
+  cm30_horizon_sessions: 21
+
+eps_match:
+  # ADR 0002 §3, data model §3.8 (revised after the milestone-1 review and
+  # again after its delta review): a period can take an announcement from
+  # 14 days after the first day of its period end's month to lag_max_days
+  # calendar days after the stored end. The stored end is month-end
+  # normalised, so the true end is no earlier than the first of that month,
+  # and the earliest report in the data comes 24 days after it (Costco); the
+  # 14 days keep a report out of the next period's window until it is at
+  # least 74 days late. Periods and events are then paired one-to-one, in
+  # order, nearest in total (events/eps.py; a period left unlinked costs
+  # lag_max_days + 1, derived, not a parameter). window_start also takes
+  # "month_start" (+0 days) or an int, a fixed lag in days after the stored
+  # end: only the sensitivity table of milestone 1 §6.5 uses those.
+  window_start: month_start+14
+  lag_max_days: 100
+  # The first earnings_calendar date (data model §1.1). A period whose window
+  # starts before it, and that holds no event, is pre_calendar.
+  calendar_start: "2020-01-22"
+  # ADR 0002 §3 and note 3: calendar rows of one security whose dates lie
+  # within this many calendar days of each other are ONE release (BRK.B's
+  # Friday 2024-11-01 row beside its Saturday 2024-11-02 release). The row
+  # with the strongest timing evidence is kept; the others are excluded as
+  # duplicate_row before the match (events.duplicate_rows). Two real releases
+  # of one company are at least 63 days apart in the data.
+  duplicate_within_days: 14
+
+timing:
+  # ADR 0002 §3, "The default rule": every event with D on or after
+  # lookup_from is looked up, and so is every labelled event in the
+  # lookup_sessions_before sessions before it.
+  lookup_from: "2024-09-11"
+  lookup_sessions_before: 10
+  # Owner default taken 2026-10-29: only the first 20 look-ups were done; the
+  # rest wait for SEC EDGAR. While this is false, the build invariant of ADR
+  # 0002 §3 is reported, not enforced (events.check_lookup_invariant), and the
+  # events manifest says the labels are provisional.
+  lookups_complete: false
+  # ADR 0002 §3 job 1: re-run with gap-triggered changes undone (sensitivity).
+  undo_gap_checks: false
+
+gap:
+  # ADR 0002 §3, the price-gap diagnostic (local, Yahoo).
+  scale_window: [-60, -22]
+  z_min: 4.0
+  ratio: 3.0
+  outside_window: [-3, 4]
+  outside_z_min: 6.0

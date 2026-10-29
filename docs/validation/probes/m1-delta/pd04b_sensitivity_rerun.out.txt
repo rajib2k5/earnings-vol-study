@@ -1,0 +1,12 @@
+rule: window_start=month_start, lag_max=100; 1965 periods
+| Lower bound | Assignment | Matched | Orphan | Pre-calendar | Orphan rate | Later-quarter links | Earlier-quarter links | Differs from the rule | Max lag |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| +10 days (before the review) | first in window, tie to smaller lag | 1,316 | 43 | 606 | 3.16% | 8 | 0 | 23 | 100 |
+| -31 days | first in window, tie to smaller lag | 1,323 | 36 | 606 | 2.65% | 0 | 1 | 2 | 59 |
+| +10 days | one-to-one, nearest in total | 1,316 | 43 | 606 | 3.16% | 8 | 0 | 23 | 100 |
+| +0 days | one-to-one, nearest in total | 1,324 | 35 | 606 | 2.58% | 7 | 0 | 14 | 91 |
+| -10 days | one-to-one, nearest in total | 1,324 | 35 | 606 | 2.58% | 0 | 0 | 0 | 59 |
+| -20 days | one-to-one, nearest in total | 1,324 | 35 | 606 | 2.58% | 0 | 0 | 0 | 59 |
+| -31 days | one-to-one, nearest in total | 1,324 | 35 | 606 | 2.58% | 0 | 0 | 0 | 59 |
+| -40 days | one-to-one, nearest in total | 1,324 | 35 | 606 | 2.58% | 0 | 0 | 0 | 59 |
+| first of the month (**the rule**) | one-to-one, nearest in total | 1,324 | 35 | 606 | 2.58% | 0 | 0 | 0 | 59 |

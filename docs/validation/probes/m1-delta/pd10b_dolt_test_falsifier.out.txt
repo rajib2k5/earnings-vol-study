@@ -1,0 +1,11 @@
+# pd10b (claim 7b): falsifier for tests/test_dolt.py::test_a_pure_select_touches_files_but_keeps_their_bytes
+# On a scratch copy of the tree (never the working tree), dolt.query was mutated to lstat every path under the
+# repo before `dolt sql` and os.utime them back afterwards ("a dolt that touches nothing"). Then:
+#   pytest -q -p no:cacheprovider "tests/test_dolt.py::test_a_pure_select_touches_files_but_keeps_their_bytes"
+--- unmutated:
+1 passed in 0.98s
+--- mutant (mtimes restored after the SELECT):
+>       assert touched <= set(changed), changed
+E       assert {'.dolt/noms/...vvvvvvvvvvvv'} <= set()
+1 failed in 0.98s
+# copy restored; `cmp` against the working tree's src/earnings_vol/ingest/dolt.py: identical
