@@ -1,0 +1,10 @@
+(a) usable rows expiring on their next event's AMC announcement date: 27 (spans_next_event values {False: 27})
+    iv_daily rows reading one as front_expiry: 7 methods {'interp_spanning': 4, 'extrap_spanning': 3, 'none': 0, 'interp_clean': 0, 'extrap_clean': 0, 'flat_sigma': 0, 'two_component': 0}
+    iv_daily rows reading one as cm30_exp_lo: 2 methods {'two_component': 2, 'none': 0, 'interp_spanning': 0, 'interp_clean': 0, 'extrap_clean': 0, 'extrap_spanning': 0, 'flat_sigma': 0}
+    iv_daily rows reading one as cm30_exp_hi: 11 methods {'interp_clean': 10, 'extrap_clean': 1, 'none': 0, 'interp_spanning': 0, 'extrap_spanning': 0, 'flat_sigma': 0, 'two_component': 0}
+    iv_daily rows reading one as ev_exp1: 0 methods {}
+    iv_daily rows reading one as ev_exp2: 0 methods {}
+    (sigma_d fallback rows cannot be attributed from stored columns; the cm30 reads above bound the exposure)
+(b) iv_daily E pairs that skip a non-ok spanning expiry shorter than T2: 207 of 19573
+(c) rows with forward > 1253: 2437, securities ['AMZN', 'AVGO', 'GOOGL', 'LLY', 'NFLX']; iv_no_root flags among all rows: 7
+(d) daily-sample events whose day -1 or day 0 E/cm30 reads a decimal-tie forward row: 1, a quadratic row: 8 (of 366 daily events)

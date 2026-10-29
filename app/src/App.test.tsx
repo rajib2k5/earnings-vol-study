@@ -5,6 +5,7 @@ import { ARCH_LAYERS } from './lib/architecture'
 import { PITCH, PROJECT_TITLE, QUESTIONS } from './lib/studyContent'
 import { resetMemoryFallback, safeStorage } from './lib/storage'
 import { FUNNEL_DATA_FIXTURE, FUNNEL_FIXTURE } from './test/funnelFixture'
+import { IV_MEASURES_DATA_FIXTURE, IV_MEASURES_FIXTURE } from './test/ivMeasuresFixture'
 import { jsonFetch, META_DATA_FIXTURE, META_FIXTURE } from './test/metaFixture'
 
 // jsdom has no WebGL: replace the r3f Canvas and drei controls with inert stand-ins.
@@ -42,7 +43,7 @@ describe('App (integration)', () => {
 
   it('shows the milestone and source commit from data/meta.json in the footer', async () => {
     render(<App />)
-    expect(await screen.findByText(/data contract 0\.2\.0 · milestone M0 · source commit abc1234/)).toBeInTheDocument()
+    expect(await screen.findByText(/data contract 0\.3\.0 · milestone M0 · source commit abc1234/)).toBeInTheDocument()
     expect(fetch).toHaveBeenCalledWith('data/meta.json', { cache: 'no-cache' }) // relative URL (works under a sub-path), always revalidated
   })
 
@@ -70,7 +71,7 @@ describe('App (integration)', () => {
     vi.stubGlobal('fetch', server)
     render(<App />)
     const nav = within(screen.getByRole('navigation', { name: 'Primary' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['About', 'Sample', 'Architecture', '3D preview', 'Metrics'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['About', 'Sample', 'IV measures', 'Architecture', '3D preview', 'Metrics'])
     expect(server).not.toHaveBeenCalledWith('data/sample_funnel.json', expect.anything()) // not fetched until the page is opened
     fireEvent.click(nav.getByRole('link', { name: 'Sample' }))
     const steps = await screen.findByRole('table', { name: 'Funnel steps' })
@@ -88,6 +89,31 @@ describe('App (integration)', () => {
     const main = await screen.findByText(/sample funnel could not be shown/i)
     expect(main).toHaveTextContent('data/sample_funnel.json returned HTTP 404')
     expect(screen.queryByRole('table', { name: 'Funnel steps' })).toBeNull()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('has an IV measures page, after Sample, that draws iv_measures.json (the fixture here)', async () => {
+    const server = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => (url === 'data/iv_measures.json' ? IV_MEASURES_FIXTURE : META_FIXTURE) }) as Response)
+    vi.stubGlobal('fetch', server)
+    render(<App />)
+    const nav = within(screen.getByRole('navigation', { name: 'Primary' }))
+    expect(server).not.toHaveBeenCalledWith('data/iv_measures.json', expect.anything()) // not fetched until the page is opened
+    fireEvent.click(nav.getByRole('link', { name: 'IV measures' }))
+    const bars = await screen.findByRole('group', { name: 'Implied move histogram' })
+    expect(server).toHaveBeenCalledWith('data/iv_measures.json', { cache: 'no-cache' })
+    expect(within(bars).getAllByRole('img')).toHaveLength(IV_MEASURES_DATA_FIXTURE.implied_move.counts.length)
+    expect(screen.getByRole('group', { name: 'IV crush histogram' })).toBeInTheDocument()
+    for (const c of IV_MEASURES_DATA_FIXTURE.caveats) expect(screen.getByText(c)).toBeInTheDocument()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('shows the IV measures page error, and keeps the app usable, when iv_measures.json is missing', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (url === 'data/meta.json' ? ({ ok: true, status: 200, json: async () => META_FIXTURE } as Response) : ({ ok: false, status: 404 } as Response))))
+    render(<App />)
+    fireEvent.click(screen.getByRole('link', { name: 'IV measures' }))
+    const main = await screen.findByText(/IV measures could not be shown/i)
+    expect(main).toHaveTextContent('data/iv_measures.json returned HTTP 404')
+    expect(screen.queryByRole('group', { name: 'Implied move histogram' })).toBeNull()
     await screen.findByText(/source commit abc1234/)
   })
 

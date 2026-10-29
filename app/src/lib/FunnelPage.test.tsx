@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { FunnelDisplay, FunnelPage } from './FunnelPage'
 import { parseSampleFunnel, type SampleFunnel } from './funnel'
-import { FUNNEL_DATA_FIXTURE, FUNNEL_FIXTURE } from '../test/funnelFixture'
+import { FUNNEL_DATA_FIXTURE, FUNNEL_FIXTURE, FUNNEL_NULL_FIXTURE } from '../test/funnelFixture'
 
 const respond = (res: Partial<Response>) => vi.fn(async () => res as Response) as unknown as typeof fetch
 const serving = (body: unknown) => respond({ ok: true, status: 200, json: async () => body })
@@ -52,8 +52,8 @@ describe('FunnelPage: loading and errors', () => {
     expect(screen.queryByRole('status')).toBeNull()
   })
   it('shows an error for the previous schema version', async () => {
-    render(<FunnelPage fetchImpl={serving({ ...FUNNEL_FIXTURE, schema_version: '0.1.0' })} />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.1.0"')
+    render(<FunnelPage fetchImpl={serving({ ...FUNNEL_FIXTURE, schema_version: '0.2.0' })} />)
+    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.2.0"')
     expect(screen.queryByRole('table')).toBeNull()
   })
   it('shows an error when the file is another kind (meta.json served at the funnel url)', async () => {
@@ -165,8 +165,8 @@ describe('FunnelPage: samples, timing status, lookups, caveats', () => {
     expect(byStatus).toEqual({ confirmed: '10', corrected: '20', inferred: '30', date_corrected: '5', no_document: '15', not_checked: '100', ambiguous: '20' })
     expect(rows).toHaveLength(7)
   })
-  it('says "not computed yet: ..." for the two milestone-2 fields, with the text from the file', async () => {
-    render(<FunnelPage fetchImpl={serving(FUNNEL_FIXTURE)} />)
+  it('says "not computed yet: ..." for the two milestone-2 fields when the file has them null, with the text from the file', async () => {
+    render(<FunnelPage fetchImpl={serving(FUNNEL_NULL_FIXTURE)} />)
     await screen.findByRole('table', { name: 'Funnel steps' })
     const list = screen.getByRole('list', { name: 'Not computed yet' })
     const items = within(list).getAllByRole('listitem')
@@ -174,10 +174,33 @@ describe('FunnelPage: samples, timing status, lookups, caveats', () => {
     expect(items[0]).toHaveTextContent('not computed yet: fixture terciles need the fixture forwards')
     expect(items[1]).toHaveTextContent('not computed yet: fixture variance is a later measure')
     expect(list.textContent).not.toContain('not_computed')
+    // Null is not drawn as an empty table or a "0 of 0" line.
+    expect(screen.queryByRole('table', { name: 'By move tercile' })).toBeNull()
+    expect(screen.queryByText(/have E ≤ 0/)).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'By move tercile' })).toBeNull()
   })
   it('keeps a status text that does not start with "not_computed:" whole', () => {
-    render(<FunnelDisplay funnel={checked({ by_move_tercile_status: 'waiting on fixture data' })} />)
+    render(<FunnelDisplay funnel={checked({ by_move_tercile: null, by_move_tercile_status: 'waiting on fixture data' })} />)
     expect(screen.getByText('not computed yet: waiting on fixture data')).toBeInTheDocument()
+  })
+  it('does not list a filled field under "Not computed yet": no list at all when both are filled', async () => {
+    render(<FunnelPage fetchImpl={serving(FUNNEL_FIXTURE)} />)
+    await screen.findByRole('table', { name: 'Funnel steps' })
+    expect(screen.queryByRole('list', { name: 'Not computed yet' })).toBeNull()
+    expect(screen.queryByText(/not computed yet/i)).toBeNull()
+  })
+  it('lists only the null field when just one of the two is null', () => {
+    const { unmount } = render(<FunnelDisplay funnel={checked({ evar_nonpositive: null, evar_nonpositive_status: 'not_computed: fixture waits' })} />)
+    let items = within(screen.getByRole('list', { name: 'Not computed yet' })).getAllByRole('listitem')
+    expect(items).toHaveLength(1)
+    expect(items[0]).toHaveTextContent('Non-positive event variance — not computed yet: fixture waits')
+    expect(screen.getByRole('table', { name: 'By move tercile' })).toBeInTheDocument() // the filled one is still drawn
+    unmount()
+    render(<FunnelDisplay funnel={checked({ by_move_tercile: null, by_move_tercile_status: 'not_computed: fixture waits' })} />)
+    items = within(screen.getByRole('list', { name: 'Not computed yet' })).getAllByRole('listitem')
+    expect(items).toHaveLength(1)
+    expect(items[0]).toHaveTextContent('By move tercile — not computed yet: fixture waits')
+    expect(screen.getByText('5 of 190 events (0.125) have E ≤ 0, among 200 in the primary sample')).toBeInTheDocument()
   })
   it('shows the lookups done and "provisional" while they are not complete', async () => {
     render(<FunnelPage fetchImpl={serving(FUNNEL_FIXTURE)} />)
@@ -202,5 +225,106 @@ describe('FunnelPage: samples, timing status, lookups, caveats', () => {
   it('shows an empty caveats list when the file has none', () => {
     render(<FunnelDisplay funnel={checked({ caveats: [] })} />)
     expect(within(screen.getByRole('list', { name: 'Caveats' })).queryAllByRole('listitem')).toHaveLength(0)
+  })
+})
+
+describe('FunnelPage: by move tercile (filled)', () => {
+  const HEADER = [
+    'Sample',
+    'Tercile',
+    'Events',
+    'With crush',
+    'Mean |move|',
+    'Mean crush',
+    'Gap check changed',
+    'Gap contradicts',
+    'confirmed',
+    'corrected',
+    'inferred',
+    'date_corrected',
+    'no_document',
+    'not_checked',
+    'ambiguous',
+  ]
+  const rowsOf = (table: HTMLElement): string[][] =>
+    within(table)
+      .getAllByRole('row')
+      .slice(1)
+      .map((r) => within(r).getAllByRole('cell').map((c) => c.textContent ?? ''))
+
+  it('has a heading, one column per field and per timing status, and one row per entry, in the order of the file', async () => {
+    render(<FunnelPage fetchImpl={serving(FUNNEL_FIXTURE)} />)
+    const table = await screen.findByRole('table', { name: 'By move tercile' })
+    expect(screen.getByRole('heading', { name: 'By move tercile' })).toBeInTheDocument()
+    expect(within(table).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(HEADER)
+    expect(within(table).getAllByRole('row')).toHaveLength(3 + 1) // + header row
+    expect(rowsOf(table)[0].slice(0, 2)).toEqual(['daily', '1'])
+    expect(rowsOf(table)[1].slice(0, 2)).toEqual(['mixed', '2'])
+    expect(rowsOf(table)[2].slice(0, 2)).toEqual(['coarse', '3'])
+  })
+  it('draws every number exactly as in the file: counts, means, share and the seven timing counts', async () => {
+    render(<FunnelPage fetchImpl={serving(FUNNEL_FIXTURE)} />)
+    const table = await screen.findByRole('table', { name: 'By move tercile' })
+    // sample, tercile, n_events, n_crush, mean_abs_move, mean_crush_mean_adj, n_gap_check_changed, share_gap_contradicts, then confirmed ... ambiguous
+    expect(rowsOf(table)).toEqual([
+      ['daily', '1', '40', '38', '0.0125', '-0.15', '3', '0.25', '1', '2', '3', '4', '5', '24', '1'],
+      ['mixed', '2', '10', '10', '0.04', '-0.2', '0', '—', '0', '0', '0', '0', '0', '10', '0'],
+      ['coarse', '3', '20', '0', '—', '—', '2', '0', '6', '0', '0', '0', '0', '14', '0'],
+    ])
+  })
+  it('shows "—" for a null share_gap_contradicts and for null means, but "0" for a real zero', async () => {
+    render(<FunnelPage fetchImpl={serving(FUNNEL_FIXTURE)} />)
+    const rows = rowsOf(await screen.findByRole('table', { name: 'By move tercile' }))
+    expect(rows[1][7]).toBe('—') // share null
+    expect(rows[2][7]).toBe('0') // share 0
+    expect(rows[2][4]).toBe('—') // mean_abs_move null
+    expect(rows[2][5]).toBe('—') // mean_crush_mean_adj null
+  })
+  it('puts each timing count under its own status, not in the order the keys happen to be written', () => {
+    const counts = { ambiguous: 7, not_checked: 6, no_document: 5, date_corrected: 4, inferred: 3, corrected: 2, confirmed: 1 } // written backwards
+    const row = { ...FUNNEL_DATA_FIXTURE.by_move_tercile[0], timing_status_counts: counts }
+    render(<FunnelDisplay funnel={checked({ by_move_tercile: [row] })} />)
+    expect(rowsOf(screen.getByRole('table', { name: 'By move tercile' }))[0].slice(8)).toEqual(['1', '2', '3', '4', '5', '6', '7'])
+  })
+  it('shows the status text from the file as a note, without the machine word "computed:"', async () => {
+    render(<FunnelPage fetchImpl={serving(FUNNEL_FIXTURE)} />)
+    await screen.findByRole('table', { name: 'By move tercile' })
+    expect(screen.getByText('fixture terciles from the fixture forwards')).toBeInTheDocument()
+    expect(screen.queryByText(/computed: fixture/)).toBeNull()
+  })
+  it('draws an empty array as a table with only its header row', () => {
+    render(<FunnelDisplay funnel={checked({ by_move_tercile: [] })} />)
+    expect(within(screen.getByRole('table', { name: 'By move tercile' })).getAllByRole('row')).toHaveLength(1)
+  })
+  it('does not break the other tables: the by-status table is still the funnel-wide one', async () => {
+    render(<FunnelPage fetchImpl={serving(FUNNEL_FIXTURE)} />)
+    await screen.findByRole('table', { name: 'By move tercile' })
+    expect(within(screen.getByRole('table', { name: 'Timing status counts' })).getAllByRole('row')).toHaveLength(7 + 1)
+  })
+})
+
+describe('FunnelPage: non-positive event variance (filled)', () => {
+  it('says "n of n_identified events (share) have E ≤ 0, among n_events in the primary sample", all as given', async () => {
+    render(<FunnelPage fetchImpl={serving(FUNNEL_FIXTURE)} />)
+    await screen.findByRole('table', { name: 'Funnel steps' })
+    expect(screen.getByRole('heading', { name: 'Non-positive event variance' })).toBeInTheDocument()
+    expect(screen.getByText('5 of 190 events (0.125) have E ≤ 0, among 200 in the primary sample')).toBeInTheDocument()
+  })
+  it('shows the share from the file, never n / n_identified (5 / 190 = 0.0263...)', () => {
+    render(<FunnelDisplay funnel={checked()} />)
+    expect(screen.queryByText(/0\.026/)).toBeNull()
+    expect(screen.getByText(/\(0\.125\)/)).toBeInTheDocument()
+  })
+  it('shows the status text from the file as a note, without the machine word "computed:"', () => {
+    render(<FunnelDisplay funnel={checked()} />)
+    expect(screen.getByText('fixture variance at the fixture day -1')).toBeInTheDocument()
+  })
+  it('shows "—" for a null share (only possible when nothing was identified)', () => {
+    render(<FunnelDisplay funnel={checked({ evar_nonpositive: { n_events: 12, n_identified: 0, n: 0, share: null } })} />)
+    expect(screen.getByText('0 of 0 events (—) have E ≤ 0, among 12 in the primary sample')).toBeInTheDocument()
+  })
+  it('shows a share of exactly 0 as 0, not as a dash', () => {
+    render(<FunnelDisplay funnel={checked({ evar_nonpositive: { n_events: 9, n_identified: 9, n: 0, share: 0 } })} />)
+    expect(screen.getByText('0 of 9 events (0) have E ≤ 0, among 9 in the primary sample')).toBeInTheDocument()
   })
 })

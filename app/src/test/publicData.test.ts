@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parseEnvelope } from '../lib/contract'
 import { parseSampleFunnel } from '../lib/funnel'
+import { parseIvMeasures } from '../lib/ivMeasures'
 import { summarizeMeta, formatMilestone, parseMetaData } from '../lib/meta'
 
 // Contract check against the REAL files the Python exporter wrote to public/data/. If the Python
@@ -21,7 +22,7 @@ describe('public/data/*.json (written by the Python exporter)', () => {
     expect(Object.keys(files).some((f) => f.endsWith('/meta.json'))).toBe(true)
   })
   for (const [path, raw] of Object.entries(files)) {
-    it(`${path.split('/').pop()} is valid JSON and satisfies the schema 0.2.0 envelope`, () => {
+    it(`${path.split('/').pop()} is valid JSON and satisfies the schema 0.3.0 envelope`, () => {
       const r = parseEnvelope(JSON.parse(raw))
       expect(r.ok, r.ok ? '' : r.error).toBe(true)
     })
@@ -41,14 +42,17 @@ describe('public/data/*.json (written by the Python exporter)', () => {
     if (!env.ok) throw new Error(env.error)
     const r = parseMetaData(env.envelope.data)
     if (!r.ok) throw new Error(r.error)
-    // CBOE and Yahoo data is never committed (data/derived/README.md); the Python test pins this too,
-    // and this checks the file the app really reads.
+    // No Cboe value is committed; two Yahoo-derived labels are (owner decision of 2026-10-29,
+    // data/derived/README.md). The Python test ties these flags to the schema registry; this checks the
+    // file the app really reads.
     for (const s of r.data.data_sources) {
-      if (/CBOE|Yahoo/.test(s.name)) expect(s.committed, s.name).toBe(false)
+      if (/Cboe|CBOE/.test(s.name)) expect(s.committed, s.name).toBe(false)
+      if (/Yahoo/.test(s.name)) expect(s.committed, s.name).toBe(true)
     }
-    // Every committed source is covered by the licence, and the attribution text names its repository.
+    // A source under the data licence is covered by it; every committed source is named in the
+    // attribution text, so a committed source the notice forgets fails here.
     for (const s of r.data.data_sources.filter((x) => x.committed)) {
-      expect(r.data.data_licence.applies_to, s.name).toContain(s.name)
+      if (s.licence === r.data.data_licence.name) expect(r.data.data_licence.applies_to, s.name).toContain(s.name)
       expect(r.data.data_licence.attribution, s.name).toContain(s.name.replace('DoltHub ', ''))
     }
   })
@@ -65,6 +69,25 @@ describe('public/data/*.json (written by the Python exporter)', () => {
     const env = envelopeOf('sample_funnel')
     expect(env.kind).toBe('sample_funnel')
     const r = parseSampleFunnel(env.data)
+    expect(r.ok, r.ok ? '' : r.error).toBe(true)
+  })
+  it('sample_funnel.json has its two milestone-2 fields filled: 9 tercile rows (3 samples x 3 terciles) and a non-positive variance count', () => {
+    const r = parseSampleFunnel(envelopeOf('sample_funnel').data)
+    if (!r.ok) throw new Error(r.error)
+    expect(r.data.by_move_tercile, 'by_move_tercile is null: the exporter has not filled it').not.toBeNull()
+    expect(r.data.by_move_tercile).toHaveLength(9)
+    // Every (sample, tercile) pair appears exactly once; the order is the exporter's business.
+    expect(r.data.by_move_tercile?.map((x) => `${x.sample}-${x.tercile}`).sort()).toEqual(
+      ['coarse-1', 'coarse-2', 'coarse-3', 'daily-1', 'daily-2', 'daily-3', 'mixed-1', 'mixed-2', 'mixed-3'],
+    )
+    expect(r.data.by_move_tercile_status).toMatch(/^computed:/)
+    expect(r.data.evar_nonpositive, 'evar_nonpositive is null: the exporter has not filled it').not.toBeNull()
+    expect(r.data.evar_nonpositive_status).toMatch(/^computed:/)
+  })
+  it('iv_measures.json exists, has kind "iv_measures" and passes the data-shape validator the IV measures page uses', () => {
+    const env = envelopeOf('iv_measures')
+    expect(env.kind).toBe('iv_measures')
+    const r = parseIvMeasures(env.data)
     expect(r.ok, r.ok ? '' : r.error).toBe(true)
   })
 })

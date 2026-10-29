@@ -2,11 +2,13 @@
  * "Sample" page: draws `data/sample_funnel.json` (how many earnings events survive each filtering
  * step) exactly as the Python exporter wrote it. Every number is shown as given. The only thing this
  * page works out is the length of each bar (a step's `n_events` against the first step's), which is
- * layout, not a result. The file is checked with `loadSampleFunnel` first, and a missing or invalid
+ * layout, not a result. The two milestone-2 fields (`by_move_tercile`, `evar_nonpositive`) are drawn
+ * as data when the file fills them, and as "not computed yet" with the file's own status text when
+ * it leaves them null. The file is checked with `loadSampleFunnel` first, and a missing or invalid
  * file shows an explicit error instead of a chart.
  */
 import { useEffect, useState } from 'react'
-import { loadSampleFunnel, SAMPLE_FUNNEL_URL, TIMING_STATUSES, type SampleFunnel } from './funnel'
+import { loadSampleFunnel, SAMPLE_FUNNEL_URL, TIMING_STATUSES, type EvarNonpositive, type MoveTercileRow, type SampleFunnel } from './funnel'
 
 type State = { status: 'loading' } | { status: 'ok'; funnel: SampleFunnel } | { status: 'error'; error: string }
 
@@ -15,6 +17,59 @@ const barWidth = (nEvents: number, firstNEvents: number): string => (firstNEvent
 
 /** The status strings start with the machine word "not_computed:"; the page says it in plain words. */
 const notComputed = (status: string): string => `not computed yet: ${status.replace(/^not_computed:\s*/, '')}`
+
+/** A filled field's status starts with "computed:"; the rest says how it was computed. */
+const computedNote = (status: string): string => status.replace(/^computed:\s*/, '')
+
+/** A number as the file has it, or "—" for null. */
+const orDash = (x: number | null): string => (x === null ? '—' : String(x))
+
+function TercileTable({ rows }: { rows: MoveTercileRow[] }) {
+  return (
+    <div className="card scroll-x">
+      <table aria-label="By move tercile">
+        <thead>
+          <tr>
+            <th>Sample</th>
+            <th>Tercile</th>
+            <th>Events</th>
+            <th>With crush</th>
+            <th>Mean |move|</th>
+            <th>Mean crush</th>
+            <th>Gap check changed</th>
+            <th>Gap contradicts</th>
+            {TIMING_STATUSES.map((status) => (
+              <th key={status}>{status}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={`${r.sample}-${r.tercile}-${i}`}>
+              <td>{r.sample}</td>
+              <td className="num">{r.tercile}</td>
+              <td className="num">{r.n_events}</td>
+              <td className="num">{r.n_crush}</td>
+              <td className="num">{orDash(r.mean_abs_move)}</td>
+              <td className="num">{orDash(r.mean_crush_mean_adj)}</td>
+              <td className="num">{r.n_gap_check_changed}</td>
+              <td className="num">{orDash(r.share_gap_contradicts)}</td>
+              {TIMING_STATUSES.map((status) => (
+                <td key={status} className="num">
+                  {r.timing_status_counts[status]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+/** "n of n_identified events (share) have E ≤ 0, among n_events in the primary sample", all as given. */
+const evarLine = (e: EvarNonpositive): string =>
+  `${e.n} of ${e.n_identified} events (${orDash(e.share)}) have E ≤ 0, among ${e.n_events} in the primary sample`
 
 export function FunnelDisplay({ funnel }: { funnel: SampleFunnel }) {
   const first = funnel.steps[0].n_events // steps is validated as non-empty
@@ -99,15 +154,39 @@ export function FunnelDisplay({ funnel }: { funnel: SampleFunnel }) {
         <span className="num">{funnel.lookups.n_done}</span> lookups done <span className="badge">{funnel.lookups.complete ? 'complete' : 'provisional'}</span>
       </p>
 
-      <h2>Not computed yet</h2>
-      <ul aria-label="Not computed yet" className="sub">
-        <li>
-          <strong>By move tercile</strong> — <span>{notComputed(funnel.by_move_tercile_status)}</span>
-        </li>
-        <li>
-          <strong>Non-positive event variance</strong> — <span>{notComputed(funnel.evar_nonpositive_status)}</span>
-        </li>
-      </ul>
+      {funnel.by_move_tercile !== null && (
+        <>
+          <h2>By move tercile</h2>
+          <TercileTable rows={funnel.by_move_tercile} />
+          <p className="sub">{computedNote(funnel.by_move_tercile_status)}</p>
+        </>
+      )}
+
+      {funnel.evar_nonpositive !== null && (
+        <>
+          <h2>Non-positive event variance</h2>
+          <p>{evarLine(funnel.evar_nonpositive)}</p>
+          <p className="sub">{computedNote(funnel.evar_nonpositive_status)}</p>
+        </>
+      )}
+
+      {(funnel.by_move_tercile === null || funnel.evar_nonpositive === null) && (
+        <>
+          <h2>Not computed yet</h2>
+          <ul aria-label="Not computed yet" className="sub">
+            {funnel.by_move_tercile === null && (
+              <li>
+                <strong>By move tercile</strong> — <span>{notComputed(funnel.by_move_tercile_status)}</span>
+              </li>
+            )}
+            {funnel.evar_nonpositive === null && (
+              <li>
+                <strong>Non-positive event variance</strong> — <span>{notComputed(funnel.evar_nonpositive_status)}</span>
+              </li>
+            )}
+          </ul>
+        </>
+      )}
 
       <h2>Caveats</h2>
       <ul aria-label="Caveats" className="sub">

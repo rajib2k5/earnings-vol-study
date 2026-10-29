@@ -1,0 +1,3 @@
+[4] tau rows 181597, mismatches 181597; rows whose (t, expiry] holds an early close: 28713 (counted as 1 each); rows whose expiration is not a session: 0
+RESULT FAIL 4,6/8
+falsifier_rc=1

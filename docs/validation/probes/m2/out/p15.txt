@@ -1,0 +1,22 @@
+hooks installed: (none means no pre-commit check)
+untracked M2 data files right now: 4
+T0  index as it is (M2 data files untracked)                   rc=0  clean: no raw vendor file and no oversized data file
+T0b everything staged (what a commit of the tree would hold)   rc=0  clean: no raw vendor file and no oversized data file
+     largest staged blobs:
+       4721282	data/derived/iv_daily.parquet
+       2101278	docs/architecture/graph/graph.svg
+       2061496	docs/architecture/out/erd.png
+       820333	docs/architecture/out/event_sequence.png
+T1  exact copy of a Yahoo price file as docs/notes.txt         rc=1  1 problem(s) in tracked files
+T2  same, no vendor folder (CI)                               rc=0
+T3  gzip copy of FRED DTB3.csv in data/derived/                rc=0  clean: no raw vendor file and no oversized data file
+T4  DTB3.csv plus one newline, renamed, in data/manual/        rc=0  clean: no raw vendor file and no oversized data file
+     re-serialised raw option_chain month: 382798 bytes, 72465 rows
+T5  a whole raw option_chain month re-serialised (bulk raw)    rc=0  clean: no raw vendor file and no oversized data file
+T6  stage market_daily (class-R Cboe VIX column) in data/derived rc=0  clean: no raw vendor file and no oversized data file
+T7  exact DTB3 copy as Raw/DTB3.CSV (case variants)            rc=1  1 problem(s) in tracked files
+T7b same, no vendor folder (CI)                               rc=0
+ M LEARNING_LOG.md
+ M README.md
+ M app/CLAUDE.md
+index restored to the copy's original state: yes

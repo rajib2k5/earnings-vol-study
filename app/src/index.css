@@ -89,3 +89,10 @@ a { color: var(--teal); }
 /* ---- sample funnel page (FunnelPage): one bar per step ---- */
 .funnel-track { min-width: 140px; height: .7rem; border-radius: 2px; background: var(--surface2); overflow: hidden; }
 .funnel-bar { height: 100%; background: var(--teal); }
+
+/* ---- IV measures page (IvMeasuresPage): one column per histogram bin ---- */
+.iv-layout { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); align-items: start; }
+@media (max-width: 720px) { .iv-layout { grid-template-columns: minmax(0, 1fr); } }
+.hist { display: flex; align-items: flex-end; gap: 1px; height: 11rem; border-bottom: 1px solid var(--line); }
+.hist-bar { flex: 1 1 0; min-width: 0; background: var(--teal); }
+.hist-axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-top: .3rem; }

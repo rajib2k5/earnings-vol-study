@@ -1,7 +1,8 @@
 # ADR 0003: IV measures (front ATM, event-aware 30-day, event variance and implied move)
 
 - **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review**, and again
-  after the milestone-0 delta review (notes below); validated at milestone 2
+  after the milestone-0 delta review (notes below); validated at milestone 2, and revised after the milestone-2 review
+  (note below: the forward tie, the quadratic fallback, AMC expiries, the E pair)
 - **Date:** 2026-10-28
 - **Related:** [0002 day 0](0002-day-zero-convention.md), [0004 windows](0004-baseline-and-event-windows.md),
   [data model](../architecture/data-model.md) (`chain_expiry`, `iv_daily`)
@@ -39,6 +40,50 @@
 >    protects each.
 > 3. **Hygiene (9d):** §e called the −0.38% cross-check "Yahoo's close-to-close". It is the official close-to-close,
 >    and it is now called that.
+
+> **Milestone 2, 2026-10-29: built and checked** ([walkthrough](../milestones/02-iv-measures.md)).
+>
+> - **The oracle reproduces** through the pipeline's own code (`tests/test_iv_worked_example.py`, reading
+>   `worked.py`'s quotes): E = 0.00088284, and every row of the table below. On the real chain with the FRED rate E is
+>   0.00088307. That rate is `market_daily.r_cont` = 3.83% on 2025-10-30, the continuous rate converted from a raw
+>   DTB3 of 3.76% on a discount basis; the table below uses 3.9%. *(Wording corrected after the milestone-2 review: it
+>   said "the FRED rate (3.83% …)" as if DTB3 itself were 3.83%.)*
+> - **Validation item 2 (the vendor `vol`)**: on 53,135 front-expiry days away from events, the vendor is 0.16 vol
+>   points below ours on the calendar clock (median 0.11, median |difference| 0.17, p95 0.94): under the 0.5-point
+>   line. Items 1 (VX\*) and 3 (`iv_current`) are not run yet.
+> - **"How we'll know it's wrong"**: the blind 30-day IV sits 0.23 vol points above the event-aware one in the
+>   sessions 22–60 before an event, above the 0.1 line, so the event-aware series stays. E ≤ 0 on day −1 for 1.15% of
+>   the primary sample, far below 25%.
+> - **Choices the text left open**, made in the code and listed in the walkthrough §2: the w used to draw the
+>   quadratic's window (the too-wide bracket's linear w); spans by `as_of(expiration)`; `sigma_d_iv` from E's pair,
+>   else the two shortest clean expiries; the vendor ATM interpolated in vol at the bracket; T1\* among `ok` expiries
+>   and never extrapolated; the realised move's expiry and the start day's rate. Interpolating C + P across the kink at
+>   K = F biases the straddle IV up; 20% of `ok` expiries carry `straddle_gap`. The straddle stays a cross-check only.
+>   (Numbers in this note re-measured after the milestone-2 review below.)
+
+> **Revised after the milestone-2 review** ([ledger](../validation/m2-ledger.md), claims 2a, 3b, 7, 8). Four rules
+> changed or were written down; every number of the milestone-2 page was re-measured after them.
+>
+> 1. **Refuted (2a): ties to the lower strike.** The code ranked the float |C − P|, and an exact tie in cents could
+>    break the wrong way (|0.005 − 0.010| = 0.005 but |0.010 − 0.015| = 0.004999999999999999). §0 step 2 now ranks
+>    2|C − P| as a whole number of cents. On the real data this changed 89 of 180,055 forwards (at most 0.56, 0.43%),
+>    and the IV of those 89 expiries by a median of 0.05 and at most 2.99 vol points (PLTR 2025-06-27, expiry
+>    2025-07-25: 63.59% → 60.61%).
+> 2. **Refuted as sound (3b): the quadratic fallback.** 166 of its 293 uses fitted strikes on one side of the money
+>    only, so the ATM w was extrapolated. §0 step 4 now requires a bracket and at least one valid strike on each side
+>    of k = 0 in the window; otherwise the status is `no_atm`. The weights stay inverse **relative** spread, and the
+>    text now says so (it said "inverse spread"). The hold-out evidence is under §0 step 4. Effect: 127 quadratic rows
+>    remain, 166 became `no_atm`, and one primary event (RTX 2025-04-22, whose day-0 front expiry was a one-sided fit)
+>    has no 30-day IV on day 0 any more: the primary sample is 347, not 348.
+> 3. **Contested (7): an AMC announcement on an expiry day.** The exercise decision runs until 5:30 p.m. ET (FINRA Rule
+>    2360), after an after-close release, so an expiry on the announcement day D is now classed **spanning**,
+>    conservatively (§b, "The problem"). The same holds for an event without a label, anchored on next(D). 157
+>    `chain_expiry` rows changed class: 31 (27 usable) for 7 AMC events and 126 (114 usable) for 16 unlabelled
+>    (`timing_not_checked`) events.
+> 4. **Undocumented (8): which expiries E uses.** T1 and T2 are the two shortest **usable** spanning expiries (`ok`,
+>    τ ≥ 5); an expiry without an ATM w is skipped (§c, "Which expiries": 235 of 19,601 E rows skip one). The
+>    `sigma_d_iv` fallback (the two shortest clean expiries) is now pinned by a test.
+> 5. **Inaccurate:** §0 step 3 said the lower root bound always holds; it does not above F ≈ 1,253 (corrected there).
 
 ## In one paragraph
 
@@ -101,7 +146,9 @@ For each snapshot (mapped to a session per ADR 0002) and each expiry:
 2. **Forward from put-call parity.** For a European option $C - P = DF\,(F - K)$, so every strike quoted on both sides
    gives $F_K = K + (C_{mid} - P_{mid})/DF$. Take $F$ = the median of $F_K$ over the 4 strikes with the smallest
    $|C_{mid}-P_{mid}|$, among strikes whose call and put both pass the first part of the filter. Ties go to the lower
-   strike. With fewer than 4 such strikes use all of them; with none, the status is `no_forward`. Flag
+   strike. *Revised after the milestone-2 review:* $|C-P|$ is ranked as the whole number of cents
+   $|(bid+ask)_C - (bid+ask)_P| = 2|C-P|$, so an exact decimal tie is a tie; a float can order it the other way.
+   With fewer than 4 such strikes use all of them; with none, the status is `no_forward`. Flag
    `fwd_dispersion` if $(\max F_K - \min F_K)/F > 0.5\%$ over the strikes used.
    - *Why 4 strikes nearest the money, not all strikes* (revised; the prototype used all strikes, ledger N1):
      - Away from the money, one leg of every pair is in the money. It carries the early-exercise premium, which
@@ -124,8 +171,11 @@ For each snapshot (mapped to a session per ADR 0002) and each expiry:
    variance clock here.** The one day count left is $DF$'s calendar clock, from step 2.
    - **No root (added after the review, ledger claim 4).** Black-76 is increasing in $w$, so a root exists exactly when
      $\text{Black76}(w = 10^{-8}) < \text{mid} < \text{Black76}(w = 4)$.
-   - The lower end always holds after the filter: at $w = 10^{-8}$ an out-of-the-money price is about 0, and
-     mid ≥ 0.05.
+   - The lower end holds in practice, but not always (*corrected after the milestone-2 review*; this said it always
+     holds): at $w = 10^{-8}$ an out-of-the-money price is about 0 against mid ≥ 0.05, except near the money on a
+     high-priced stock. At $K = F$ the price at $w = 10^{-8}$ is about $DF\cdot F\cdot 4\times10^{-5}$, which reaches
+     0.05 at $F \approx 1{,}253$; 2,437 `chain_expiry` rows (AMZN, AVGO, GOOGL, LLY, NFLX) have a forward above that.
+     The code tests both ends (`black.has_root`), so nothing depends on it.
    - The upper end can fail. A call priced above Black76$(w = 4)$, which is $0.599\,DF\,F$ at the ledger's
      example, passes the bound $C \le DF\cdot F$, but has no root.
    - Such a strike is **invalid** (flag `iv_no_root`). It is dropped from the bracket and the quadratic fit. It is
@@ -133,8 +183,36 @@ For each snapshot (mapped to a session per ADR 0002) and each expiry:
 4. **ATM by interpolation in log-moneyness.** With $k = \ln(K/F)$, take the closest valid strikes on each side,
    $k_{lo} \le 0 < k_{hi}$, and set $w_{atm} = w_{lo} + \frac{0-k_{lo}}{k_{hi}-k_{lo}}(w_{hi}-w_{lo})$. The bracket must
    satisfy $k_{hi}-k_{lo} \le 1.5\sqrt{w}$, meaning the two strikes are at most 1.5 standard deviations apart.
-   Otherwise fit a quadratic in $k$, weighted by inverse spread, through valid strikes with $|k| \le 2\sqrt w$ (at least
-   4 strikes) and read $w(0)$ (`atm_method = quadratic`). If that also fails, return null (status `no_atm`).
+   Otherwise fit a quadratic in $k$, weighted by inverse **relative** spread $(ask-bid)/mid$ of the out-of-the-money
+   quote, through valid strikes with $|k| \le 2\sqrt w$, with $w$ the bracket's own linear $w_{atm}$ (at least 4
+   strikes, **at least one on each side of $k = 0$**, and $w(0) > 0$), and read $w(0)$ (`atm_method = quadratic`). With
+   no valid strike on one side of the money there is no bracket and no fit. If that also fails, return null (status
+   `no_atm`). **The ATM w is never extrapolated.**
+   - *Revised after the milestone-2 review (claim 3b).* The fit used to run without a bracket too, on the strikes of
+     one side, with its window drawn from the nearest strike's w. 166 of its 293 uses were such extrapolations.
+     Hold-out on real chains (every `bracket_linear` expiry with τ ≥ 5 of the stage before the fix, 177,388 of them:
+     hide strikes, run the fallback, compare with the known bracket IV; a scratch analysis, numbers in vol points):
+
+     | Fallback | Hold-out fits | Median error | Median \|error\| | p95 \|error\| | Max \|error\| | Above 1 point |
+     |---|---:|---:|---:|---:|---:|---:|
+     | Quadratic on one side only (every strike on one side hidden) | 286,742 | +0.147 | 0.251 | 1.53 | 41.6 | 11.0% |
+     | Two-sided quadratic, bracket too wide (one bracket strike hidden) | 2,812 | −0.109 | 0.199 | 1.15 | 11.7 | 6.4% |
+     | Linear across the same too-wide brackets ("widen the bracket") | 2,812 | +0.218 | 0.273 | 1.16 | 9.8 | 6.9% |
+     | The two-sided fit weighted by 1/absolute spread instead | 2,812 | −0.156 | 0.239 | 1.25 | 12.0 | 7.7% |
+     | The two-sided fit unweighted | 2,812 | −0.133 | 0.215 | 1.15 | 11.8 | 6.7% |
+
+     - So one-sided extrapolation is refused, and with it the nearest-strike w, which drew only its window.
+     - On a too-wide bracket the two-sided quadratic and linear interpolation have the same p95. The quadratic has
+       half the bias, because the chord of a convex smile lies above it. So the quadratic stays.
+     - The review's 0.80 vol points for "widening the bracket" came from brackets that stayed under 1.5 sd once a
+       strike was hidden: an ordinary bracket, not a too-wide one.
+     - Of the three weightings, inverse relative spread has the smallest median and maximum error and the fewest
+       misses above 1 point; its p95 ties the unweighted fit's (1.148 against 1.146).
+   - The review's probe `p03` re-run on the fixed code, on its own 3,135 hold-out expiries:
+     - with every strike at or below the money hidden, 3,109 now get no ATM, where 2,605 got a one-sided quadratic
+       (p95 error 1.57, max 7.26);
+     - with the lower bracket strike hidden, 3,055 stay `bracket_linear` (p95 0.80), and 24 get a two-sided quadratic
+       (p95 1.18, max 1.49), where 31 got one before (p95 2.32, max 3.28).
 5. **Time to expiry** $\tau$ = the number of NYSE sessions in $(t, \text{expiry}]$. The expiry session counts and the
    snapshot session does not, because it has already closed. Half sessions count as 1 (sensitivity: 0.5). An expiry
    is usable only if $\tau \ge 5$.
@@ -178,7 +256,21 @@ Target horizon $\tau^* = 21$ sessions (≈ 30 calendar days).
 
 **The problem.** An earnings date splits a day's expiries into two classes. *Clean* expiries end before the next
 event's day 0. *Spanning* expiries contain it: expiration ≥ day 0, because an expiry that settles at day 0's close
-already reflects the news. Ordinary interpolation in total variance between a clean expiry $a$ and a spanning expiry
+already reflects the news.
+
+- *Revised after the milestone-2 review (claim 7): an AMC announcement on an expiry day.* With an after-close release
+  on D, day 0 is the next session, but an expiry on D is not clean: its holders decide whether to exercise until
+  5:30 p.m. ET (FINRA Rule 2360), after the news; and Cboe BZX's 2026 filing (SR-CboeBZX-2026-007) declines to list
+  its extra expiries on a day with an after-close earnings release, citing the post-close volatility (both read by the
+  review's Channel A). So an expiry spans when its last trading day, `as_of(expiration)`, is on or
+  after **the first session on or after D**: day 0 for a BMO release or a release on a non-session day, D itself for
+  an AMC release. An event without a label is anchored on next(D) and treated the same way, since under either label
+  the expiry on D holds the news. This is conservative: a clean measure never reads such an expiry. At milestone 2 it
+  moved 157 `chain_expiry` rows (141 usable) from clean to spanning, for 7 AMC and 16 unlabelled events.
+- The horizon test of the rule below still counts sessions to day 0. A 21-session horizon that ends on an AMC day D is
+  clean, and the expiry on D, now spanning, is not used for it: the clean measure stays free of the news.
+
+Ordinary interpolation in total variance between a clean expiry $a$ and a spanning expiry
 $b$, when the 21-session horizon itself *excludes* the event, gives
 
 $$
@@ -341,7 +433,15 @@ wider (AAPL 2025-10-30). So E is also computed at day −2 as a robustness check
 since τ counts sessions. If AMC events show a markedly larger gap between E(−1) and E(−2) than BMO events do, E(−2)
 becomes primary for AMC events.
 
-**Which expiries.** On day −1, T1 = the shortest spanning expiry with $\tau \ge 5$, and T2 = the next spanning expiry. With
+**Which expiries.** On day −1, T1 = the shortest spanning expiry with $\tau \ge 5$, and T2 = the next spanning expiry.
+*Made explicit after the milestone-2 review (claim 8):* both are **usable** expiries, `ok` with $\tau \ge 5$, so a
+spanning expiry without an ATM $w$ (`no_atm`, `no_forward`) is skipped and the next usable one takes its place. E needs
+each expiry's $w$, and under the model any two spanning expiries give the same E; the cost is a longer T2, so $\sigma_d^2$
+is the forward variance over a longer stretch. Dropping E on such a day instead would lose it on 235 of the 19,601
+`iv_daily` rows with an E (re-measured after the review's fixes; 207 of 19,573 before them). Without two usable
+spanning expiries, `sigma_d_iv` falls back to the forward variance of the **two shortest** clean expiries
+(`termstructure.day_measures`; the test `test_sigma_d_without_e_comes_from_the_two_shortest_clean_expiries` fails if
+it takes the two longest). With
 three spanning expiries, also fit $(\sigma_d^2, E)$ by least squares on all three as a robustness check. The residual
 diagnoses curvature in the diffusive term structure. E is also stored daily in `iv_daily` whenever two spanning
 expiries exist, so the path of E through the run-up can be plotted.

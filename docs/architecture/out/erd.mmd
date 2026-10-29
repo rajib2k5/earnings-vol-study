@@ -39,18 +39,18 @@ erDiagram
         int16 tau_sessions
         int16 tau_cal_days
         float64 df
-        float64 forward
+        float64 forward "nullable"
         int16 forward_n_strikes
-        float64 forward_dispersion
+        float64 forward_dispersion "nullable"
         int16 n_strikes_valid
-        float64 strike_lo
-        float64 strike_hi
-        float64 k_lo
-        float64 k_hi
-        float64 rel_spread_lo
-        float64 rel_spread_hi
-        float64 w_atm
-        float64 iv_atm
+        float64 strike_lo "nullable"
+        float64 strike_hi "nullable"
+        float64 k_lo "nullable"
+        float64 k_hi "nullable"
+        float64 rel_spread_lo "nullable"
+        float64 rel_spread_hi "nullable"
+        float64 w_atm "nullable"
+        float64 iv_atm "nullable"
         enum atm_method
         float64 vendor_iv_atm "nullable"
         float64 straddle_atm "nullable"
@@ -92,6 +92,32 @@ erDiagram
         float64 ts_slope "nullable"
         float64 forward_front "nullable"
         float64 vendor_iv_current "nullable"
+        string flags
+    }
+    event_iv["event#95;iv (milestone 2#58; the IV columns of event#95;measures)"] {
+        string event_id PK, FK
+        date32 pre_session "nullable"
+        date32 post_session "nullable"
+        int16 crush_span_sessions "nullable"
+        float64 evar_m1 "nullable"
+        float64 evar_m2 "nullable"
+        float64 implied_move_m1 "nullable"
+        float64 implied_abs_move_total_m1 "nullable"
+        enum implied_move_status "nullable"
+        float64 sigma_d_m1 "nullable"
+        float64 cm30_m1 "nullable"
+        float64 cm30_0 "nullable"
+        float64 ts_slope_m1 "nullable"
+        float64 crush_mean_adj "nullable"
+        float64 dsigma_d_mean_adj "nullable"
+        date32 front_fixed_expiry "nullable"
+        float64 front_fixed_iv_m1 "nullable"
+        float64 front_fixed_iv_0 "nullable"
+        bool front_fixed_interpolated
+        float64 crush_front_fixed "nullable"
+        float64 realized_ret_0 "nullable"
+        float64 abs_ret_over_implied "nullable"
+        float64 abs_move_cand_max "nullable"
         string flags
     }
     session_snapshot {
@@ -304,8 +330,18 @@ erDiagram
         array caveats
         object provenance
         string from_events FK "nullable"
-        string from_event_measures FK "nullable"
+        string from_iv_daily FK "nullable"
+        string from_event_iv FK "nullable"
         string from_timing_check FK "nullable"
+    }
+    json_iv_measures["iv#95;measures.json"] {
+        string kind PK
+        object sample
+        object implied_move
+        object crush
+        array caveats
+        object provenance
+        string from_event_iv FK "nullable"
     }
     json_event_paths["event#95;paths.json"] {
         string kind PK
@@ -391,10 +427,13 @@ erDiagram
     events ||--o| event_measures_vx : "R21 cboe5 member"
     security ||--o{ session_snapshot : "R22 observed on"
     session ||--o{ session_snapshot : "R23 has"
+    events ||--|| event_iv : "R24 IV measures of"
     events |o--o{ json_meta : "feeds"
     events |o--o{ json_sample_funnel : "feeds"
-    event_measures |o--o{ json_sample_funnel : "feeds"
+    iv_daily |o--o{ json_sample_funnel : "feeds"
+    event_iv |o--o{ json_sample_funnel : "feeds"
     timing_check |o--o{ json_sample_funnel : "feeds (aggregate only)"
+    event_iv |o--o{ json_iv_measures : "feeds (aggregate only)"
     event_window_obs |o--o{ json_event_paths : "feeds"
     results |o--o{ json_event_paths : "feeds"
     event_measures |o--o{ json_heatmap : "feeds"

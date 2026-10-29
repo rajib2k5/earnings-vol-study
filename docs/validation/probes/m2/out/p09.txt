@@ -1,0 +1,11 @@
+2025-10-30 2025-11-14: F=271.4213 bracket=(267.5, 272.5) w=0.003486251 tau=11 iv=0.2826
+2025-10-30 2025-11-28: F=272.0582 bracket=(270.0, 275.0) w=0.005616313 tau=20 iv=0.2660
+2025-10-31 2025-11-14: F=270.5490 bracket=(270.0, 272.5) w=0.002216890 tau=10 iv=0.2364
+2025-10-31 2025-11-28: F=270.9454 bracket=(270.0, 275.0) w=0.004179409 tau=19 iv=0.2354
+E = 0.00088284  sqrt(E) = 2.9713%  sigma_d,ann = 0.2442  abs_move_total = 2.6697%
+realised = -0.3112%; front crush = -0.1787
+RESULT PASS 
+rc=0
+realised = -0.4090%; front crush = -0.1663
+RESULT FAIL [MUTANT all strikes]
+falsifier_rc=1

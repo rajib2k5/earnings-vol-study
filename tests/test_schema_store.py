@@ -4,6 +4,9 @@
 # Mutations this module must catch (applied by hand, each seen to fail):
 #   - a registry value column with a _yf suffix but class F (the R <=> suffix test)
 #   - write_derived keeping class-R columns
+#   - write_derived dropping a class-R column named in keep_restricted (milestone 2)
+#   - committed_schema keeping every class-R column of a table that names one in keep_restricted
+#   - Table accepting a keep_restricted name that is not a class-R column
 #   - validate() not checking enum members
 #   - params_hash computed from the raw YAML text (comments would change it)
 
@@ -29,10 +32,15 @@ def test_class_r_exactly_when_suffixed_over_every_value_column():
 def test_the_restricted_columns_are_the_ones_the_data_model_lists():
     assert schema.MARKET_DAILY.restricted() == ("vix_close_cboe", "ln_vix_cboe")
     assert set(schema.TIMING_CHECK.restricted()) == set(schema.TIMING_CHECK.names) - {"event_id"}
-    for name in ("security", "ticker_alias", "session", "events", "eps", "session_snapshot"):
+    for name in ("security", "ticker_alias", "session", "events", "eps", "session_snapshot", "iv_daily", "event_iv"):
         assert schema.REGISTRY[name].restricted() == (), name
         assert schema.REGISTRY[name].committed, name
-    assert not schema.MARKET_DAILY.committed and not schema.TIMING_CHECK.committed
+    # Local only: market_daily (VIX) and chain_expiry (about 190k rows; its DF is a FRED value).
+    assert not schema.MARKET_DAILY.committed and not schema.CHAIN_EXPIRY.committed
+    # Owner decision of 2026-10-29: the one class-R column committed is timing_check's gap verdict.
+    committed_r = {t.name: t.keep_restricted for t in schema.REGISTRY.values() if t.keep_restricted}
+    assert committed_r == {"timing_check": ("gap_verdict_yf",)}
+    assert store.committed_schema(schema.TIMING_CHECK).names == ("event_id", "gap_verdict_yf")
 
 
 def test_enums_never_have_a_null_member():
@@ -107,6 +115,21 @@ def test_write_derived_drops_class_r_and_gives_the_same_bytes_twice(tmp_path):
     assert "v_yf" not in names and names == ["id", "d", "n", "x", "e", "flag"]
     again = store.write_derived(demo(), T, tmp_path / "b")
     assert out.read_bytes() == again.read_bytes()
+
+
+def test_write_derived_keeps_only_the_named_class_r_columns(tmp_path):
+    t = Table("demo_r", (C("id", "string", key=True), C("v_yf", "float64", licence="R"),
+                         C("w_cboe", "float64", licence="R")), committed=True, keep_restricted=("v_yf",))
+    out = store.write_derived(pd.DataFrame({"id": ["k1"], "v_yf": [1.0], "w_cboe": [2.0]}), t, tmp_path)
+    assert pq.read_schema(out).names == ["id", "v_yf"]
+
+
+def test_keep_restricted_must_name_class_r_columns_of_a_committed_table():
+    with pytest.raises(ValueError, match="not class-R"):
+        Table("x", (C("id", "string", key=True), C("v", "float64")), committed=True, keep_restricted=("v",))
+    with pytest.raises(ValueError, match="committed table"):
+        Table("x", (C("id", "string", key=True), C("v_yf", "float64", licence="R")), committed=False,
+              keep_restricted=("v_yf",))
 
 
 def test_write_derived_refuses_local_tables_and_stray_suffixes(tmp_path):

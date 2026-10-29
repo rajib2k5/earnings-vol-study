@@ -4,8 +4,8 @@
 # reads only from layers to its left (ADR 0001 section 1 table):
 #   events   writes session, market_daily, security, ticker_alias, events, eps, timing_check
 #   measures reads  session, market_daily (r_cont), security, ticker_alias, events (day 0);
-#            writes session_snapshot (milestone 1; folded into iv_daily at milestone 2),
-#            chain_expiry, iv_daily
+#            writes session_snapshot (milestone 1), chain_expiry, iv_daily and event_iv
+#            (milestone 2; event_iv holds the IV columns of event_measures, built early)
 #   panel    reads  iv_daily, chain_expiry, events, eps, security, session, market_daily and the
 #            local Yahoo / VX* extracts; writes event_window_obs, event_measures, event_measures_vx
 #   stats    reads  event_measures(_vx), event_window_obs, events, eps, security and, for validation,
@@ -66,7 +66,7 @@ nodes:
   - {id: epsm,     label: EPS match,          sublabel: "eps: raw, consensus, link", type: process, lane: events}
 
   # --- Measures layer ------------------------------------------------------
-  - {id: ivm,      label: IV measures,        sublabel: "session_snapshot, chain_expiry, iv_daily", type: model,   lane: measures}
+  - {id: ivm,      label: IV measures,        sublabel: "chain_expiry, iv_daily, event_iv", type: model,   lane: measures}
 
   # --- Panel layer ---------------------------------------------------------
   - {id: pan,      label: Event panel,        sublabel: "window, baseline, eligible_*", type: process, lane: panel}
@@ -81,7 +81,7 @@ nodes:
 
   # --- Export (I/O) --------------------------------------------------------
   - {id: export,   label: export_app_data,    sublabel: "disclosure test, drop _yf / _cboe", type: process, lane: delivery}
-  - {id: contract, label: JSON contract,      sublabel: "meta.json + 8 view files (views v0.2.0)", type: output,  lane: delivery}
+  - {id: contract, label: JSON contract,      sublabel: "meta.json + 9 view files (contract 0.3.0)", type: output,  lane: delivery}
   - {id: app,      label: React app,          sublabel: "draws, never computes",   type: ui,      lane: delivery}
   - {id: derived,  label: data/derived,       sublabel: "CC BY-SA 4.0 Parquet",    type: store,   lane: delivery}
   - {id: nb,       label: Notebooks,          sublabel: "generated from src",      type: output,  lane: delivery}
@@ -139,7 +139,7 @@ edges:
   - {from: results, to: export}
   - {from: abn,     to: export, label: window obs}
   - {from: evt,     to: export, label: funnel, style: dashed}
-  - {from: ivm,     to: export, label: session_snapshot (funnel), style: dashed}
+  - {from: ivm,     to: export, label: "iv_daily, event_iv (funnel, IV view)", style: dashed}
   - {from: export,  to: contract, label: JSON files}
   - {from: export,  to: derived,  label: committed tables}
   - {from: contract, to: app,     label: fetch}

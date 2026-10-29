@@ -54,6 +54,7 @@ nodes:
   - {id: t_chain,    label: chain_expiry, sublabel: "forward, w_atm, tau",         type: store}
   - {id: t_iv,       label: iv_daily,     sublabel: "cm30_iv, event_var, sigma_d_iv", type: store}
   - {id: t_snap,     label: session_snapshot, sublabel: "snapshot_status (milestone 1)", type: store}
+  - {id: t_eiv,      label: event_iv,     sublabel: "evar_m1, crush_mean_adj, abs_move_cand_max", type: store}
 
   # --- Panel layer ---------------------------------------------------------
   - {id: t_ewo,      label: event_window_obs, sublabel: "rel_day, aliv_mean_adj, in_baseline", type: store}
@@ -66,6 +67,7 @@ nodes:
   # --- JSON view files -----------------------------------------------------
   - {id: j_meta,     label: meta.json,                type: output}
   - {id: j_funnel,   label: sample_funnel.json,       type: output}
+  - {id: j_ivm,      label: iv_measures.json,         type: output}
   - {id: j_paths,    label: event_paths.json,         type: output}
   - {id: j_heat,     label: heatmap.json,             type: output}
   - {id: j_terrain,  label: terrain.json,             type: output}
@@ -109,6 +111,12 @@ edges:
   - {from: t_chain,   to: t_iv,    label: "w_atm, forward, tau"}
   - {from: t_events,  to: t_iv,    label: "next / prev event"}
   - {from: s_vol,     to: t_iv,    label: iv_current, style: dashed}
+  - {from: t_snap,    to: t_iv,    label: "snapshot_status, snapshot_date"}
+
+  # -> event_iv (measures layer, milestone 2: the IV columns of event_measures, built early)
+  - {from: t_iv,      to: t_eiv,   label: "E, cm30 at day -1 and day 0"}
+  - {from: t_chain,   to: t_eiv,   label: "T1*, forwards (realised move)"}
+  - {from: t_events,  to: t_eiv,   label: "day 0, day -1, announce_date_used"}
 
   # -> session_snapshot (measures layer, milestone 1; folded into iv_daily at milestone 2)
   - {from: s_chain,   to: t_snap,  label: "date, act_symbol"}
@@ -153,9 +161,10 @@ edges:
   # -> JSON view files
   - {from: t_events,  to: j_meta,   label: n_events}
   - {from: t_events,  to: j_funnel, label: "timing_status, gap_check_changed, exclusion_reason, sample"}
-  - {from: t_em,      to: j_funnel, label: "eligible_*, abs_move_cand_max terciles, crush_mean_adj"}
+  - {from: t_eiv,     to: j_funnel, label: "abs_move_cand_max terciles, crush_mean_adj, evar_m1"}
   - {from: t_timing,  to: j_funnel, label: "gap_verdict_yf share by tercile", style: dashed}
-  - {from: t_snap,    to: j_funnel, label: "observed sessions (baseline step)"}
+  - {from: t_iv,      to: j_funnel, label: "observed sessions with cm30 (IV and baseline steps)"}
+  - {from: t_eiv,     to: j_ivm,    label: "implied_move_m1, crush_mean_adj (histograms)"}
   - {from: t_ewo,     to: j_paths,  label: per-event aliv_mean_adj}
   - {from: t_results, to: j_paths,  label: aliv_path}
   - {from: t_em,      to: j_heat,   label: crush_mean_adj by season}

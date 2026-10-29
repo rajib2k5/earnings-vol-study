@@ -1,0 +1,14 @@
+measures/black.py: ['numpy', 'scipy.optimize:brentq', 'scipy.special:ndtr', 'statistics:NormalDist'] banned-name calls: []
+measures/forward.py: ['math', 'numpy', 'pandas'] banned-name calls: []
+measures/chain.py: ['dataclasses:dataclass', 'dataclasses:fields', 'earnings_vol.measures:black', 'earnings_vol.measures:forward', 'math', 'numpy', 'typing:Mapping'] banned-name calls: []
+measures/termstructure.py: ['dataclasses:dataclass', 'dataclasses:fields', 'datetime:date', 'math', 'typing:Mapping'] banned-name calls: []
+measures/tables.py: ['bisect:bisect_right', 'datetime:date', 'earnings_vol.events:calendar', 'earnings_vol.measures:chain', 'earnings_vol.measures:forward', 'earnings_vol.measures:termstructure'] banned-name calls: []
+measures/event_iv.py: ['datetime:date', 'earnings_vol.events:calendar', 'earnings_vol.measures:chain', 'earnings_vol.measures:termstructure', 'math'] banned-name calls: []
+measures/report.py: ['numpy', 'pandas'] banned-name calls: []
+export/iv_view.py: ['math', 'numpy', 'pandas'] banned-name calls: []
+export/funnel.py: ['earnings_vol.events.eps:orphan_zones', 'earnings_vol.events:calendar', 'earnings_vol.panel.baseline:clean_baseline', 'earnings_vol.panel.baseline:zones_of_events', 'earnings_vol.schema:SAMPLES', 'earnings_vol.schema:TIMING_STATUS', 'pandas'] banned-name calls: []
+layering test, as is: (0, '47 passed in 0.15s')
+planted in export/iv_view.py: 'import pyarrow.parquet as _pq' -> (1, '1 failed, 46 passed in 0.16s')
+planted in measures/termstructure.py: 'from earnings_vol.export import funnel as _f' -> (1, '2 failed, 45 passed in 0.17s')
+planted in measures/report.py: "def _w(df):\n    df.to_parquet('x')" -> (1, '1 failed, 46 passed in 0.16s')
+restored (SHA-256 checked)

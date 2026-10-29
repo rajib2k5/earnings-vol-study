@@ -5,6 +5,9 @@
 # Mutations this module must catch (applied by hand, each seen to fail):
 #   - parity_forward using all strikes instead of the 4 with the smallest |C-P|
 #   - parity_forward ignoring DF (F_K = K + C - P)
+# Milestone-2 review (claim 2a):
+#   - forward_from_pairs ranking the float |C - P| (an exact cents tie goes to the higher strike)
+#   - forward_from_pairs breaking ties to the higher strike (np.lexsort((-strike, gap)))
 #   - build_session_snapshot keeping the holiday copy instead of the session's own snapshot
 #   - stale_repeat never set (the digest comparison removed)
 #   - discount_to_continuous using 365 instead of 360 for the bill price
@@ -63,6 +66,28 @@ def test_parity_forward_quote_filter_and_fallbacks():
     two = chain({100: MIDS[100], 105: MIDS[105]})
     assert forward.parity_forward(two, 0.98)[:2] == (pytest.approx(101.1, abs=1e-9), 2)  # fewer than 4: all
     assert forward.parity_forward(chain({100: (3.48, 0.01)}), 0.98) is None                 # put mid < 0.05
+
+
+def test_forward_breaks_an_exact_cents_tie_to_the_lower_strike():
+    # Made-up mids in cents (DF = 1). |C - P| per strike:
+    #   K      C      P      |C - P| in decimal   as a float
+    #   95     2.50   2.50   0                    0.0
+    #   97.5   1.20   1.20   0                    0.0
+    #   100    0.005  0.010  0.005                0.005
+    #   102.5  0.80   0.80   0                    0.0
+    #   105    0.010  0.015  0.005                0.004999999999999999
+    # 100 and 105 tie exactly in cents (2 |C - P| = 1 cent each); the float puts 105 first.
+    # The rule (ADR 0003 §0 step 2): the three zeros, then the tie to the LOWER strike, 100.
+    # F_K = K + (C - P): 95, 97.5, 100 - 0.005 = 99.995, 102.5 -> F = (97.5 + 99.995) / 2 = 98.7475.
+    # Taking 105 instead (104.995) would give F = (97.5 + 102.5) / 2 = 100.0.
+    strike = np.array([95.0, 97.5, 100.0, 102.5, 105.0])
+    c_mid = np.array([2.50, 1.20, 0.005, 0.80, 0.010])
+    p_mid = np.array([2.50, 1.20, 0.010, 0.80, 0.015])
+    assert abs(0.010 - 0.015) < abs(0.005 - 0.010)          # the float trap is real on this machine
+    f, n, disp = forward.forward_from_pairs(strike, c_mid, p_mid, 1.0)
+    assert (f, n) == (pytest.approx(98.7475, abs=1e-12), 4)
+    # Dispersion over the four used: (102.5 - 95) / 98.7475 = 0.0759513.
+    assert disp == pytest.approx(7.5 / 98.7475, abs=1e-12)
 
 
 def test_discount_factor():

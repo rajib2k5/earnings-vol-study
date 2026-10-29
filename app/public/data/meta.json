@@ -6,7 +6,7 @@
         "DoltHub post-no-preference/options",
         "Wikipedia List of S&P 500 companies"
       ],
-      "attribution": "Contains data from the DoltHub repositories post-no-preference/earnings and post-no-preference/options, and from the Wikipedia List of S&P 500 companies (revision 1382178819), licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0). Changes: selected, filtered and computed on by this project. CBOE and Yahoo Finance data is downloaded locally for analysis and is never committed to this repository.",
+      "attribution": "Contains data from the DoltHub repositories post-no-preference/earnings and post-no-preference/options, and from the Wikipedia List of S&P 500 companies (revision 1382178819), licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0). Changes: selected, filtered and computed on by this project. The IVs and moves are computed with the rate FRED DTB3: Board of Governors of the Federal Reserve System (US), 3-Month Treasury Bill Secondary Market Rate, Discount Basis [DTB3], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/DTB3, 2026-10-29 (public domain). Not under CC BY-SA: the labels made from Yahoo Finance prices (security.in_universe and timing_check.gap_verdict_yf, and the share of gap contradictions built from it) fall under Yahoo's terms of service. No Cboe data is committed.",
       "name": "CC BY-SA 4.0",
       "url": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
@@ -33,32 +33,40 @@
         "uses": "company names, GICS sectors and CIKs (revision 1382178819)"
       },
       {
-        "committed": false,
-        "licence": "see source",
-        "name": "FRED (Federal Reserve Bank of St. Louis)",
-        "url": "https://fred.stlouisfed.org/",
-        "uses": "DTB3 (3-month T-bill rate); VIXCLS (VIX, a CBOE index)"
+        "committed": true,
+        "licence": "public domain (FRED asks for a citation)",
+        "name": "FRED DTB3",
+        "url": "https://fred.stlouisfed.org/series/DTB3",
+        "uses": "the 3-month Treasury bill rate: the discount factor and the carry inside the committed IVs and moves (the rate series itself stays local)"
       },
       {
         "committed": false,
-        "licence": "see source",
-        "name": "CBOE single-stock VIX indices",
+        "licence": "Cboe copyright (see source)",
+        "name": "FRED VIXCLS (Cboe VIX)",
+        "url": "https://fred.stlouisfed.org/series/VIXCLS",
+        "uses": "the VIX close, for the market adjustment (local only)"
+      },
+      {
+        "committed": false,
+        "licence": "Cboe terms of use (see source)",
+        "name": "Cboe single-stock volatility indices (VX*)",
         "url": "https://www.cboe.com/",
-        "uses": "VX* single-stock IV indices"
+        "uses": "VXAPL, VXAZN, VXGOG, VXGS, VXIBM, to validate our 30-day IV (local only; not run yet)"
       },
       {
-        "committed": false,
-        "licence": "see source",
-        "name": "Yahoo Finance prices (via yfinance)",
+        "committed": true,
+        "licence": "Yahoo terms of service (see source)",
+        "name": "Yahoo Finance",
         "url": "https://finance.yahoo.com/",
-        "uses": "daily prices, market caps (one-time universe rank)"
+        "uses": "daily prices and market caps, read with yfinance (local); committed: two labels made from them, security.in_universe and timing_check.gap_verdict_yf"
       }
     ],
     "files": [
       "meta",
-      "sample_funnel"
+      "sample_funnel",
+      "iv_measures"
     ],
-    "milestone": 1,
+    "milestone": 2,
     "params": {
       "baseline": [
         -60,
@@ -77,25 +85,25 @@
     },
     "project": "earnings-vol-study",
     "provenance": {
-      "code_commit": "678c263",
+      "code_commit": "0409627",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "5bf1cbed590907414302da30a652ab04c71daad292d6a9dbbd6c6a9a3da5807c",
+      "params_hash": "8286751e4eaca31edc17c1e9307f250b3fa1a795fc108a8dd3f122ca5662cd49",
       "sample_label": "daily"
     },
     "sample": {
       "day0_from": "2024-12-05",
       "day0_to": "2026-10-26",
       "label": "daily",
-      "n_events": 350,
+      "n_events": 347,
       "n_securities": 50
     },
     "title": "Earnings and implied volatility: an event study"
   },
-  "generated_at": "2026-10-29T16:38:29Z",
+  "generated_at": "2026-10-29T19:07:29Z",
   "kind": "meta",
-  "schema_version": "0.2.0",
-  "source_commit": "678c263"
+  "schema_version": "0.3.0",
+  "source_commit": "0409627"
 }

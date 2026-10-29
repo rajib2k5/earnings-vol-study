@@ -110,7 +110,7 @@ export interface MetaParams {
   clock: string
 }
 
-/** The `data` object of `meta.json` (kind "meta", schema 0.2.0). */
+/** The `data` object of `meta.json` (kind "meta", schema 0.3.0). */
 export interface MetaData {
   project: string
   milestone: number
@@ -119,7 +119,7 @@ export interface MetaData {
   data_licence: DataLicence
   sample: MetaSample
   params: MetaParams
-  /** The kinds of file available in `public/data/` (e.g. "meta", "sample_funnel"). */
+  /** The kinds of file available in `public/data/` (e.g. "meta", "sample_funnel", "iv_measures"). */
   files: string[]
   provenance: Provenance
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isIntPair, isIsoDate, isNonNegInt, isObject, isPositiveInt, isText, keyProblem, show } from './validate'
+import { isFiniteNumber, isIntPair, isIsoDate, isNonNegInt, isObject, isPositiveInt, isText, isUnitInterval, keyProblem, show } from './validate'
 
 describe('isIsoDate', () => {
   it('accepts real calendar dates, including a leap day', () => {
@@ -26,6 +26,14 @@ describe('integer and text checks', () => {
   it('isPositiveInt: one and up, so zero is out', () => {
     for (const ok of [1, 21]) expect(isPositiveInt(ok), String(ok)).toBe(true)
     for (const bad of [0, -3, 2.5, NaN, '3', null]) expect(isPositiveInt(bad), String(bad)).toBe(false)
+  })
+  it('isFiniteNumber: any real number, negatives and fractions included', () => {
+    for (const ok of [0, -0.5, 3, 1e-9, -1e9]) expect(isFiniteNumber(ok), String(ok)).toBe(true)
+    for (const bad of [NaN, Infinity, -Infinity, '1', null, undefined, [1], true]) expect(isFiniteNumber(bad), String(bad)).toBe(false)
+  })
+  it('isUnitInterval: 0 to 1 with both ends in', () => {
+    for (const ok of [0, 1, 0.5, 0.0115]) expect(isUnitInterval(ok), String(ok)).toBe(true)
+    for (const bad of [-0.001, 1.001, 2, NaN, Infinity, -Infinity, '0.5', null, undefined, [0.5]]) expect(isUnitInterval(bad), String(bad)).toBe(false)
   })
   it('isIntPair: exactly two integers, negatives allowed', () => {
     expect(isIntPair([-10, 10])).toBe(true)

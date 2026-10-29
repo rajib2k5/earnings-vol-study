@@ -6,8 +6,10 @@
 #      Every column, class R included, plus a manifest (ADR 0001 §2): row
 #      count, params_hash, Dolt commits, input hashes, code commit, write time.
 #   2. data/derived/ in the repository (CC BY-SA 4.0). Only tables marked
-#      committed, and never a class-R column: write_derived() drops them, then
-#      refuses the write if any _yf or _cboe column is still there.
+#      committed. write_derived() drops every class-R column except those the
+#      table names in keep_restricted (owner decision of 2026-10-29: real
+#      Yahoo/Cboe/FRED values the app or the docs need may be committed), and
+#      refuses any _yf or _cboe column that the registry did not call class R.
 #
 # IN MEMORY
 #   A table is a pandas DataFrame whose columns are exactly the registry's, in
@@ -183,20 +185,26 @@ def read_table(path: Path, table: Table) -> pd.DataFrame:
     return from_arrow(pq.read_table(path), table)
 
 
-def committable(df: pd.DataFrame, table: Table) -> tuple[pd.DataFrame, Table]:
-    """The part of a table that may be committed: the class-R columns removed.
+def committed_schema(table: Table) -> Table:
+    """The registry entry of the committed copy: the class-R columns removed, except those
+    named in table.keep_restricted.
 
     Refuses a table that is not marked committed, and refuses any column that
-    still ends in _yf/_cboe after the drop (a suffixed column that the registry
+    ends in _yf/_cboe but is not class R (a suffixed column that the registry
     forgot to call class R).
     """
     if not table.committed:
         raise SchemaError(f"{table.name} is local only (data model: Committed: no)")
-    keep = tuple(c for c in table.columns if c.licence != "R")
-    stray = [c.name for c in keep if has_restricted_suffix(c.name)]
+    stray = [c.name for c in table.columns if c.licence != "R" and has_restricted_suffix(c.name)]
     if stray:
         raise SchemaError(f"{table.name}: {stray} end in _yf/_cboe but are not class R")
-    sub = Table(table.name, keep, committed=True, unique=table.unique)
+    keep = tuple(c for c in table.columns if c.licence != "R" or c.name in table.keep_restricted)
+    return Table(table.name, keep, committed=True, unique=table.unique, keep_restricted=table.keep_restricted)
+
+
+def committable(df: pd.DataFrame, table: Table) -> tuple[pd.DataFrame, Table]:
+    """The part of a table that may be committed (committed_schema), and its schema."""
+    sub = committed_schema(table)
     return df[list(sub.names)].reset_index(drop=True), sub
 
 

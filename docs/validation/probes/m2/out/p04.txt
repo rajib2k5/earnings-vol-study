@@ -1,0 +1,20 @@
+session table == XNYS sessions: True; early closes in XNYS 24, is_half_day in table 24
+[4] tau rows 181597, mismatches 0; rows whose (t, expiry] holds an early close: 28713 (counted as 1 each); rows whose expiration is not a session: 0
+[4] tau_cal_days mismatches 0
+[7] spans mismatches 0; next_event_id mismatches 0; edge counts {'amc_on_expiry_day': 31, 'bmo_on_expiry_day': 1164, 'nonsession_expiry_eq_day0_minus': 0}
+[7] chain rows with expiry == AMC announcement date: 31; ok and tau>=5: 27; distinct events 7
+[6/8] ok iv_daily rows 57749; mismatches {'cm30': 0, 'blind': 0, 'evar': 0, 'sigma_d': 0, 'front': 0}
+[6] interp/extrap using expiries of two classes: 0; two_component rows: 913
+[8] spanning pairs with equal tau (would divide by zero): 0; E pairs whose 2nd expiry also spans the event after next: 0
+[6] stored cm30_exp_lo / cm30_exp_hi classes (spans) by method:
+method           lo     hi   
+extrap_clean     False  False    10081
+extrap_spanning  True   True      1834
+flat_sigma       False  False      821
+interp_clean     False  False    26950
+interp_spanning  True   True     16298
+two_component    False  True       913
+[5] iv_m1/iv_0 mismatches 0; T1* listed at post 727, not listed (interp branch) 442
+[5] events with T1* 1170; T1* mismatches 0; events where a shorter listed but non-ok expiry with tau(day0)>=5 was skipped: 26
+[5] front_fixed_interpolated: {False: 1349, True: 4} ; crush_front_fixed non-null: 731
+RESULT PASS

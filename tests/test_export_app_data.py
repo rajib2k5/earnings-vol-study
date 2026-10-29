@@ -36,25 +36,34 @@ EXPECTED_DATA_SOURCES = [
         "committed": True,
     },
     {
-        "name": "FRED (Federal Reserve Bank of St. Louis)",
-        "uses": "DTB3 (3-month T-bill rate); VIXCLS (VIX, a CBOE index)",
-        "url": "https://fred.stlouisfed.org/",
-        "licence": "see source",
+        "name": "FRED DTB3",
+        "uses": "the 3-month Treasury bill rate: the discount factor and the carry inside the committed IVs and "
+                "moves (the rate series itself stays local)",
+        "url": "https://fred.stlouisfed.org/series/DTB3",
+        "licence": "public domain (FRED asks for a citation)",
+        "committed": True,
+    },
+    {
+        "name": "FRED VIXCLS (Cboe VIX)",
+        "uses": "the VIX close, for the market adjustment (local only)",
+        "url": "https://fred.stlouisfed.org/series/VIXCLS",
+        "licence": "Cboe copyright (see source)",
         "committed": False,
     },
     {
-        "name": "CBOE single-stock VIX indices",
-        "uses": "VX* single-stock IV indices",
+        "name": "Cboe single-stock volatility indices (VX*)",
+        "uses": "VXAPL, VXAZN, VXGOG, VXGS, VXIBM, to validate our 30-day IV (local only; not run yet)",
         "url": "https://www.cboe.com/",
-        "licence": "see source",
+        "licence": "Cboe terms of use (see source)",
         "committed": False,
     },
     {
-        "name": "Yahoo Finance prices (via yfinance)",
-        "uses": "daily prices, market caps (one-time universe rank)",
+        "name": "Yahoo Finance",
+        "uses": "daily prices and market caps, read with yfinance (local); committed: two labels made from "
+                "them, security.in_universe and timing_check.gap_verdict_yf",
         "url": "https://finance.yahoo.com/",
-        "licence": "see source",
-        "committed": False,
+        "licence": "Yahoo terms of service (see source)",
+        "committed": True,
     },
 ]
 
@@ -71,8 +80,13 @@ EXPECTED_DATA_LICENCE = {
         "and post-no-preference/options, and from the Wikipedia List of S&P 500 companies "
         "(revision 1382178819), licensed under Creative Commons "
         "Attribution-ShareAlike 4.0 International (CC BY-SA 4.0). Changes: "
-        "selected, filtered and computed on by this project. CBOE and Yahoo Finance data is "
-        "downloaded locally for analysis and is never committed to this repository."
+        "selected, filtered and computed on by this project. The IVs and moves are computed with "
+        "the rate FRED DTB3: Board of Governors of the Federal Reserve System (US), 3-Month Treasury "
+        "Bill Secondary Market Rate, Discount Basis [DTB3], retrieved from FRED, Federal Reserve Bank "
+        "of St. Louis, https://fred.stlouisfed.org/series/DTB3, 2026-10-29 (public domain). Not under "
+        "CC BY-SA: the labels made from Yahoo Finance prices (security.in_universe and "
+        "timing_check.gap_verdict_yf, and the share of gap contradictions built from it) fall under "
+        "Yahoo's terms of service. No Cboe data is committed."
     ),
 }
 
@@ -91,7 +105,7 @@ def run_export(exporter, tmp_path, kind="meta"):
 def test_writes_envelope_with_five_keys(exporter, tmp_path):
     doc = run_export(exporter, tmp_path)
     assert set(doc) == {"schema_version", "kind", "generated_at", "source_commit", "data"}
-    assert doc["schema_version"] == "0.2.0"
+    assert doc["schema_version"] == "0.3.0"
     assert doc["kind"] == "meta"
     # ISO-8601 UTC with a trailing Z, e.g. 2026-10-27T12:00:00Z
     assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", doc["generated_at"])
@@ -103,7 +117,7 @@ def test_meta_data_fields(exporter, tmp_path):
     assert set(data) == {"project", "milestone", "title", "data_sources", "data_licence", "sample", "params",
                          "files", "provenance"}
     assert data["project"] == "earnings-vol-study"
-    assert data["milestone"] == 1
+    assert data["milestone"] == 2
     assert data["title"] == "Earnings and implied volatility: an event study"
 
 
@@ -128,18 +142,24 @@ def test_data_licence_covers_exactly_the_sources_that_name_its_licence(exporter,
         assert (s["name"] in licence["applies_to"]) == (s["licence"] == licence["name"]), s["name"]
 
 
-def test_cboe_and_yahoo_are_never_committed(exporter, tmp_path):
-    # Only the two DoltHub repos (CC BY-SA 4.0) may have derived tables in git.
-    sources = run_export(exporter, tmp_path)["data"]["data_sources"]
-    committed = {s["name"]: s["committed"] for s in sources}
-    assert committed == {
-        "DoltHub post-no-preference/earnings": True,
-        "DoltHub post-no-preference/options": True,
-        "Wikipedia List of S&P 500 companies": True,
-        "FRED (Federal Reserve Bank of St. Louis)": False,
-        "CBOE single-stock VIX indices": False,
-        "Yahoo Finance prices (via yfinance)": False,
-    }
+def test_the_committed_flags_say_what_the_registry_lets_into_the_repository(exporter, tmp_path):
+    # Milestone-2 review, claim 15a: the About page said "never" for Yahoo while a Yahoo-derived label was
+    # committed. A Yahoo or Cboe value reaches data/derived/ only as a class-R column that a committed table keeps
+    # (schema.Table.keep_restricted); Yahoo also through the class-F universe flag. The flags must follow.
+    from earnings_vol import schema
+    kept = sorted(n for t in schema.REGISTRY.values() if t.committed for n in t.keep_restricted)
+    assert kept == ["gap_verdict_yf"]
+    assert schema.SECURITY.committed and schema.SECURITY.column("in_universe").licence == "F"
+    committed = {s["name"]: s["committed"] for s in run_export(exporter, tmp_path)["data"]["data_sources"]}
+    assert committed["Yahoo Finance"] is True                                   # gap_verdict_yf, in_universe
+    assert [n for n in committed if "Cboe" in n] == ["FRED VIXCLS (Cboe VIX)", "Cboe single-stock volatility indices (VX*)"]
+    assert not any(n.endswith("_cboe") for n in kept)
+    assert committed["FRED VIXCLS (Cboe VIX)"] is False and committed["Cboe single-stock volatility indices (VX*)"] is False
+    # Every source whose values are committed is named in the attribution text the About page shows.
+    attribution = run_export(exporter, tmp_path)["data"]["data_licence"]["attribution"]
+    for name, is_committed in committed.items():
+        if is_committed:
+            assert name.replace("DoltHub ", "") in attribution, name
 
 
 def test_git_short_commit_without_any_commit_is_uncommitted(exporter, monkeypatch, tmp_path):
@@ -200,7 +220,7 @@ def without_code_commit(data: dict) -> dict:
     return out
 
 
-@pytest.mark.parametrize("kind", ["meta", "sample_funnel"])
+@pytest.mark.parametrize("kind", ["meta", "sample_funnel", "iv_measures"])
 def test_committed_json_matches_what_the_exporter_writes(exporter, kind):
     # Nothing else ties the committed files to the exporter: the app reads the
     # files, the exporter owns the content, and a number edited by hand in a file
@@ -212,9 +232,10 @@ def test_committed_json_matches_what_the_exporter_writes(exporter, kind):
     committed = json.loads((PUBLIC / f"{kind}.json").read_text(encoding="utf-8"))
     p = exporter.params_mod.load()
     tables = exporter.load_tables()
-    fresh = exporter.funnel_data(tables, p, "x") if kind == "sample_funnel" else exporter.meta_data(tables, p, "x")
+    build = {"meta": exporter.meta_data, "sample_funnel": exporter.funnel_data, "iv_measures": exporter.iv_measures_data}
+    fresh = build[kind](tables, p, "x")
     assert set(committed) == {"schema_version", "kind", "generated_at", "source_commit", "data"}
-    assert committed["schema_version"] == "0.2.0"
+    assert committed["schema_version"] == "0.3.0"
     assert committed["kind"] == kind
     assert committed["generated_at"] and committed["source_commit"]
     assert committed["data"]["provenance"]["code_commit"]
@@ -227,7 +248,7 @@ def test_meta_lists_exactly_the_files_written(exporter, tmp_path):
     out = tmp_path / "o"
     assert exporter.main(["--out-dir", str(out)]) == 0
     meta = json.loads((out / "meta.json").read_text(encoding="utf-8"))
-    assert sorted(meta["data"]["files"]) == sorted(f.stem for f in out.glob("*.json")) == ["meta", "sample_funnel"]
+    assert sorted(meta["data"]["files"]) == sorted(f.stem for f in out.glob("*.json")) == ["iv_measures", "meta", "sample_funnel"]
 
 
 def test_funnel_and_meta_agree_on_the_primary_sample(exporter, tmp_path):
@@ -239,8 +260,24 @@ def test_funnel_and_meta_agree_on_the_primary_sample(exporter, tmp_path):
 
 
 def test_exported_json_has_no_restricted_field(exporter, tmp_path):
-    # No _yf or _cboe key may leave the machine (ADR 0001 §7), at any depth.
-    for kind in ("meta", "sample_funnel"):
+    # No _yf or _cboe KEY appears in the app files, at any depth: the funnel reports the share of gap
+    # contradictions under a plain name (the owner allowed the values themselves on 2026-10-29).
+    for kind in ("meta", "sample_funnel", "iv_measures"):
         text = json.dumps(run_export(exporter, tmp_path, kind))
         keys = re.findall(r'"([A-Za-z0-9_]+)":', text)
         assert not [k for k in keys if k.endswith(("_yf", "_cboe"))], kind
+
+
+def test_iv_measures_has_exactly_the_contract_keys_and_consistent_histograms(exporter, tmp_path):
+    # data model §4 (contract 0.3.0): the exact key sets, so a field added on one side only fails here, and
+    # every histogram's counts add up to its n over len(counts) + 1 edges.
+    iv = run_export(exporter, tmp_path, "iv_measures")["data"]
+    assert set(iv) == {"sample", "implied_move", "crush", "caveats", "provenance"}
+    assert set(iv["implied_move"]) == {"units", "n_identified", "n_nonpositive", "n", "sqrt_mean_evar", "quantiles",
+                                       "bin_edges", "counts"}
+    assert set(iv["crush"]) == {"units", "n", "mean", "quantiles", "bin_edges", "counts"}
+    assert set(iv["implied_move"]["quantiles"]) == {"p10", "p25", "p50", "p75", "p90"}
+    for part in ("implied_move", "crush"):
+        h = iv[part]
+        assert sum(h["counts"]) == h["n"] and len(h["bin_edges"]) == len(h["counts"]) + 1, part
+    assert iv["sample"]["n_events"] == run_export(exporter, tmp_path, "sample_funnel")["data"]["steps"][-1]["n_events"]

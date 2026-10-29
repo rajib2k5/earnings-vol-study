@@ -25,7 +25,7 @@ flowchart TB
         epsm["EPS match\neps#58; raw, consensus, link"]
     end
     subgraph measures["Measures layer"]
-        ivm[["IV measures\nsession_snapshot, chain_expiry, iv_daily"]]
+        ivm[["IV measures\nchain_expiry, iv_daily, event_iv"]]
     end
     subgraph panel["Panel layer"]
         pan["Event panel\nwindow, baseline, eligible_*"]
@@ -40,7 +40,7 @@ flowchart TB
     end
     subgraph delivery["Export"]
         export["export_app_data\ndisclosure test, drop _yf / _cboe"]
-        contract[/"JSON contract\nmeta.json + 8 view files (views v0.2.0)"/]
+        contract[/"JSON contract\nmeta.json + 9 view files (contract 0.3.0)"/]
         app("React app\ndraws, never computes")
         derived[("data/derived\nCC BY-SA 4.0 Parquet")]
         nb[/"Notebooks\ngenerated from src"/]
@@ -86,7 +86,7 @@ flowchart TB
     results --> export
     abn -->|"window obs"| export
     evt -.->|"funnel"| export
-    ivm -.->|"session_snapshot (funnel)"| export
+    ivm -.->|"iv_daily, event_iv (funnel, IV view)"| export
     export -->|"JSON files"| contract
     export -->|"committed tables"| derived
     contract -->|"fetch"| app

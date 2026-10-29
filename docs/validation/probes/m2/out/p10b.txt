@@ -1,0 +1,10 @@
+sample  reason              
+none    end_without_snapshot     32
+        no_common_forward         4
+coarse  end_without_snapshot    140
+        no_common_forward        88
+mixed   UNEXPLAINED               1
+        no_common_forward         6
+daily   end_without_snapshot      2
+        no_common_forward        12
+total 285

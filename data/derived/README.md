@@ -7,24 +7,28 @@ This folder holds **small tables derived from two DoltHub databases**:
 
 The pipeline tables are made by the code in `src/` and `tools/`, not by hand. Each file is the committed part of a
 table in the schema registry (`src/earnings_vol/schema.py`): class-R columns (Yahoo or CBOE values, names ending in
-`_yf` or `_cboe`) are dropped by `store.write_derived`, which also refuses local-only tables. The same inputs give the
-same bytes.
+`_yf` or `_cboe`) are dropped by `store.write_derived`, which also refuses local-only tables, except the class-R
+columns a table names in `keep_restricted` (owner decision of 2026-10-29; at milestone 2 only
+`timing_check.gap_verdict_yf`). The same inputs give the same bytes.
 
 | File | What it is | Made by |
 |---|---|---|
-| `security.parquet` | The 499 S&P 500 constituents of Wikipedia revision 1382178819 (one share class per company): name, GICS sector and sub-industry, CIK, and the universe flag (the 50 of the study, chosen by a one-time Yahoo market-cap rank; the flag is a class-F label, and the rank itself is not committed) | `python -m earnings_vol.events.run` |
+| `security.parquet` | The 499 S&P 500 constituents of Wikipedia revision 1382178819 (one share class per company): name, GICS sector and sub-industry, CIK, and the universe flag (the 50 of the study, chosen by a one-time Yahoo market-cap rank; the flag is a class-F label under Yahoo's terms, not CC BY-SA, see below; the rank itself is not committed) | `python -m earnings_vol.events.run` |
 | `ticker_alias.parquet` | ticker → security over time (FB → META, UTX → RTX) | same |
 | `session.parquet` | NYSE sessions 2016–2027 from `exchange_calendars` (XNYS), with half days and the snapshot era | same |
 | `events.parquet` | 1,353 announcements of the 50 companies from `earnings_calendar`, with day 0, the timing label and its status, links, sample and exclusion reason. Timing labels are provisional: 20 were checked against press releases (`data/manual/press_release_checks.csv`), the rest are the calendar's (`not_checked`) | same |
 | `eps.parquet` | one row per company and fiscal period from `eps_history`, matched to its announcement, with the last weekly consensus before day −1 from `eps_estimate` | same |
 | `session_snapshot.parquet` | for every company and session 2020-01-02 → 2026-10-26: is an option snapshot there (`ok`, `stale_repeat`, `missing`)? From `option_chain` | `python -m earnings_vol.measures.run --only snapshots` |
+| `iv_daily.parquet` | milestone 2: one row per company and session 2020-01-02 → 2026-10-26 (85,650 rows, 4.7 MB): the front ATM IV, the event-aware and the blind 30-day IV, the event variance E and the implied move, the diffusive IV, the expiries used. Recomputed from `option_chain` bid/ask mids with Black-76 on the put-call-parity forward (ADR 0003); the discount rate is FRED's `DTB3` (an input, not a stored value; see the licence below) | `python -m earnings_vol.measures.run --only iv` |
+| `event_iv.parquet` | milestone 2: one row per announcement (1,353): E and the implied move on day −1, the 30-day and front-expiry crushes, the realised day-0 move from the parity forwards, the label-free move used for the funnel's terciles | same |
+| `timing_check.parquet` | milestone 2: one row per announcement with `gap_verdict_yf`, the verdict of the Yahoo overnight price gap on the timing label in use (`supports`, `contradicts`, `quiet`, or null). **A Yahoo-derived label, committed under the owner's decision of 2026-10-29**; Yahoo's terms apply to it, not CC BY-SA (see the licence below and the root `DATA.md`). The gaps and z-scores behind it stay local | `python -m earnings_vol.events.run` |
 | `earnings_calendar_30_large_caps.json` | 336 rows of `earnings_calendar` (`act_symbol`, `date`, `when`) for 30 large caps, queried for 2024-01-01 → 2026-10-27 (the rows run 2024-01-12 → 2026-10-27), as returned by DoltHub's SQL API (milestone 0) | The exact query and the commit it ran against are inside the file: `commit_ref` is only the branch name (`master`, which moves), and `resolved_commit` is the commit hash that `master` pointed to when the file was fetched, with `resolved_commit_note` saying how it was chosen. It is the input to `research/prototypes/spacing.py`, the gap analysis behind ADR 0004. |
 
 The DoltHub commits read are pinned in `params.yaml` (`dolt`), and every table records them (`events.calendar_commit`;
 the stage manifests). The Wikipedia columns of `security.parquet` are CC BY-SA 4.0 as well (attribution: Wikipedia,
 "List of S&P 500 companies", revision 1382178819).
 
-## Licence: CC BY-SA 4.0 (ShareAlike)
+## Licence: CC BY-SA 4.0 (ShareAlike), with two named exceptions
 
 Both DoltHub repositories declare the licence *Attribution-ShareAlike 4.0
 International* (each has a `LICENSE.md` with that title). Files here are
@@ -41,19 +45,33 @@ International* (each has a `LICENSE.md` with that title). Files here are
 See [`LICENSE`](LICENSE) in this folder. The code in the rest of the repository
 is MIT-licensed (root `LICENSE`); the MIT licence does not apply here.
 
+### Columns from other sources
+
+Every column of every file here is DoltHub-, Wikipedia- or calendar-derived and under CC BY-SA 4.0, except the
+columns this table says otherwise. It lists every committed column derived from Yahoo, Cboe or FRED data (data model
+§2.1; the schema registry marks each column's class).
+
+| Column | Source | Terms | Why it is here |
+|---|---|---|---|
+| `timing_check.gap_verdict_yf` | **Yahoo Finance** daily prices: the overnight gap on the candidate day 0, as a three-level verdict | **Yahoo's terms of service, not CC BY-SA** | the app's sample funnel shows the share of `contradicts` per move tercile (`sample_funnel.json`, built from this column). Owner decision of 2026-10-29 |
+| `security.in_universe` | **Yahoo Finance** market caps: a one-time rank picks the 50 companies (the rank itself stays local) | **Yahoo's terms of service, not CC BY-SA** | it says which companies the study covers |
+| Every IV, variance and move in `iv_daily` and `event_iv` (`front_atm_iv`, `cm30_iv`, `cm30_blind_iv`, `sigma_d_iv`, `event_var`, `ev_w1`, `ev_w2`, the `implied_*` columns, `ts_slope`, `forward_front`; `evar_*`, `sigma_d_m1`, `cm30_*`, the crushes, `front_fixed_iv_*`, `realized_ret_0`, `abs_ret_over_implied`, `abs_move_cand_max`) | DoltHub option quotes, with **FRED `DTB3`** as an input (the discount factor and the carry). No column holds a FRED value | CC BY-SA 4.0 (DoltHub-derived). `DTB3` is public domain; FRED asks for the citation in `LICENSE` | the study's measures |
+| `security.cboe_vx_index` | the name of the **Cboe** single-stock index that exists for the company (VXAPL and four others) | a name, not Cboe data: CC BY-SA 4.0 with the rest of the table | it marks the companies with a VX\* index |
+
+No other column is derived from Yahoo, Cboe or FRED data. The timing labels in `events.parquet` (`timing_used`,
+`timing_status`, `timing_source`, `gap_check_changed`, day 0 and what depends on it) come from the DoltHub calendar
+and from company press releases; a Yahoo gap only decides which events are looked up or read a second time, so they
+are class-F labels shared under CC BY-SA (data model §2.1). **No Cboe value is committed** in this folder or anywhere
+else in the repository.
+
 ## What is never committed here
 
-**No CBOE or Yahoo Finance dataset is committed to this repository**, in this
-folder or anywhere else (the `in_universe` flag in `security.parquet` is a label, not a value; the market-cap rank behind it is not committed). That covers the CBOE single-stock volatility indices
-and the prices downloaded with `yfinance`. (Since the milestone-1 review the
-worked examples in ADR 0002 and `research/prototypes/worked.py` no longer
-quote Yahoo prices, and `tools/licensing/scan_real_rows.py` checks the tree
-against the local raw files.) We read them from the
-sources on our own computer and use them there. They stay outside git: the
-downloads live under `VOL_DATA_DIR` (see `src/earnings_vol/config.py`), which
-is outside the repository, and `.gitignore` also blocks `data/raw/` and
-`data/cache/`. If you want them, get them from the sources yourself and follow
-their terms.
-
-Raw DoltHub clones are not committed either; only the small derived tables
-that belong here are.
+Raw downloads are never committed: the Yahoo prices and market caps read with `yfinance`, FRED's `DTB3` and `VIXCLS`
+series, the Cboe VX\* files, the raw Dolt extracts and clones. They live under `VOL_DATA_DIR` (see
+`src/earnings_vol/config.py`), outside the repository, and `.gitignore` also blocks `data/raw/` and `data/cache/`.
+Every other class-R column (a Yahoo or Cboe value: the gaps and z-scores of `timing_check`, the VIX columns of
+`market_daily`) is dropped by `store.write_derived`, which keeps only the columns a table names in `keep_restricted`
+(owner decision of 2026-10-29). `tools/licensing/check_data_files.py` refuses any file here that is not a committed
+registry table with its committed columns, this README, the licence or the milestone-0 calendar JSON. Since the
+milestone-1 review the worked examples in ADR 0002 and `research/prototypes/worked.py` no longer quote Yahoo prices.
+If you want the raw data, get it from the sources yourself and follow their terms.

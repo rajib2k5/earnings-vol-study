@@ -1,0 +1,16 @@
+1a max |black76 - textbook|/F = 0.000e+00; max parity residual/F = 3.351e-15
+1b solved 290, no-root 120; worst rel err 9.255e-10 at (k, w, mid) = (np.float64(0.0), 1e-07, np.float64(0.0341865951671913))
+1b' straddle w=0.0001: back 9.99999999999967e-05 rel 3.27e-14
+1b' straddle w=0.003486: back 0.00348600000000001 rel 2.61e-15
+1b' straddle w=0.3: back 0.3 rel 1.85e-16
+1c call=True at/above w=4 and at/below w=1e-8 -> [None, None, None, None]
+1c call=False at/above w=4 and at/below w=1e-8 -> [None, None, None, None]
+1d reference: w_atm=0.0040044007 bracket 100.0/102.5 status ok
+1d bid=0   : w_atm=0.0040115941 hi=105.0 | without strike: 0.0040115941 hi=105.0 -> same
+1d crossed : w_atm=0.0040115941 hi=105.0 | without strike: 0.0040115941 hi=105.0 -> same
+1d locked  : w_atm=0.0040115941 hi=105.0 | without strike: 0.0040115941 hi=105.0 -> same
+1d nan     : w_atm=0.0040115941 hi=105.0 | without strike: 0.0040115941 hi=105.0 -> same
+RESULT PASS (0 failing checks)
+rc=0
+RESULT FAIL (2 failing checks) [MUTANT]
+falsifier_rc=1

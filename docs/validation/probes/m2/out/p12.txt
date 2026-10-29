@@ -1,0 +1,9 @@
+iv wall 152 s
+== before vs after (data/derived) ==
+byte-identical: 9 files
+== stage: <scratch>/rebuild/vdd/earnings-vol-study/cache/stage/8286751e4eaca31e/
+-rw-rw-r-- 1 <user> <user> 16965282 Oct 29 13:24 <scratch>/rebuild/vdd/earnings-vol-study/cache/stage/8286751e4eaca31e/chain_expiry.parquet
+stage chain_expiry rebuilt vs local stage: identical
+stage iv_daily rebuilt vs local stage: identical
+stage event_iv rebuilt vs local stage: identical
+}

@@ -1,6 +1,6 @@
 # Architecture diagrams
 
-Design diagrams for the earnings / implied-vol event study, kept in step with the tables built so far (milestone 1). Each diagram is one YAML spec
+Design diagrams for the earnings / implied-vol event study, kept in step with the tables built so far (milestone 2). Each diagram is one YAML spec
 in [`specs/`](specs/); the toolkit builds Mermaid, SVG, PNG, draw.io and Lucid files from it into [`out/`](out/). The
 specs follow the schema of `vol-diagram-kit`, a local toolkit vendored in [`tools/diagrams/`](../../tools/diagrams/)
 (it is also public at <https://github.com/rajib2k5/vol-diagram-kit>). The specs are the source; everything in `out/` is
@@ -39,7 +39,7 @@ table:
 | Layer | Writes | Reads |
 |---|---|---|
 | events | `session`, `market_daily`, `security`, `ticker_alias`, `events`, `eps`, `timing_check` | raw and cache extracts: calendar, EPS, Yahoo prices, FRED, S&P list; hand-checked press releases, recorded in the committed `data/manual/press_release_checks.csv`; the SEC EDGAR filing index once the owner's contact string is set |
-| measures | `session_snapshot` (milestone 1; `iv_daily` takes it over at milestone 2), `chain_expiry`, `iv_daily` | option and vol-history extracts, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0) |
+| measures | `session_snapshot` (milestone 1), `chain_expiry` (local), `iv_daily`, `event_iv` (milestone 2: the IV columns of `event_measures`, built early) | option-chain extracts, `session_snapshot`, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0) |
 | panel | `event_window_obs`, `event_measures`, `event_measures_vx` | `iv_daily`, `chain_expiry`, `events`, `eps`, `security`, `session`, `market_daily`, local Yahoo and VX\* extracts |
 | stats | `results` | `event_measures`, `event_measures_vx`, `event_window_obs`, `events`, `eps`, `security`; for validation also `iv_daily`, `chain_expiry`, the VX\* extract |
 
@@ -81,7 +81,7 @@ flowchart TB
         epsm["EPS match\neps#58; raw, consensus, link"]
     end
     subgraph measures["Measures layer"]
-        ivm[["IV measures\nsession_snapshot, chain_expiry, iv_daily"]]
+        ivm[["IV measures\nchain_expiry, iv_daily, event_iv"]]
     end
     subgraph panel["Panel layer"]
         pan["Event panel\nwindow, baseline, eligible_*"]
@@ -96,7 +96,7 @@ flowchart TB
     end
     subgraph delivery["Export"]
         export["export_app_data\ndisclosure test, drop _yf / _cboe"]
-        contract[/"JSON contract\nmeta.json + 8 view files (views v0.2.0)"/]
+        contract[/"JSON contract\nmeta.json + 9 view files (contract 0.3.0)"/]
         app("React app\ndraws, never computes")
         derived[("data/derived\nCC BY-SA 4.0 Parquet")]
         nb[/"Notebooks\ngenerated from src"/]
@@ -142,7 +142,7 @@ flowchart TB
     results --> export
     abn -->|"window obs"| export
     evt -.->|"funnel"| export
-    ivm -.->|"session_snapshot (funnel)"| export
+    ivm -.->|"iv_daily, event_iv (funnel, IV view)"| export
     export -->|"JSON files"| contract
     export -->|"committed tables"| derived
     contract -->|"fetch"| app
@@ -181,20 +181,21 @@ flowchart TB
 
 ## Entity-relationship diagram
 
-Fourteen stored tables (all columns, types, nullability and keys as in `data-model.md` section 3; `session_snapshot`
-is the newest, built at milestone 1) on the left, and the Python to app JSON files (`meta.json` and the eight view
-files) on the right. Column names carry the licensing suffix (`_yf`, `_cboe`) exactly as in the data model: a
-suffixed column never leaves the machine, so dropping them gives the committed shape. Relationship labels start with
+Fifteen stored tables (all columns, types, nullability and keys as in `data-model.md` section 3; `event_iv` is the
+newest, built at milestone 2) on the left, and the Python to app JSON files (`meta.json` and the nine view files, at
+contract 0.3.0) on the right. Column names carry the licensing suffix (`_yf`, `_cboe`) exactly as in the data model: a
+suffixed column never leaves the machine, except one a committed table names in `keep_restricted` (at milestone 2
+only `timing_check.gap_verdict_yf`, owner decision of 2026-10-29), so dropping the others gives the committed shape. Relationship labels start with
 the row number of data-model section 5 (R1, R2, ...), so each line can be checked against that table. The `from_*`
 columns in the JSON entities are lineage links that say which tables a file is exported from. They are not stored
 foreign keys, and their cardinality marks carry no meaning. The `envelope (all files)` entity is the wrapper that
 every JSON file shares. A JSON entity lists the top-level keys of `data`; nested fields such as
 `tests.rows[].estimand`, `tests.rows[].n_clusters_firm` or `drivers.models[].n_clusters_season` are in data-model
-section 4. At milestone 1 two files are written, `meta.json` and `sample_funnel.json`, both at schema version 0.2.0;
-the other view files do not exist yet. `meta.json` has `project`, `milestone`, `title`, `data_sources` (each source
-with `name`, `uses`, `url`, `licence`, `committed`), `data_licence`, `sample`, `params`, `files` and `provenance`.
-In `sample_funnel.json`, `by_move_tercile` and `evar_nonpositive` are null until milestone 2, and their status strings
-say why. The `events` entity's label says that `edgar_accession` and `edgar_accepted_utc` are gated on the owner's
+section 4. At milestone 2 three files are written, `meta.json`, `sample_funnel.json` and the new `iv_measures.json`,
+all at schema version 0.3.0; the other view files do not exist yet. `meta.json` has `project`, `milestone`, `title`,
+`data_sources` (each source with `name`, `uses`, `url`, `licence`, `committed`), `data_licence`, `sample`, `params`,
+`files` and `provenance`. In `sample_funnel.json`, `by_move_tercile` and `evar_nonpositive` are filled since
+milestone 2 (they were null at 0.2.0). The `events` entity's label says that `edgar_accession` and `edgar_accepted_utc` are gated on the owner's
 contact string: they stay null until it is set.
 
 ```mermaid
@@ -239,18 +240,18 @@ erDiagram
         int16 tau_sessions
         int16 tau_cal_days
         float64 df
-        float64 forward
+        float64 forward "nullable"
         int16 forward_n_strikes
-        float64 forward_dispersion
+        float64 forward_dispersion "nullable"
         int16 n_strikes_valid
-        float64 strike_lo
-        float64 strike_hi
-        float64 k_lo
-        float64 k_hi
-        float64 rel_spread_lo
-        float64 rel_spread_hi
-        float64 w_atm
-        float64 iv_atm
+        float64 strike_lo "nullable"
+        float64 strike_hi "nullable"
+        float64 k_lo "nullable"
+        float64 k_hi "nullable"
+        float64 rel_spread_lo "nullable"
+        float64 rel_spread_hi "nullable"
+        float64 w_atm "nullable"
+        float64 iv_atm "nullable"
         enum atm_method
         float64 vendor_iv_atm "nullable"
         float64 straddle_atm "nullable"
@@ -292,6 +293,32 @@ erDiagram
         float64 ts_slope "nullable"
         float64 forward_front "nullable"
         float64 vendor_iv_current "nullable"
+        string flags
+    }
+    event_iv["event#95;iv (milestone 2#58; the IV columns of event#95;measures)"] {
+        string event_id PK, FK
+        date32 pre_session "nullable"
+        date32 post_session "nullable"
+        int16 crush_span_sessions "nullable"
+        float64 evar_m1 "nullable"
+        float64 evar_m2 "nullable"
+        float64 implied_move_m1 "nullable"
+        float64 implied_abs_move_total_m1 "nullable"
+        enum implied_move_status "nullable"
+        float64 sigma_d_m1 "nullable"
+        float64 cm30_m1 "nullable"
+        float64 cm30_0 "nullable"
+        float64 ts_slope_m1 "nullable"
+        float64 crush_mean_adj "nullable"
+        float64 dsigma_d_mean_adj "nullable"
+        date32 front_fixed_expiry "nullable"
+        float64 front_fixed_iv_m1 "nullable"
+        float64 front_fixed_iv_0 "nullable"
+        bool front_fixed_interpolated
+        float64 crush_front_fixed "nullable"
+        float64 realized_ret_0 "nullable"
+        float64 abs_ret_over_implied "nullable"
+        float64 abs_move_cand_max "nullable"
         string flags
     }
     session_snapshot {
@@ -504,8 +531,18 @@ erDiagram
         array caveats
         object provenance
         string from_events FK "nullable"
-        string from_event_measures FK "nullable"
+        string from_iv_daily FK "nullable"
+        string from_event_iv FK "nullable"
         string from_timing_check FK "nullable"
+    }
+    json_iv_measures["iv#95;measures.json"] {
+        string kind PK
+        object sample
+        object implied_move
+        object crush
+        array caveats
+        object provenance
+        string from_event_iv FK "nullable"
     }
     json_event_paths["event#95;paths.json"] {
         string kind PK
@@ -591,10 +628,13 @@ erDiagram
     events ||--o| event_measures_vx : "R21 cboe5 member"
     security ||--o{ session_snapshot : "R22 observed on"
     session ||--o{ session_snapshot : "R23 has"
+    events ||--|| event_iv : "R24 IV measures of"
     events |o--o{ json_meta : "feeds"
     events |o--o{ json_sample_funnel : "feeds"
-    event_measures |o--o{ json_sample_funnel : "feeds"
+    iv_daily |o--o{ json_sample_funnel : "feeds"
+    event_iv |o--o{ json_sample_funnel : "feeds"
     timing_check |o--o{ json_sample_funnel : "feeds (aggregate only)"
+    event_iv |o--o{ json_iv_measures : "feeds (aggregate only)"
     event_window_obs |o--o{ json_event_paths : "feeds"
     results |o--o{ json_event_paths : "feeds"
     event_measures |o--o{ json_heatmap : "feeds"
@@ -640,8 +680,11 @@ no way to show enum members or unique constraints.
 - **Columns cannot carry a note.** `events.edgar_accession` and `events.edgar_accepted_utc` stay null until the
   owner's contact string is set (ADR 0002: EDGAR accepted 2026-10-28, gated on that string). The kit has no per-column
   note, so the `events` entity's label says it. The `edgar` value of `timing_source` is an enum member and is not drawn.
-- **`session_snapshot` is temporary.** It holds the first four columns of `iv_daily` and is folded into it at
-  milestone 2 (data model §3.6a, R22 and R23). The ERD draws it as its own table until then.
+- **`session_snapshot` is temporary.** It holds the first four columns of `iv_daily` (data model §3.6a, R22 and
+  R23). At milestone 2 `iv_daily` carries the same four columns and the funnel reads them there; the table is kept
+  (it feeds `iv_daily`), and dropping it is left for milestone 3. The ERD draws it as its own table.
+- **`event_iv` is early.** It holds the IV columns of the planned `event_measures` (data model §3.11a, R24), built by
+  the measures layer at milestone 2; milestone 3 folds them into `event_measures`.
 - **JSON entities show top-level keys only.** Nested fields (for example `tests.rows[].estimand`) and the members of
   `sample_funnel.timing_status_counts` (`confirmed`, `corrected`, `inferred`, `date_corrected`, `no_document`,
   `not_checked`, `ambiguous`) are in data-model section 4.
@@ -653,14 +696,17 @@ no way to show enum members or unique constraints.
   cells of §3.9 that read not-null (`gap_scale_yf`, `z_bmo_yf`, `z_amc_yf`, `z_max_outside_yf`, `gap_verdict_yf`,
   `outside_flag_yf`) now read nullable, and `security.cik` is fifth in §3.1, in `erd.yaml` and in the registry. Checked
   again on 2026-10-29 with a throwaway script: `security`, `timing_check` and `eps` in §3 equal `erd.yaml` column for
-  column (name, order, nullability), and the eight built tables of `src/earnings_vol/schema.py` equal `erd.yaml`.
+  column (name, order, nullability). *Re-checked after the milestone-2 review* with another throwaway script: the
+  eleven built tables of `src/earnings_vol/schema.py` (155 columns) equal `erd.yaml` column for column (name, order,
+  nullability).
 - **Data flow.** There is no `iv_daily` to `events` edge any more: `events` needs no IV data (the per-measure
   `eligible_*` columns moved to `event_measures`). One dashed edge feeds `events` from `eps` (`match_status` to
   `orphan_nearby`). It stays inside the events layer, whose fixed internal order makes it legal. Two more dashed edges
   enter `events`: the SEC EDGAR input (accepted, gated on the contact string), and `timing_check`, which triggers a second reading (daily/mixed) or a
   look-up (coarse) and never sets `timing_used` (ADR 0002 §3). The five DoltHub source tables are fed by one
-  "Dolt mirrors" node (the private copies of the clones), and `session_snapshot` (from `option_chain`, `ticker_alias`
-  and `session`) feeds `sample_funnel.json`.
+  "Dolt mirrors" node (the private copies of the clones). *Milestone 2:* `session_snapshot` feeds `iv_daily` (which
+  sessions have a snapshot), and `iv_daily`, `event_iv` and `timing_check` (its gap verdict, committed since the owner's
+  decision of 2026-10-29) feed `sample_funnel.json`; `event_iv` feeds the new `iv_measures.json`.
 
 ## Diagrams
 
