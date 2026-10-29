@@ -77,7 +77,7 @@
     },
     "project": "earnings-vol-study",
     "provenance": {
-      "code_commit": "3636e98",
+      "code_commit": "678c263",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
@@ -94,8 +94,8 @@
     },
     "title": "Earnings and implied volatility: an event study"
   },
-  "generated_at": "2026-10-29T16:19:42Z",
+  "generated_at": "2026-10-29T16:38:29Z",
   "kind": "meta",
   "schema_version": "0.2.0",
-  "source_commit": "3636e98"
+  "source_commit": "678c263"
 }
