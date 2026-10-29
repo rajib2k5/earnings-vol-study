@@ -1,6 +1,7 @@
 # ADR 0004: Event window, baseline and the definition of abnormal IV
 
-- **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review** (note below)
+- **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review** (note below),
+  and 2026-10-29 after the milestone-1 and milestone-3 reviews (notes below)
 - **Date:** 2026-10-28
 - **Related:** [0002 day 0](0002-day-zero-convention.md), [0003 IV measures](0003-iv-measures.md),
   [0005 tests](0005-statistical-test-suite.md), [data model](../architecture/data-model.md) (`event_window_obs`, `event_measures`)
@@ -24,6 +25,32 @@
 > confirmed 2024-09-09 release ended as `outside_samples`. **Changed:** `coarse` now ends 2024-09-11. A day 0 on
 > either date has no daily day −1, so its crush spans two sessions as in §4, and it belongs with `coarse`. The ranges
 > are now contiguous, and a test checks that they partition the timeline.
+
+> **Revised after the milestone-3 review** ([ledger](../validation/m3-ledger.md), 2026-10-29; fixes in the milestone
+> page's §9). Four additions; no decision of this ADR changes.
+>
+> 1. **β pools passing baselines only (F2).** §1's minimum says an event below 20 clean sessions or 15 one-session
+>    changes "gets no baseline and is excluded from every measure that needs one". β needs baselines, so it pools only
+>    the events whose baseline passes. The first milestone-3 build pooled every non-excluded event (632 failing
+>    events, 3,168 of 14,927 changes); it is fixed and tested (`test_beta_pools_only_baselines_that_pass_the_minimum`).
+>    β now rests on 11,759 changes. Company β median 0.361 → 0.309; the H1 mean −0.1991 → −0.1994.
+> 2. **What β may use (F8).** β uses no session of any event window (its own event's or another of the company's): its
+>    changes all lie in clean baselines, which exclude every [−21, +10] zone (§1). It *does* use the baselines of the
+>    company's later events: 1,209 of 1,259 events have β changes dated after their day +10 (re-measured after the fix
+>    above; 0 of the 11,759 changes lie in any [−21, +10] zone). §2 allows that ("using
+>    later baselines to adjust earlier events is harmless here: this is a description of the past, not a forecast"). A
+>    statement that β "uses no information from after the event it adjusts" is false as worded.
+> 3. **The span rule for `mixed` and `coarse` minimum counts (`baseline_max_change_span`).** §1's "15 one-session
+>    changes" is literal in `daily`. A Mon/Wed/Fri baseline has almost no one-session changes, so in `mixed` and
+>    `coarse` a change that counts toward the minimum may span up to **2 sessions**, and only across **unobserved**
+>    sessions: not across another event's or an orphan zone, and not across a session observed without a `cm30_iv`
+>    (`params.yaml` `windows.baseline_max_change_span: {daily: 1, mixed: 2, coarse: 2}`, a default taken at milestone 3
+>    that the owner can override). Even with it, **718 of 845 coarse events** (and 13 of 48 mixed) fail the minimum;
+>    the coarse sample is exploratory, but its n is small for that reason.
+> 4. **EVAR in `daily` falls back to day −2.** §3 defines EVAR as E at −1. `event_iv.evar_m1` is E at the event's pre
+>    session, the last observed session at or before day −1, so in `daily` it is E at −2 when −1 has no snapshot
+>    (flag `pre_is_m2`); the daily crush, by contrast, requires −1 itself. EVAR is not tested at milestone 3; the
+>    fallback is recorded here so milestone 4 decides it knowingly.
 
 ## In one paragraph
 
@@ -219,8 +246,13 @@ October 2024 and ignored the baseline's 60-session lead.
   autocorrelation correction pools across firms to compensate.
 - Cost: market adjustment adds a modelling choice (VIX, pooled β). Mean-adjusted results are always reported next to it.
 - Cost: a market-adjusted per-event value, together with the committed `cm30_iv` and β, gives back Δln VIX on that
-  date. Under the strict licensing default (ADR 0001 §7) those values (`aliv_cboe`, `crush_cboe`, …) therefore stay
-  local, and only their aggregates are published. The committed per-event values are the mean-adjusted twins.
+  date. The owner's decision of 2026-10-29 (ADR 0001 §7: commit the real data the apps and docs need, including Cboe
+  values) would allow committing them, but no view needs the per-event market-adjusted values, so they
+  (`aliv_cboe`, `crush_cboe`, …, and β as `beta_vix_cboe`) stay local by preference. The committed per-event values are
+  the mean-adjusted twins. The aggregates are committed under Cboe's terms: the market-adjusted test rows of `results`
+  and G1's calibration rows, which include the sd of daily Δln VIX (`dm_sd`) and the median company β
+  (`beta_median`); the milestone page also quotes the company β minimum and maximum (DATA.md, `data/derived/LICENSE`).
+  *Revised 2026-10-29 after the milestone-3 review (F4):* this bullet cited the superseded "strict licensing default".
 
 ## Alternatives rejected
 

@@ -1,0 +1,31 @@
+........................................................................ [ 13%]
+........................................................................ [ 26%]
+........................................................................ [ 39%]
+........................................................................ [ 52%]
+........................................................................ [ 65%]
+........................................................................ [ 78%]
+........................................................................ [ 91%]
+..............................................                           [100%]
+=============================== warnings summary ===============================
+tests/test_baseline_funnel.py: 4 warnings
+tests/test_calendar.py: 4 warnings
+tests/test_eps.py: 4 warnings
+tests/test_events.py: 4 warnings
+tests/test_ingest_sources.py: 4 warnings
+tests/test_iv_atom.py: 4 warnings
+tests/test_iv_pipeline.py: 4 warnings
+tests/test_measures.py: 4 warnings
+tests/test_notebooks_sync.py: 8 warnings
+tests/test_panel.py: 4 warnings
+tests/test_timing.py: 4 warnings
+  /home/rajib2k5/dev/earnings-vol-study/.venv/lib/python3.12/site-packages/pandas/core/series.py:848: Pandas4Warning: Series.values returning an ndarray that drops timezone information for DatetimeTZDtype is deprecated. In a future version, this will return the underlying DatetimeArray instead. Use 'Series.dt.tz_convert(None).to_numpy()' to get a NumPy array of UTC values, or 'Series.array' to get the ExtensionArray.
+  See https://pandas.pydata.org/docs/dev/whatsnew/v3.1.0.html#whatsnew-310-deprecations-values for more details.
+    warnings.warn(
+
+tests/test_g1.py::test_calibrate_round_trip_recovers_phi_from_the_side_it_errs_on
+  /home/rajib2k5/dev/earnings-vol-study/src/earnings_vol/stats/g1.py:335: RuntimeWarning: Mean of empty slice
+    csm = np.where(n_t >= min_firms, np.nanmean(np.where(np.isfinite(Z), Z, np.nan), axis=0), np.nan)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+550 passed, 49 warnings in 51.21s
+rc=0

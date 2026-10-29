@@ -1,0 +1,15 @@
+# p07 (data policy), commands run on a scratch copy (rsync of the working tree without node_modules/.venv, then `git add -A`: 132 paths staged)
+$ PYTHONPATH=<scratch>/src .venv/bin/python tools/licensing/check_data_files.py
+clean: no raw vendor file and no oversized data file
+check_rc=0
+$ PYTHONPATH=<scratch>/src .venv/bin/python tools/licensing/scan_real_rows.py
+docs/adr/0003-iv-measures.md:49
+docs/milestones/02-iv-measures.md:223
+docs/milestones/02-iv-measures.md:231
+3 line(s) flagged in 456 text file(s) of working tree against 55 raw file(s)
+# (all three in files this milestone does not change; none in tests/ or in any M3 file)
+# committed schemas (pyarrow): data/derived/event_window_obs and event_measures have no *_cboe column
+# data/derived/results.parquet, g1_calibration rows: statistics include 'dm_sd' (1 row) and 'beta_median' (1 row)
+# data/derived/event_measures.parquet: vix_regime non-null 0
+# notebooks/03_event_study.ipynb: 5 code cells, 0 outputs, no '_cboe' or 'beta_vix' in the source
+# grep 0.206|0.524|0.361: docs/milestones/03-event-study.md:342 (median and min-max of per-company beta)

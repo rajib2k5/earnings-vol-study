@@ -74,7 +74,7 @@ describe('IvMeasuresPage: loading and errors', () => {
   })
   it('shows an error for the previous schema version', async () => {
     render(<IvMeasuresPage fetchImpl={serving({ ...IV_MEASURES_FIXTURE, schema_version: '0.2.0' })} />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.2.0": this app only understands "0.3.0"')
+    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.2.0": this app only understands "0.4.0"')
     expect(screen.queryByRole('img')).toBeNull()
   })
   it('shows an error when the file is another kind (sample_funnel.json served at the iv url)', async () => {

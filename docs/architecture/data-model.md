@@ -1,9 +1,10 @@
 # Data model
 
-- **Status:** milestone 2. `security`, `ticker_alias`, `session`, `market_daily`, `events`, `eps`, `timing_check`,
-  `session_snapshot`, and since milestone 2 `chain_expiry`, `iv_daily` and `event_iv` are built (schema registry:
-  `src/earnings_vol/schema.py`); the other tables are designed, not yet built. Revised 2026-10-28 after the milestone-0
-  reviews, and on 2026-10-29 at milestones 1 and 2 (notes below).
+- **Status:** milestone 3. `security`, `ticker_alias`, `session`, `market_daily`, `events`, `eps`, `timing_check`,
+  `session_snapshot`, since milestone 2 `chain_expiry`, `iv_daily` and `event_iv`, and since milestone 3
+  `event_window_obs`, `event_measures` and `results` are built (schema registry: `src/earnings_vol/schema.py`);
+  `event_measures_vx` is designed, not yet built. Revised 2026-10-28 after the milestone-0 reviews, and on 2026-10-29
+  at milestones 1, 2 and 3 (notes below).
 - **Date:** 2026-10-28
 - **Decisions behind it:** [ADR 0001](../adr/0001-overall-architecture.md) (layers, cache, licensing),
   [0002](../adr/0002-day-zero-convention.md) (day 0, timing), [0003](../adr/0003-iv-measures.md) (IV measures),
@@ -98,6 +99,35 @@ If code and this file disagree, one of them is a bug.
 >   from one side of the money (§3.5).
 > - **Corrections.** `n_strikes_valid` counts strikes with a root, not strikes passing the quote filter (§3.5);
 >   `chain_expiry` stays local because of its size, not because of FRED's rate (§3.5).
+
+> **Milestone 3, 2026-10-29: what building the event study changed.**
+>
+> - **Built:** `event_window_obs` (§3.10, committed, 89,389 rows, 2.8 MB), `event_measures` (§3.11, committed, 1,353
+>   rows) and `results` (§3.13, committed). `event_iv` and `session_snapshot` are kept: `event_measures` copies
+>   `event_iv`'s IV columns, and nothing was dropped.
+> - **Renamed:** `event_measures.beta_vix` is `beta_vix_cboe`, class R, local. The owner's data decision of 2026-10-29
+>   allows VIX-derived values in the repository, and the brief for this milestone preferred keeping VIX-derived
+>   *per-row* values local unless the app needs them. No view needs β per company, so it stays local with the other
+>   market-adjusted per-row values (`e_abn_cboe`, `aliv_cboe`, the `*_cboe` measures, `s_abn_cboe`, `sa_*_cboe`).
+>   Only aggregates of them are committed: the market-adjusted rows of `results` (class S) and the JSON built from
+>   them. Every notice names them (`data/derived/LICENSE` and `README.md`, `DATA.md`, `app/DATA.md`, `meta.json`).
+> - **The disclosure test of §2.1 is not built.** It belonged to the strict reading of the licence rule, which the
+>   owner's decision of 2026-10-29 replaced (ADR 0001 §7). With the per-row values and β local, a reader cannot solve
+>   the committed aggregates for Δ ln VIX without FRED's own `VIXCLS` series, which is the reason the test existed.
+> - **Nullability:** `event_measures.implied_move_status` is nullable, as in `event_iv` (null without a pre session).
+> - **New column:** `results.df_num`, the numerator degrees of freedom of a Wald row (ADR 0005 §5, G1's
+>   reference-distribution check). The invariant of §3.13 runs on every write and read (`src/earnings_vol/invariants.py`).
+> - **Left null at milestone 3:** the milestone-4 regressors of `event_measures` (`price_ref`, `surprise_scaled`,
+>   `abs_surprise_scaled_w`, `sue_hist`, `sue_hist_n`, `realized_ret_0_yf`, `ln_mcap_yf`) and `vix_regime`;
+>   `crush_two_session_*` (no event is `timing_ambiguous`); the VX\* columns of `event_window_obs` (`cboe5` is not
+>   built: no VX\* file has been downloaded).
+> - **Defaults taken (the owner can override):** in `mixed` and `coarse` a baseline change may span two sessions
+>   across unobserved ones (ADR 0004 §4; `params.yaml` `windows.baseline_max_change_span`); the scale $s_i$ and the
+>   standardised values are built for `daily` only (the Mon/Wed/Fri correction of ADR 0005 §1 is not built); in
+>   `coarse` RUNUP is read at the pre session and PERSIST_h at the first usable of +h, +h−1, +h+1; β pools the clean
+>   one-session baseline changes of all of a company's non-excluded events, in every sample, as ADR 0004 §2 says.
+> - **Contract 0.4.0** (§4): `tests.json`, `event_paths.json`, `terrain.json` and `heatmap.json` are new; each carries
+>   `lookups` and `caveats` (the timing labels are provisional).
 
 ---
 
@@ -285,8 +315,8 @@ Columns with Yahoo or CBOE lineage are listed below. Every column not listed her
 | `event_measures.runup_cboe`, `crush_cboe`, `persist_1_cboe`, `persist_5_cboe`, `persist_10_cboe`, `dsigma_d_cboe`, `crush_two_session_cboe`, `sa_*_cboe` | R | no | For example, `crush_cboe` $= \Delta x_0 - \beta_s\Delta m_0$, and $\Delta x_0$ follows from the committed `iv_daily.cm30_iv`, so $\Delta\ln\text{VIX}$ on every day-0 date could be recovered. |
 | `event_measures.s_abn_cboe` | R | no | **Measured, 2026-10-28.** Each $s_i$ gives one quadratic equation in the unknown $\Delta m_t$ on that event's baseline dates. $\Delta x_t$, the baseline dates and $\beta_s$ are all committed. The adversarial reviewer simulated the coarse era (884 events, 657 unknown dates, simplified: fixed 23-change baselines, no exclusion holes, full precision), starting from committed data only. In 2 of 5 seeds it recovered every date to RMSE ≤ 1.7e-13; in the other 3 it reached correlation 0.984–0.994 with the true series. We re-ran seed 2 and got RMSE 1.69e-13. An earlier draft wrongly classed `s_abn` as S. |
 | `event_measures.realized_ret_0_yf`, `ln_mcap_yf` | R | no | Yahoo close and market cap |
-| `event_measures.beta_vix`, `beta_n` | S | yes | These are 50 slopes, one per security. Alone they reveal nothing, but they are the known coefficients that make every exported market-adjusted aggregate a *linear* equation in the VIX series. That is why the export rules below exist. |
-| `results` rows computed from R columns, including every `cboe5` row | S | only under the export rules below | See below. |
+| `event_measures.beta_vix_cboe` (was `beta_vix`), `beta_n` | `beta_vix_cboe` R, `beta_n` F | `beta_n` only | *Milestone 3:* the 50 slopes are VIX-derived per-row values that no view needs, so they stay local (renamed with the suffix, class R). They are the known coefficients that would make every exported market-adjusted aggregate a *linear* equation in the VIX series. `beta_n` is a count. |
+| `results` rows computed from R columns, including every `cboe5` row | S | yes, since milestone 3 (owner decision of 2026-10-29) | The numbers of a market-adjusted row (`estimate`, `se`, `stat`, `p_value`, `ci_lo`, `ci_hi`, `p_holm`, `q_bh`, `rbar`) are class S in the registry. The export rules below belonged to the strict reading and are not built (milestone-3 note). |
 
 **Export rules for aggregates of class-R inputs.** These cover every `results` row, JSON series or cell and
 regression coefficient computed from market-adjusted values, `_yf` values or VX\* values. Mean-adjusted aggregates
@@ -702,6 +732,14 @@ Committed: **only `event_id` and `gap_verdict_yf`** since milestone 2 (owner dec
 | `ln_vx_cboe` | float64, null | | ln of the VX\* index of the event's security, for the `cboe5` sample only; null for other securities. Class R. |
 | `e_abn_vx_cboe` | float64, null | | the same abnormal change computed on `ln_vx_cboe`. Class R. |
 
+*Milestone 3 (built).* One row per (event, rel_day) for every event with a null `exclusion_reason` (1,259 events, 89,389
+rows). `usable` in the code means an ok snapshot **and** a `cm30_iv` (ADR 0004 §1 rules 3 and 4). `d_ln_cm30` and
+`e_abn_cboe` are null at rel_day −60 (the previous session is outside the window) and wherever either end is not
+usable. `aliv_cboe`, `aliv_mean_adj` and `aiv_level` are null for an event whose baseline fails the minimum.
+`front_fixed_iv` is filled inside the event window [−10, +10] only, while T1\* has at least 5 sessions to go; it is
+interpolated (never extrapolated) when T1\* is not listed that day (`front_fixed_interpolated`). `ln_vx_cboe` and
+`e_abn_vx_cboe` are null (`cboe5` is not built).
+
 Cardinality: `events` 1 — 0..71 `event_window_obs`. Committed: yes, without the `_cboe` columns. **Licensing:** the
 committed per-row values are mean-adjusted. The market-adjusted `e_abn_cboe` and `aliv_cboe` would let a reader recover
 Δln VIX on every window date from `d_ln_cm30` and `beta_vix` (§2.1). Relaxing this is an owner decision (§2.1).
@@ -716,8 +754,8 @@ Mean-adjusted run-up and persistence per event are `aliv_mean_adj` at rel_day �
 | `ineligible_reason` | string | | `\|`-separated `measure:reason` codes (flags convention), e.g. `crush:missing_0\|persist_10:beyond_data_end`; `''` if all are eligible. Reasons: `event_excluded`, `missing_m1`, `missing_0`, `missing_target`, `short_baseline`, `beyond_data_end`. |
 | `baseline_n`, `baseline_n_changes` | int16 | | clean sessions and clean one-session changes |
 | `baseline_mean_ln_iv`, `baseline_mean_iv` | float64, null | | μ_i and the level mean |
-| `beta_vix` | float64, null | | β_s (pooled per security). Class S. |
-| `beta_n` | int32 | | changes used for β_s. Class S. |
+| `beta_vix_cboe` | float64, null | | β_s (pooled per security). *Milestone 3:* class R, local (was `beta_vix`, class S; see the milestone-3 note). |
+| `beta_n` | int32 | | changes used for β_s (0 for an excluded event). Class F. |
 | `s_abn_cboe` | float64, null | | s_i, the sd of the market-adjusted baseline changes. **Class R**: enough of them can be solved for Δln VIX (§2.1). |
 | `runup_cboe`, `crush_cboe`, `persist_1_cboe`, `persist_5_cboe`, `persist_10_cboe`, `dsigma_d_cboe` | float64, null | | **The primary tested quantities**: market-adjusted, log (ADR 0004 §3). Class R: local only. `stats` reads them from the stage cache. |
 | `crush_mean_adj`, `dsigma_d_mean_adj` | float64, null | | Mean-adjusted (committed). Run-up and persistence have no column here: they are `event_window_obs.aliv_mean_adj` at −1 and +h. |
@@ -728,7 +766,7 @@ Mean-adjusted run-up and persistence per event are `aliv_mean_adj` at rel_day �
 | `evar_m1` | float64, null | | E at day −1 (signed) |
 | `evar_m2` | float64, null | | E at day −2 (robustness for wide announcement-day quotes, ADR 0003 §c) |
 | `implied_move_m1`, `implied_abs_move_total_m1` | float64, null | | |
-| `implied_move_status` | enum (as `iv_daily`) | | |
+| `implied_move_status` | enum (as `iv_daily`), null | | null without a pre session (as `event_iv`) |
 | `sigma_d_m1`, `cm30_m1`, `ts_slope_m1` | float64, null | | regressors. `sigma_d_m1` and `cm30_m1` are annualised volatilities. H7's regressor is `evar_m1 + sigma_d_m1²/252` (ADR 0005 §3). |
 | `price_ref` | float64, null | | As-of, unadjusted parity spot on day −1: `chain_expiry.forward × chain_expiry.df` of `iv_daily.front_expiry` on day −1. Dividends inside about 2 weeks are ignored. (Moved from `eps`.) |
 | `surprise_scaled` | float64, null | | `eps.surprise / price_ref`; null without a linked `eps` row |
@@ -743,7 +781,24 @@ Mean-adjusted run-up and persistence per event are `aliv_mean_adj` at rel_day �
 | `ln_mcap_yf` | float64, null | | Class R |
 
 Committed: yes, without the `_yf` and `_cboe` columns (§2.1). Every event has a row (1:1), and an excluded event has
-all `eligible_*` false. The `panel` layer reads `iv_daily`, `chain_expiry`, `events`, `eps`, `security`, `session`,
+all `eligible_*` false.
+
+*Milestone 3 (built).* The rules of `src/earnings_vol/panel/window.py`:
+
+- **pre / post** are `event_iv`'s. In `daily` and `mixed` the crush needs exactly day −1 and day 0 (each usable); in
+  `coarse` the nearest observed within one session (ADR 0004 §4), and RUNUP is read at pre, PERSIST_h at the first usable
+  of +h, +h−1, +h+1 inside the window.
+- **Eligibility**, the first failing rule per measure: `event_excluded`, `beyond_data_end` (persist_10 only),
+  `missing_m1` / `missing_0` / `missing_target`, `short_baseline`. `baseline_n_changes` counts one-session changes in
+  `daily` and changes of up to 2 sessions across unobserved sessions only in `mixed` and `coarse`.
+- **Measured:** eligible CRUSH 347 daily (exactly the funnel's last step), 33 mixed, 110 coarse; RUNUP 356 / 34 / 117;
+  PERSIST_10 329 / 35 / 127. Daily ineligibility: CRUSH missing_0 9, missing_m1 4, short_baseline 6; PERSIST_10
+  beyond_data_end 18, missing_target 12, short_baseline 7. Only 127 of 845 coarse events keep a baseline: Mon/Wed/Fri
+  data gives at most about 23 sessions in [−60, −22], so the 20-session minimum removes most of them.
+- `s_abn_cboe` and every `sa_*_cboe` are filled for `daily` events only; R-hat is pooled over each measure's own
+  eligible daily events (ADR 0005 §1). For ΔSIGMA_D the scale is the sd of the abnormal baseline changes of
+  ln `sigma_d_iv` (the code's `sigma_d_baseline`).
+- `persist_1_cboe` and `persist_5_cboe` (exploratory) need a passing baseline and their target, like PERSIST_10. The `panel` layer reads `iv_daily`, `chain_expiry`, `events`, `eps`, `security`, `session`,
 `market_daily` and the local Yahoo and VX\* extracts. Its order has no cycle:
 
 1. window rows with their class-U columns (`observed`, `in_baseline`, `ln_cm30`, `d_ln_cm30`, …);
@@ -821,13 +876,41 @@ machine (§2.1 export rules).
 | `n_clusters` | int32, null | | G of the row's time clustering: distinct day-0 dates, or season clusters after merging seasons with fewer than 10 events (ADR 0005 §2b) |
 | `n_clusters_firm` | int32, null | | G of the firm dimension, for two-way rows (`twoway_*`, `sa_twoway_season_t`, two-way regressions); null otherwise. The critical value uses $\min$(`n_clusters`, `n_clusters_firm`) − 1 degrees of freedom. |
 | `df` | float64, null | | |
+| `df_num` | float64, null | | *Added at milestone 3.* The numerator degrees of freedom of a `wald` row; null otherwise (ADR 0005 §5). |
 | `estimate`, `se`, `stat`, `p_value`, `ci_lo`, `ci_hi` | float64, null | | |
-| `p_holm` | float64, null | | primary rows only |
+| `p_holm` | float64, null | | primary rows; and the season-cut counterfactual row, where it is the Holm p with that cut's p |
 | `q_bh` | float64, null | | exploratory rows only |
 | `rbar` | float64, null | | the correlation term of the row's KP variant: the clamped per-pair $\bar r$ for `kp_ow_t`; $\bar\nu\hat{\bar\rho}$ for `kpp_t` |
 | `params_hash`, `code_commit` | string | | provenance |
 
 No foreign keys; keyed by names. Committed: yes.
+
+*Milestone 3 (built).* `result_id` hashes the key columns except `role`, so a role change after gate G1 keeps the id.
+The rows:
+
+- `family = event_test`: H1–H4 (daily, market-adjusted) with every statistic of ADR 0005 §4; the mean-adjusted twin of
+  each primary (role robustness); exploratory rows (PERSIST_1 and _5, the front-expiry crush, BMO and AMC subgroups,
+  the `mixed` and `coarse` samples) with BH q-values within each sample. `mixed` is one season, so its ramps have a
+  `mean` row only. A primary whose G1 gate failed would have role `exploratory` and no `p_holm`.
+  *Added after the milestone-3 review:* a robustness row whose statistic gate G1's calibrated design rejects above the
+  band's top (6.30% at 2,000 replications) keeps `estimate`, `se` and `stat`, and has `p_value`, `ci_lo` and `ci_hi`
+  null (ADR 0005 §4); its rate is the `validation` row `g1:calibrated` with the same `hypothesis` and `statistic`, and
+  `tests.json` repeats it as `g1_size`. *Second fix round:* the band is the one for the replications the rate was
+  measured on, and a rate within one point of 6.30% on 2,000 is re-measured on 10,000 and decided against 5.57%; that
+  rate is the `validation` row `g1:calibrated_remeasured` (`n` = 10,000), and `tests.json` gives the count as
+  `g1_reps`. A ramp primary on `rad_season_p` also gets a counterfactual row (role
+  robustness, `subgroup_key = season_cut`, `subgroup_value = <last season>_into_<the one before>`) whose `p_holm` is
+  the Holm p the hypothesis would get with that cut's p.
+- `family = descriptive`: `aliv_path` per rel_day −10 … +10, `statistic = mean`, with two-way season × firm pointwise
+  95% bands (`df`, `se`, `ci_*`; no p-value), for `all`, BMO and AMC, market- and mean-adjusted.
+- `family = validation`: gate G1. `measure = g1:<design>`, `estimate` = the rejection rate, `n` = replications, role
+  `primary` for the hypothesis's primary statistic and `robustness` for the others; `measure =
+  g1_calibration:params` / `:measured` hold the calibrated design (`statistic` = the parameter, `rel_day` = the lag of a
+  list), and `g1_calibration_sigma_d:params` / `:measured` the calibration of H4's own σ_d series (added after the
+  milestone-3 review). `g1:calibrated_remeasured` holds the near-bar robustness rates re-measured on `n` = 10,000
+  replications (second fix round). Among the measured rows, `dm_sd` (the sd of the daily change of ln VIX) and `beta_median` (the
+  median company β) are Cboe-derived aggregates, committed under the owner's decision of 2026-10-29. The invariant
+  skips validation rows.
 
 **Invariant on the reference distribution** (added after the delta review, ledger N2; ADR 0005 §5, gate G1). For
 every row whose `statistic` is a cluster-robust t (`twoway_*`, `cluster_*`, `sa_twoway_season_t`, and regression
@@ -844,8 +927,8 @@ A fit left at statsmodels' default `use_t=False` breaks it, because its p-values
 ## 4. Python → app JSON contract
 
 Every file is `app/public/data/<kind>.json` and uses the fixed envelope (`schema_version`, `kind`, `generated_at`,
-`source_commit`, `data`). The per-view files below arrive with **schema_version 0.2.0** (milestone 1) and are at
-**0.3.0** since milestone 2; each bump is coordinated with `app/src/lib/contract.ts`. Every `data` object carries:
+`source_commit`, `data`). The per-view files below arrive with **schema_version 0.2.0** (milestone 1), were at
+**0.3.0** at milestone 2 and are at **0.4.0** since milestone 3; each bump is coordinated with `app/src/lib/contract.ts`. Every `data` object carries:
 
 ```
 provenance: { params_hash: string, code_commit: string, sample_label: string,
@@ -860,11 +943,11 @@ values are `null`, never NaN. Arrays indexed by `rel_days` have the same length 
 | `meta` (0.3.0; 0.2.0 at milestone 1) | `project`, `milestone`, `title`, `data_sources[] {name, uses, url, licence, committed}` (`uses` = the tables or series taken from the source), `data_licence {name, url, applies_to[], attribution}` (`applies_to` names the sources the licence covers; `attribution` is the text the About page shows), `sample {label, day0_from, day0_to, n_events, n_securities}` (`n_events` = the last funnel step), `params {event_window, baseline, baseline_exclusion, cm30_horizon_sessions, clock}`, `files[]` (kinds available), `provenance`. Written by `tools/export_app_data.py` and checked by `parseMetaData` in `app/src/lib/meta.ts`, which requires exactly these keys. | `tools/export_app_data.py` constants; `params.yaml`; the committed `data/derived/` tables |
 | `sample_funnel` | `steps[] {step, label, n_events, n_removed, reason}`, `timing_status_counts {confirmed, corrected, inferred, date_corrected, no_document, not_checked, ambiguous}`, `timing_status_by_sample[] {sample, timing_status_counts}`, `by_move_tercile[] {sample, tercile, n_events, timing_status_counts, share_gap_contradicts, n_gap_check_changed, mean_crush_mean_adj}` or null, `by_move_tercile_status`, `evar_nonpositive {n, share}` or null, `evar_nonpositive_status`, `by_sample[] {sample, n_events}`, `lookups {n_done, complete}`, `caveats[]`, `provenance`. *Milestone 1 (0.2.0):* the steps are `calendar_events`, `timing_known` (which also removes `duplicate_row` rows, *since the milestone-1 delta review*), `daily_range`, `crush_observed`, `baseline_minimum` (`export/funnel.py`); `by_move_tercile` and `evar_nonpositive` are null, with a status string, until milestone 2 computes their inputs; the app accepts only null for them at 0.2.0. | `events` (`exclusion_reason`, `sample`, `timing_status`, `gap_check_changed`), `event_measures` (`eligible_*`, `ineligible_reason`, `abs_move_cand_max` for the terciles, `crush_mean_adj`), and `timing_check.gap_verdict_yf` for `share_gap_contradicts`. That share is an aggregate of a class-R input, so it falls under the §2.1 export rules. `by_move_tercile` is ADR 0002 §3's outcome-dependence check, per date sample, because `coarse` has a different look-up rule. *Revised after the delta review:* `unverified` is split into `no_document` and `not_checked`; the terciles are of `abs_move_cand_max`, not \|`realized_ret_0`\| (ledger N7); `sample` and `n_gap_check_changed` are new. *Milestone 2 (0.3.0):* a step `iv_usable` (a `cm30_iv` on day −1 and day 0) comes before `baseline_minimum`, whose clean sessions now need a `cm30_iv` (ADR 0004 §1 rule 2); `by_move_tercile` rows add `mean_abs_move` and `n_crush`, and their `share_gap_contradicts` is among the events with a gap verdict; `evar_nonpositive` is `{n_events, n_identified, n, share}` over the events of the last step (E at day −1, `n` of them ≤ 0); the inputs are `iv_daily`, `event_iv` (in place of `event_measures` until milestone 3) and the committed `timing_check.gap_verdict_yf`. |
 | `iv_measures` (0.3.0, milestone 2) | `sample {label, n_events}`, `implied_move {units, n_identified, n_nonpositive, n, sqrt_mean_evar, quantiles {p10, p25, p50, p75, p90} or null, bin_edges[], counts[]}` (√E at day −1 of the primary events with E > 0; `sqrt_mean_evar` = √(mean E) over all events with an E, signed), `crush {units, n, mean, quantiles, bin_edges[], counts[]}` (`crush_mean_adj`), `caveats[]`, `provenance`. `len(bin_edges) = len(counts) + 1`, `sum(counts) = n`. | `event_iv` for the events of the funnel's last step (`export/iv_view.py`) |
-| `event_paths` | `rel_days[]` (−10…10), `series[] {measure, adjustment, units, subgroup_key, subgroup_value, n[], mean[], ci_lo[], ci_hi[]}`, `per_event[] {event_id, ticker, sector, day0, timing_used, values[]}` (`aliv_mean_adj` of cm30, for animated paths) | `event_window_obs`, `results` (`aliv_path`). Market-adjusted `series[]` exist only for `all` and `timing` (§2.1 export rules); other subgroups' series are mean-adjusted. A suppressed rel_day is `null`, and its `n` is not shown. |
-| `heatmap` | `grids[] {id, title, measure, units, row_labels[], row_keys[], col_labels[], values[][], n[][], q[][] or null}`. Grid `company_by_season`: rows = securities (sector order), cols = seasons, value = `crush_mean_adj` (one event per cell, so per-event data). Grid `sector_by_regime`: rows = sectors, cols = `vix_regime`, value = mean **mean-adjusted** crush with BH q. For the one-session crush the two adjustments must agree within 10% (ADR 0004). | `event_measures`, `results` |
-| `terrain` | `measure`, `units`, `rel_days[]`, `rows[] {security_id, ticker, sector, n_events}`, `values[][]` (rows × rel_days, mean `aliv_mean_adj`, null where missing), `row_order` (text) | `event_window_obs` aggregated per security. A per-security mean covers ≈ 7 dates, so it is treated as per-event data and uses mean-adjusted values (§2.1). Matches `app/src/lib/terrain.ts` `values[company][eventDay]`. |
+| `event_paths` (0.4.0, milestone 3) | `rel_days[]` (−10…10), `series[] {measure, adjustment, units, subgroup_key, subgroup_value, n[], mean[], ci_lo[], ci_hi[]}`, `per_event[] {event_id, ticker, sector, day0, timing_used, values[]}` (`aliv_mean_adj` of cm30, for animated paths; the primary sample), `lookups {n_done, complete}`, `caveats[]`, `provenance` | `event_window_obs`, `results` (`aliv_path`). Market-adjusted `series[]` exist only for `all` and `timing` (§2.1 export rules); other subgroups' series are mean-adjusted. A suppressed rel_day is `null`, and its `n` is not shown. |
+| `heatmap` (0.4.0, milestone 3) | `grids[] {id, title, measure, units, row_labels[], row_keys[], col_labels[], values[][], n[][], q[][] or null}`, `lookups`, `caveats[]`, `provenance`. *Milestone 3:* grid `company_by_event_day`: rows = companies (sector order), cols = rel_day −10…10, value = the company's mean `aliv_mean_adj` over its primary events, `n` = events in the cell. Grid `company_by_season`: cols = seasons, value = `crush_mean_adj` of the company's one primary event in that season (null and `n` shown when there is not exactly one). `q` is null (no cell is tested). The planned grid `sector_by_regime` waits for `vix_regime` (milestone 4). | `event_window_obs`, `event_measures` |
+| `terrain` (0.4.0, milestone 3) | `measure`, `units`, `rel_days[]`, `rows[] {security_id, ticker, sector, n_events}`, `values[][]` (rows × rel_days, mean `aliv_mean_adj`, null where missing), `row_order` (text), `lookups`, `caveats[]`, `provenance` | `event_window_obs` aggregated per security. A per-security mean covers ≈ 7 dates, so it is treated as per-event data and uses mean-adjusted values (§2.1). Matches `app/src/lib/terrain.ts` `values[company][eventDay]`. |
 | `implied_vs_realised` | `points[] {event_id, ticker, sector, day0, timing_used, event_var, implied_move, implied_abs_move_total, realized_ret_0, abs_realized, implied_move_status, surprise_scaled}`, `summary {n, n_evar_nonpositive, share_exceed, share_exceed_benchmark (= 0.425), mean_log_ratio, median_ratio, regression {a, a_se, b, b_se, wald_p, n_clusters}}` | `event_measures` (including `surprise_scaled`), `results` (H7) |
-| `tests` | `rows[] {hypothesis, role, measure, statistic, estimand, sample, subgroup_key, subgroup_value, adjustment, rel_day, units, n, n_clusters, n_clusters_firm, estimate, se, stat, df, p_value, p_holm, q_bh, ci_lo, ci_hi, rbar}` | `results` where `family = event_test` |
+| `tests` (0.4.0, milestone 3) | `rows[] {hypothesis, role, measure, statistic, estimand, sample, subgroup_key, subgroup_value, adjustment, rel_day, units, n, n_clusters, n_clusters_firm, estimate, se, stat, df, p_value, p_holm, q_bh, ci_lo, ci_hi, rbar, g1_size, g1_reps, note}`, `g1 {reps, band [lo, hi], calibrated[] {hypothesis, statistic, rejection_rate, pass}, designs[] {design, hypothesis, statistic, primary, rejection_rate}, power[] {hypothesis, shifts[], power[], detectable_80}, calibration {parameter: value}}`, `holm {family[], tested[], untested[], left_family[]}`, `lookups`, `caveats[]`, `provenance` | `results` where `family = event_test` (rows) and `family = validation` (g1) |
 | `drivers` | `models[] {model_id, dep_var, label, cov_type, fixed_effects[], n, n_clusters_date, n_clusters_season, n_clusters_firm, r2, terms[] {term, label, coef, se, t, p_value, ci_lo, ci_hi, p_holm}}` | `results` where `family = regression`. `terms[]` holds named regressors only; fixed-effect coefficients are never exported (`fixed_effects[]` lists their names only, §2.1). |
 | `validation` | `vx[] {security_id, vx_index, n_days, corr_dlog, slope_dlog, slope_ci_lo, slope_ci_hi, mean_level_spread, crush_ratio_mean, crush_ratio_ci_lo, crush_ratio_ci_hi}`, `vendor_vs_ours {n, median_abs_diff, p95_abs_diff}`, `vol_history_maturity {best_tau_sessions, r2_by_tau[] {tau, r2}}`, `leak {mean_cm30_minus_blind_baseline, p95}`, `realised_vs_yahoo {n, median_abs_diff_bp}` | `results` where `family = validation`. **Statistics only, never a VX\* or Yahoo series.** |
 
@@ -979,10 +1062,12 @@ erDiagram
    override.** Until then every other event keeps the calendar label as `not_checked`, the build invariant is reported
    and not enforced (`params.yaml`: `timing.lookups_complete: false`), and the labels are marked provisional in the
    manifests, the funnel and the app.
-8. **Owner question for the milestone that plans the VX\* validation (added after the milestone-2 review).** Cboe's
+8. ~~Owner question for the milestone that plans the VX\* validation (added after the milestone-2 review).~~ **Closed
+   2026-10-29: covered by the owner's decision of 2026-10-29** (real data the app and the docs need may be committed;
+   only bulk raw files stay out). The VX\* cross-check may be built and its values committed. The question was: Cboe's
    terms may restrict using Cboe data to verify other data: in the review's paraphrase (Channel A §G4), the website
    terms of use (last updated 2022-11-16) bar using the materials to verify or correct other data or information.
    ADR 0003's validation item 1 compares our `cm30_blind_iv` with the VX\* indices, and ADR 0001 §7 plans to export
    statistics such as a correlation with VXAPL. Whether the VX\* downloads fall under those website terms or under a separate data
-   agreement, and whether that comparison is allowed, is not settled. **Not built; the owner decides before that
-   milestone plans it.** Nothing in this repository uses Cboe data yet.
+   agreement is not checked; the owner's decision allows the comparison. It is not built at milestone 3 (no VX\* file has been
+   downloaded; `docs/milestones/03-event-study.md` lists it as the next step).

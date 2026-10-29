@@ -1,0 +1,15 @@
+        sum  size
+sample           
+coarse  718   845
+mixed    13    48
+daily     7   366
+ineligible_reason
+crush:short_baseline|persist_10:short_baseline|runup:short_baseline    547
+                                                                       110
+crush:missing_m1|persist_10:missing_target|runup:missing_m1             72
+crush:short_baseline|persist_10:missing_target|runup:short_baseline     45
+crush:missing_0|persist_10:short_baseline|runup:short_baseline          27
+crush:missing_m1|persist_10:short_baseline|runup:missing_m1             23
+crush:missing_m1|runup:missing_m1                                       10
+crush:missing_0                                                          7
+Name: count, dtype: int64

@@ -22,14 +22,16 @@ from datetime import datetime, timezone
 # 0.2.0 (milestone 1): meta.json gained sample, params, files and provenance,
 # and sample_funnel.json is new. 0.3.0 (milestone 2): sample_funnel's
 # by_move_tercile and evar_nonpositive are filled (they were always null), and
-# iv_measures.json is new. The version covers the whole contract, so every
-# file moves to it together (ADR 0001 §4).
-SCHEMA_VERSION = "0.3.0"
+# iv_measures.json is new. 0.4.0 (milestone 3): tests.json, event_paths.json,
+# terrain.json and heatmap.json are new; meta.json says milestone 3. The
+# version covers the whole contract, so every file moves to it together
+# (ADR 0001 §4).
+SCHEMA_VERSION = "0.4.0"
 
 # The kinds of file the contract defines: app/public/data/<kind>.json, each
 # with this `kind` in its envelope (tools/export_app_data.py writes them all;
 # tools/licensing/check_data_files.py refuses any other file in that folder).
-KINDS = ("meta", "sample_funnel", "iv_measures")
+KINDS = ("meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain", "heatmap")
 
 # The largest whole number that a JavaScript number (a 64-bit float) holds
 # exactly: 2**53 - 1. Above it, JSON.parse silently rounds an integer to the

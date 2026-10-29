@@ -1,0 +1,2 @@
+6 2000 draws: adjusted p(H1-H4) with real H5-H7 above the p=1 value: 0; draws differing from statsmodels holm: 0
+6 reported family: {'H1': 0.0, 'H2': 0.0469, 'H3': 1.0, 'H4': 1.0, 'H5': 1.0, 'H6': 1.0, 'H7': 1.0}

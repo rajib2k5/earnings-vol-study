@@ -1,0 +1,9 @@
+12 events 347, clean baseline changes 9826, dates 491; (date, security) cells holding >1 event: 0
+12 own rho-bar (uncentred z, eq. 32 form) = 0.3128
+12 with z centred per event (the paper's U has mean 0) = 0.3093
+12 results H1 kpp_t rbar (= nubar * rho-bar) = 0.001933
+12 own nubar (share of pairs on the same day 0) = 0.006180; nubar * rho-bar = 0.001933
+12 rho-bar without the 5% of dates with the largest |mean z|: 0.1969
+12 rho-bar in calendar year 2024: 0.3342 (67 dates)
+12 rho-bar in calendar year 2025: 0.2352 (248 dates)
+12 rho-bar in calendar year 2026: 0.4715 (176 dates)

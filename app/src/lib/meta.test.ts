@@ -4,7 +4,7 @@ import type { Envelope } from './contract'
 import { META_DATA_FIXTURE } from '../test/metaFixture'
 
 const body = {
-  schema_version: '0.3.0',
+  schema_version: '0.4.0',
   kind: 'meta',
   generated_at: '2026-10-27T12:00:00Z',
   source_commit: 'abc1234',
@@ -78,7 +78,7 @@ describe('summarizeMeta', () => {
   const env = body as Envelope
   it('copies the envelope fields and reads data.milestone when it is an integer (the exporter writes 0 for M0)', () => {
     expect(summarizeMeta(env)).toEqual({
-      schemaVersion: '0.3.0',
+      schemaVersion: '0.4.0',
       kind: 'meta',
       generatedAt: '2026-10-27T12:00:00Z',
       sourceCommit: 'abc1234',

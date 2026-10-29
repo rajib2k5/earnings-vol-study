@@ -1,0 +1,3 @@
+6 2000 draws: adjusted p(H1-H4) with real H5-H7 above the p=1 value: 0; draws differing from statsmodels holm: 2000
+6 reported family: {'H1': np.float64(0.0), 'H2': np.float64(0.0391), 'H3': np.float64(1.0), 'H4': np.float64(1.0), 'H5': np.float64(1.0), 'H6': np.float64(1.0), 'H7': np.float64(1.0)}
+falsifier_rc=1

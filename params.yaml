@@ -63,6 +63,12 @@ windows:
   # ADR 0002 §3: an orphan or pre-calendar EPS period contaminates the
   # sessions from period end + 10 to + 60.
   orphan_zone_sessions: [10, 60]
+  # Milestone 3 (panel/window.py): the longest change that counts towards
+  # baseline_min_changes. In daily a change is one session. The mixed and
+  # coarse baselines lie (partly) in the Mon/Wed/Fri era, so a change there
+  # may span 2 sessions across unobserved ones (ADR 0004 §4; default taken at
+  # milestone 3, the owner can override).
+  baseline_max_change_span: {daily: 1, mixed: 2, coarse: 2}
 
 iv:
   # ADR 0003 §b: the event-aware constant-maturity IV covers 21 sessions.
@@ -146,3 +152,29 @@ gap:
   ratio: 3.0
   outside_window: [-3, 4]
   outside_z_min: 6.0
+
+stats:
+  # Milestone 3: ADR 0005. R-hat lags and the spectral grid of its PSD check
+  # (§1); a season with fewer than season_min_events events in a test's event
+  # set joins its nearest neighbour (§2b); the two-way season t is replaced by
+  # rad_season_p when the largest season cluster is more than
+  # unbalanced_ratio times the smallest; a ramp gets no p-value with fewer
+  # than min_season_clusters seasons; kp_ow_t needs kp_min_shared shared
+  # baseline dates per pair (§2e). Every test is two-sided at alpha.
+  rhat_max_lag: 10
+  psd_grid: 512
+  season_min_events: 10
+  unbalanced_ratio: 1.5
+  min_season_clusters: 5
+  kp_min_shared: 20
+  alpha: 0.05
+  # ADR 0005 §4: the primary family, declared before any data was seen.
+  # Holm runs over all seven; a hypothesis not tested yet (H5-H7 wait for
+  # milestone 4) enters with p = 1, which can only make the adjusted p of the
+  # others larger (default taken at milestone 3, the owner can override).
+  holm_family: [H1, H2, H3, H4, H5, H6, H7]
+  # Gate G1 (ADR 0005 §5): replications per design, the seed, and the shifts
+  # (log points) at which the calibrated design's power is measured.
+  g1_reps: 2000
+  g1_seed: 20261029
+  g1_power_shifts: [0.01, 0.02, 0.03, 0.05, 0.08, 0.12, 0.16]

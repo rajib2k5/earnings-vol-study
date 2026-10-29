@@ -1,0 +1,5 @@
+G1 ramp primaries against phi: 10000 replications per phi, params hash 94065662cd46610c; band upper edge at 10000: 5.57%
+phi 0.9853: H2 rad_season_p 0.53% (se 0.07, within the band); H3 twoway_season_t 0.47% (se 0.07, within the band)
+phi 0.99: H2 rad_season_p 0.62% (se 0.08, within the band); H3 twoway_season_t 0.72% (se 0.08, within the band)
+phi 0.995: H2 rad_season_p 1.16% (se 0.11, within the band); H3 twoway_season_t 1.64% (se 0.13, within the band)
+phi 1.0: H2 rad_season_p 5.06% (se 0.22, within the band); H3 twoway_season_t 5.57% (se 0.23, within the band)

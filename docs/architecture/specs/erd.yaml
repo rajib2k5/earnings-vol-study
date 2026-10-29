@@ -31,6 +31,12 @@
 # sample_funnel.json are written at schema 0.2.0 with the keys drawn here; the other view files do
 # not exist yet. (The _planned type suffix that marked meta.json's not-yet-written keys is gone.)
 # Milestone 2 writes all three at schema 0.3.0; iv_measures.json is new.
+# Milestone 3 builds event_window_obs, event_measures and results and writes tests.json,
+# event_paths.json, terrain.json and heatmap.json at schema 0.4.0. Changes there: beta_vix is
+# beta_vix_cboe (class R, local: no view needs it per row, owner preference of 2026-10-29);
+# event_measures.implied_move_status is nullable (as event_iv's: null without a pre session);
+# results.df_num is new (the Wald numerator df, ADR 0005 §5); each new view also carries lookups
+# and caveats (the timing labels are provisional).
 # events.edgar_accession / edgar_accepted_utc: SEC EDGAR is accepted (2026-10-28), gated on the
 # owner's contact string. The client refuses to run until SEC_EDGAR_USER_AGENT is set, so both columns
 # stay null until then. A column cannot carry a note in the kit, so the events entity label says it.
@@ -250,7 +256,7 @@ entities:
       - {name: baseline_n_changes, type: int16}
       - {name: baseline_mean_ln_iv, type: float64, nullable: true}
       - {name: baseline_mean_iv, type: float64, nullable: true}
-      - {name: beta_vix, type: float64, nullable: true}
+      - {name: beta_vix_cboe, type: float64, nullable: true}
       - {name: beta_n, type: int32}
       - {name: s_abn_cboe, type: float64, nullable: true}
       - {name: runup_cboe, type: float64, nullable: true}
@@ -275,7 +281,7 @@ entities:
       - {name: evar_m2, type: float64, nullable: true}
       - {name: implied_move_m1, type: float64, nullable: true}
       - {name: implied_abs_move_total_m1, type: float64, nullable: true}
-      - {name: implied_move_status, type: enum}
+      - {name: implied_move_status, type: enum, nullable: true}
       - {name: sigma_d_m1, type: float64, nullable: true}
       - {name: cm30_m1, type: float64, nullable: true}
       - {name: ts_slope_m1, type: float64, nullable: true}
@@ -323,6 +329,7 @@ entities:
       - {name: n_clusters, type: int32, nullable: true}
       - {name: n_clusters_firm, type: int32, nullable: true}
       - {name: df, type: float64, nullable: true}
+      - {name: df_num, type: float64, nullable: true}
       - {name: estimate, type: float64, nullable: true}
       - {name: se, type: float64, nullable: true}
       - {name: stat, type: float64, nullable: true}
@@ -392,6 +399,8 @@ entities:
       - {name: rel_days, type: array}
       - {name: series, type: array}
       - {name: per_event, type: array}
+      - {name: lookups, type: object}
+      - {name: caveats, type: array}
       - {name: provenance, type: object}
       - {name: from_event_window_obs, type: string, fk: event_window_obs.event_id, nullable: true}
       - {name: from_results, type: string, fk: results.result_id, nullable: true}
@@ -400,9 +409,11 @@ entities:
     columns:
       - {name: kind, type: string, pk: true}
       - {name: grids, type: array}
+      - {name: lookups, type: object}
+      - {name: caveats, type: array}
       - {name: provenance, type: object}
       - {name: from_event_measures, type: string, fk: event_measures.event_id, nullable: true}
-      - {name: from_results, type: string, fk: results.result_id, nullable: true}
+      - {name: from_event_window_obs, type: string, fk: event_window_obs.event_id, nullable: true}
   - id: json_terrain
     label: "terrain.json"
     columns:
@@ -413,6 +424,8 @@ entities:
       - {name: rows, type: array}
       - {name: values, type: array}
       - {name: row_order, type: string}
+      - {name: lookups, type: object}
+      - {name: caveats, type: array}
       - {name: provenance, type: object}
       - {name: from_event_window_obs, type: string, fk: event_window_obs.event_id, nullable: true}
       - {name: from_security, type: string, fk: security.security_id, nullable: true}
@@ -430,6 +443,10 @@ entities:
     columns:
       - {name: kind, type: string, pk: true}
       - {name: rows, type: array}
+      - {name: g1, type: object}
+      - {name: holm, type: object}
+      - {name: lookups, type: object}
+      - {name: caveats, type: array}
       - {name: provenance, type: object}
       - {name: from_results, type: string, fk: results.result_id, nullable: true}
   - id: json_drivers
@@ -493,7 +510,7 @@ relations:
   - {from: json_event_paths.from_event_window_obs, to: event_window_obs.event_id, cardinality: "0..*", label: feeds}
   - {from: json_event_paths.from_results, to: results.result_id, cardinality: "0..*", label: feeds}
   - {from: json_heatmap.from_event_measures, to: event_measures.event_id, cardinality: "0..*", label: feeds}
-  - {from: json_heatmap.from_results, to: results.result_id, cardinality: "0..*", label: feeds}
+  - {from: json_heatmap.from_event_window_obs, to: event_window_obs.event_id, cardinality: "0..*", label: feeds}
   - {from: json_terrain.from_event_window_obs, to: event_window_obs.event_id, cardinality: "0..*", label: feeds}
   - {from: json_terrain.from_security, to: security.security_id, cardinality: "0..*", label: feeds}
   - {from: json_implied_vs_realised.from_event_measures, to: event_measures.event_id, cardinality: "0..*", label: feeds}

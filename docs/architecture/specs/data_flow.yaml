@@ -168,11 +168,11 @@ edges:
   - {from: t_ewo,     to: j_paths,  label: per-event aliv_mean_adj}
   - {from: t_results, to: j_paths,  label: aliv_path}
   - {from: t_em,      to: j_heat,   label: crush_mean_adj by season}
-  - {from: t_results, to: j_heat,   label: BH q}
+  - {from: t_ewo,     to: j_heat,   label: mean aliv_mean_adj by security and day}
   - {from: t_ewo,     to: j_terrain, label: mean aliv_mean_adj by security}
   - {from: t_security, to: j_terrain, label: "ticker, sector"}
   - {from: t_em,      to: j_ivr,    label: "event_var, realized_ret_0, surprise_scaled"}
   - {from: t_results, to: j_ivr,    label: H7 regression}
-  - {from: t_results, to: j_tests,  label: "event_test: estimand, n_clusters_firm"}
+  - {from: t_results, to: j_tests,  label: "event_test rows, G1 sizes (family validation)"}
   - {from: t_results, to: j_drivers, label: "regression: n_clusters_season"}
   - {from: t_results, to: j_valid,  label: family validation}

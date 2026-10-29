@@ -1,19 +1,17 @@
 /**
- * 3D surface of IV by company (z) and event day (x), drawn with react-three-fiber.
- * At milestone 0 the values are ILLUSTRATIVE synthetic numbers from the seeded RNG, labelled as such.
- * All the maths lives in src/lib (terrain.ts, illustrative.ts, motion.ts); this file only wires it to WebGL.
- * It is loaded with React.lazy (see ThreeDPreview) so first paint and tests do not need WebGL.
+ * 3D surface of abnormal log IV by company (z) and event day (x), drawn with react-three-fiber.
+ * The grid is the one ThreeDPreview loaded and validated from data/terrain.json (null cells are NaN,
+ * which `gridToTerrain` leaves as holes). All the maths lives in src/lib (terrain.ts, motion.ts);
+ * this file only wires it to WebGL. It is loaded with React.lazy (see ThreeDPreview) so first paint
+ * and tests do not need WebGL.
  */
 import { useEffect, useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { BufferAttribute, BufferGeometry, DoubleSide } from 'three'
-import { ILLUSTRATIVE_LABEL, illustrativeIvGrid } from '../lib/illustrative'
 import { controlsConfig, prefersReducedMotion, type ControlsConfig } from '../lib/motion'
 import { gridToTerrain, type Terrain } from '../lib/terrain'
 import { useTokenColours } from './useTokenColours'
-
-const DEFAULT_SEED = 2026
 
 function TerrainScene({ terrain, config }: { terrain: Terrain; config: ControlsConfig }) {
   const geometry = useMemo(() => {
@@ -43,10 +41,11 @@ function TerrainScene({ terrain, config }: { terrain: Terrain; config: ControlsC
   )
 }
 
-export default function EventTerrain3D({ seed = DEFAULT_SEED }: { seed?: number }) {
+/** `grid[company][eventDay]` in the file's order; NaN marks a cell with no data. `caption` says what the axes mean. */
+export default function EventTerrain3D({ grid, caption }: { grid: number[][]; caption: string }) {
   const [config] = useState(() => controlsConfig(prefersReducedMotion()))
   const { low, high } = useTokenColours()
-  const terrain = useMemo(() => gridToTerrain(illustrativeIvGrid(seed), { low, high }), [seed, low, high])
+  const terrain = useMemo(() => gridToTerrain(grid, { low, high }), [grid, low, high])
 
   return (
     <figure className="terrain">
@@ -56,8 +55,7 @@ export default function EventTerrain3D({ seed = DEFAULT_SEED }: { seed?: number 
         </Canvas>
       </div>
       <figcaption>
-        <span className="terrain-label">{ILLUSTRATIVE_LABEL}</span>
-        <span className="sub">x: event day (-10 to +10) · z: company · height and colour: implied volatility. Drag to orbit, scroll to zoom.</span>
+        <span className="sub">{caption} Drag to orbit, scroll to zoom.</span>
       </figcaption>
     </figure>
   )

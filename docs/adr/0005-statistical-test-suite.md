@@ -2,10 +2,49 @@
 
 - **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review**, and again
   after the milestone-0 delta review (notes below).
-  - No statistics code exists in `src/` yet.
+  - No statistics code existed in `src/` at milestone 0. *Milestone 3 (2026-10-29)* built it
+    (`src/earnings_vol/stats/`), and gate G1 passed for all four primaries on the calibrated design; the measured
+    numbers, and the places where the real design differs from what this ADR expected (8 RUNUP seasons, unbalanced,
+    so `rad_season_p` is H2's primary; $\hat{\bar\rho}$ = 0.30 for the crush), are in
+    [`docs/milestones/03-event-study.md`](../milestones/03-event-study.md).
   - Every rejection rate quoted here comes from a prototype in `research/prototypes/`. Each prototype re-runs with
     fixed seeds and has its output kept beside it (§2g).
   - Gate G1 of §5 is a milestone-3 deliverable. It must pass before any test result is reported.
+  - *Revised 2026-10-29, after the milestone-3 review* ([ledger](../validation/m3-ledger.md); fixes in the milestone
+    page's §9). G1 still passes for all four primaries on the calibrated design (4.60 / 0.40 / 0.50 / 4.60% after the
+    second fix round below; 4.45 / 0.40 / 0.50 / 4.75% after the first). Three things changed or are now stated:
+    - **H4 is gated on its own statistic.** The first build simulated H4 as the day-0 change of the same cm30 series
+      as H1, with the cm30 calibration, on H4's 262 events: evidence about the crush process, not about ΔSIGMA_D. G1
+      now simulates a σ_d series per company with the σ_d usable mask and a calibration from the real σ_d baseline
+      changes and ΔSIGMA_D values (ρ₁ −0.33, same-date correlation 0.08/0.16, φ 0.87, jump 2.8). The DGP's scale is
+      calibrated too, so shifts and company effects are in real log points.
+    - **The calibrated DGP does not reproduce every moment.** The AR coefficient of the baseline levels is not
+      reproduced: the corrected estimator reads 0.9984 ± 0.0043 on panels simulated at the calibrated φ against 0.985
+      on the real data (z −3.1; σ_d: 0.919 against 0.868, z −2.9), and 0.96 in a round trip at φ = 0.90. The real data
+      mean-revert more than the design, which is the stricter side for the ramps. ρ₁ is 2.1 (cm30) and 1.3 (σ_d)
+      simulation sd too weak; the other moments are within one sd (`research/prototypes/g1_moments.py`, re-run after
+      the second fix round).
+    - **H3's comfortable pass rests on mean reversion.** With only φ changed (`research/prototypes/g1_phi.py`, 10,000
+      replications per φ, seeds recorded), PERSIST_10's primary rejects 0.47% at the calibrated φ = 0.985, 0.72% at
+      0.99, 1.64% at 0.995 and 5.57% at φ = 1. **At φ = 1 it is liberal**: §5 sets the bar for the replications used,
+      and at 10,000 that bar is 5.57% (`g1.binom_band(10000)`), not 2,000's 6.30%. On the first fix round's
+      calibration it read 5.63% (the delta review's fresh seeds) and 5.86% (the first fix round's five blocks), above
+      that bar; on this round's (the day-0 jump no longer reads H1's mean, below) it reads 5.57%, on the bar's edge
+      and 2.6 se above 5%. It does not bind: at the real corrected φ (≈ 0.985) and at 0.995 (1.64% here; 1.65–1.82%
+      on the earlier calibration) it is well inside the band. *Corrected 2026-10-29, second fix round:* the first fix
+      round wrote "5.86% … inside the 6.30% bar", applying the 2,000-replication bar to 10,000 replications (delta
+      review, [ledger](../validation/m3-delta-ledger.md) claim 3).
+  - *Revised again 2026-10-29, after the delta review of the fix round* ([ledger](../validation/m3-delta-ledger.md);
+    the milestone page's §9, second round). G1 now mirrors production in two more places and decides near-bar
+    robustness rows on more replications:
+    - **The day-0 jump no longer reads the tested mean.** `calibrate()`'s day-0 variance ratio is taken over
+      (A_i − Ā)/s_i around company means, not A_i/s_i, so H1's mean crush cannot enter the calibrated jump through s_i
+      varying within a company: cm30 ratio 4.70 → 3.32, jump 2.70 → 2.14 (σ_d 2.785 → 2.789). H1's calibrated rate
+      4.45 → 4.60%; H1's robustness rates rise 1–3 points; no verdict changes.
+    - **H4's series is adjusted as production adjusts ΔSIGMA_D**: with the cm30 β estimated on the replication's cm30
+      series and on the same ln VIX path, not with a β re-estimated on σ_d (`g1.second_series`). H4's calibrated rate
+      4.75 → 4.60%.
+    - **Near-bar robustness rows are re-measured** (§4, dated note of the second fix round).
 - **Date:** 2026-10-28
 - **Related:** [0004](0004-baseline-and-event-windows.md) (what is tested), [0003](0003-iv-measures.md) (E, σ_d),
   [data model](../architecture/data-model.md) (`event_measures`, `results`)
@@ -280,6 +319,11 @@ assuming it.
     set is merged into the neighbouring season whose median day 0 is nearest, repeated until none is left.
   - The daily design has 7 seasons of 49–52 events after merging. The December reporters join January's season, and
     the October 2026 tail joins July's. So $t_6$ = 2.447.
+    - *Corrected 2026-10-29, after the milestone-3 review (F1):* the prediction about the tail was wrong. In the real
+      RUNUP set the October 2026 tail has **19** events (≥ 10), so the merge rule above correctly keeps it as its own
+      season: **8** seasons (50/46/49/50/48/45/49/19), unbalanced, and H2's p comes from `rad_season_p` (below). The
+      PERSIST_10 set ends earlier and has 7. The rule did not change; only this sentence's expectation did. Because
+      `rad_season_p` then sits on its floor $2/2^G$, H2's Holm verdict depends on G: see the correction in §4.
   - Within a season it allows any dependence: overlap, autocorrelation, lagged and contagion effects. Within a firm it
     allows any dependence across seasons.
   - It still assumes that *different* firms in *different* seasons are roughly independent. That is not exact. Of the
@@ -435,6 +479,9 @@ $E[s^2_{SA}] = \sigma^2(1-\bar r)$, exactly.
     step 4's threshold is 0.05/4 = 0.0125 < 0.0156. Checked with statsmodels 0.15.0 `multipletests(method="holm")`:
     the floor is rejected only with four smaller p-values, where its Holm-adjusted p is 0.0469; with three it is
     0.0625.
+    *Added 2026-10-29, after the milestone-3 review (F1):* all of this is for $G = 7$. At $G = 8$ the floor is
+    $2/256$ = 0.0078, which passes at the **second** step (0.0078 ≤ 0.05/6 = 0.0083), so a G = 8 primary on its
+    floor passes Holm after one other rejection. The verdict of a p on its floor is a function of G alone.
   - It is the p-value used when seasons are unbalanced (§2b).
   - It does not model the firm dimension.
   - Measured: 4.6/5.7% (D2), 5.2/5.7% unbalanced, 6.3/6.7% with firm drift of sd 0.0015.
@@ -716,6 +763,15 @@ cannot fall below 0.0156, so H2/H3 could then pass Holm only from the fifth step
 hypotheses have been rejected (§2f; corrected after the delta review, which found "fourth"). The report says so if it
 happens.
 
+> *Corrected 2026-10-29, after the milestone-3 review (F1).* "Only from the fifth step" is **false at G = 8**, and the
+> real RUNUP set has 8 seasons (§2b). Its floor $2/2^8$ = 0.0078 passes Holm's second step, and H2 was rejected with
+> p_holm 0.0469 (H1 the only smaller p). With the tail merged as §2b expected (G = 7, still unbalanced at 68 against
+> 45) the floor is 0.0156 and p_holm would be 0.0938: not rejected. Every season sum has the same sign, so the p is on
+> its floor and the verdict is a property of the cluster count. The report therefore prints the G = 7 counterfactual
+> next to H2's Holm p everywhere it appears (`results` row `season_cut = 2026Q4_into_2026Q3`, README, milestone page
+> §6.2, the `note` of H2's row in `tests.json`, the app's Results page); the direction of the run-up rests on the
+> two-way t (13.4) and on all 8 season means being positive, not on the Holm verdict.
+
 - **What changed for H1.** The milestone-0 primary was `kp_ow_t`. The review item asked about H2–H4, but H1 has the
   same estimand problem, so it moves too. The first draft of this revision moved it to a one-way date-clustered t.
   The second review led to two-way date × firm (§2b).
@@ -730,6 +786,32 @@ happens.
   - `kpp_t` for ramps;
   - the ramp form of `kp_ow_t`.
   The estimates behind them (the equal-weighted and the precision-weighted means) are still shown.
+  - *Added 2026-10-29, after the milestone-3 review (F6):* the same rule now applies to every robustness row that
+    gate G1's calibrated design finds mis-sized, that is, rejecting more often than the upper edge of the exact
+    binomial band (6.30% at 2,000 replications). Such a row keeps its estimate, se and statistic; its p-value and its
+    confidence interval are set to null, and `tests.json` gives its G1 rejection rate (`g1_size`) and a note instead.
+    At milestone 3 that is nine rows (numbers after the second fix round): for H1 the one-way date t (25.15%), BMP
+    (27.55%), KP per pair (17.40%), KPP (17.55%), Patell (65.75%), the sign test (21.90%) and the rank test (39.45%);
+    for H4 the sign test (5.68% on 10,000 replications, see below) and the rank test (13.65%). Code:
+    `stats/results.py` `oversized()` and `withhold()`.
+  - *Added 2026-10-29, second fix round (after the delta review, [ledger](../validation/m3-delta-ledger.md) claim 1
+    and defect 3): which bar, and rows near it.* **A robustness row is withheld when its G1 rate is above the 99.5%
+    binomial bar for the number of replications it was measured on** (`g1.binom_band`: 6.30% at 2,000, 5.57% at
+    10,000). **Any robustness row within one percentage point of the 2,000-replication bar (5.30% to 7.30%) is
+    re-measured on 10,000 fresh replications of the calibrated design and decided against 5.57%.** A rate measured on
+    2,000 replications has a binomial sd of about 0.5 points near 6%, so a row within a point of the bar is decided
+    by one block's luck otherwise: the delta review found H4's sign test at 6.45% (withheld) and BMP at 6.00% (kept)
+    on 2,000, and 6.06% and 6.03% on 10,000. The run re-measures automatically (`g1.near_bar`, `g1.size_verdicts`,
+    `stats/run.py` `run_g1`; constants `g1.REMEASURE_REPS`, `REMEASURE_MARGIN`, `REMEASURE_BLOCK`); the re-measured
+    rates are the `results` rows `g1:calibrated_remeasured` (`n` = 10,000), and `tests.json` stores the count beside
+    each withheld rate (`g1_reps`). At milestone 3, after the second fix round, three H4 rows were within a point:
+    the one-way date t (5.35% on 2,000 → 4.98% on 10,000, kept), BMP (6.05% → 5.34%, kept) and the sign test
+    (6.75% → 5.68%, withheld). The primaries are not affected: their gate is §5's.
+    **Disclosure.** The first fix round's calibrated scale `sig0` (milestone page §9 F5) did not move the primaries
+    (10,000 paired replications: H1 −0.08, H4 +0.08 points, both within 1.5 se) but lowered every H4 robustness rate by
+    0.6–1.3 points (BMP 6.99 → 6.03%, sign 6.62 → 6.06%, rank 15.08 → 13.80% in the delta review's paired run), and
+    moved H4's BMP from withheld (7.20%) to kept (6.00%) on the production seeds. The first fix round credited that
+    move to the σ_d series alone.
 - **Everything else is exploratory:** other rel_days, other IV measures, subgroups, every heatmap cell, the coarse and
   CBOE samples. These get Benjamini-Hochberg q-values within each exploratory family, and `tests.json` and the app
   label them so. Exploratory tests use the same primary statistic as their measure's hypothesis.

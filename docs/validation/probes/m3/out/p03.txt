@@ -1,0 +1,3 @@
+3a package twoway vs statsmodels (use_t=True), 200 random sets: max |dt| 6.22e-15, max |dp| 5.55e-16, max |ddf| 0
+3b H1 own two-way: n 347, G_date 172, G_firm 50, estimate -0.1991, se 0.0113, t -17.70, df 49, p 6.35e-23
+3b H4 own two-way: n 262, G_date 134, G_firm 47, estimate 0.0034, se 0.0114, t 0.30, df 46, p 0.764

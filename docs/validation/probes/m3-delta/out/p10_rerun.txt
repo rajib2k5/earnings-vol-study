@@ -1,0 +1,108 @@
+OK  H1 est: doc -0.1994 vs data -0.199377
+OK  H1 se: doc 0.0112 vs data 0.0112433
+OK  H1 t: doc -17.73 vs data -17.7329
+OK  H1 df: doc 49 vs data 49
+OK  H1 p: doc 5.8e-23 vs data 5.80048e-23
+OK  H1 p_holm: doc 4.06e-22 vs data 4.06033e-22
+OK  H1 ci_lo: doc -0.222 vs data -0.221971
+OK  H1 ci_hi: doc -0.1768 vs data -0.176782
+OK  H1 n: doc 347 vs data 347
+OK  H1 G date: doc 172 vs data 172
+OK  H1 G firm: doc 50 vs data 50
+OK  H2 est: doc 0.2319 vs data 0.231896
+OK  H2 p: doc 0.0078 vs data 0.0078125
+OK  H2 p_holm: doc 0.0469 vs data 0.046875
+OK  H2 stat (one-way t): doc 16.51 vs data 16.5147
+OK  H2 G: doc 8 vs data 8
+OK  H2 n: doc 356 vs data 356
+OK  H3 est: doc 0.008 vs data 0.00802043
+OK  H3 se: doc 0.0233 vs data 0.0233378
+OK  H3 t: doc 0.34 vs data 0.343667
+OK  H3 p: doc 0.743 vs data 0.742819
+OK  H3 ci_lo: doc -0.0491 vs data -0.0490851
+OK  H3 ci_hi: doc 0.0651 vs data 0.0651259
+OK  H4 est: doc 0.0031 vs data 0.00310774
+OK  H4 se: doc 0.0112 vs data 0.0111723
+OK  H4 p: doc 0.782 vs data 0.782133
+OK  H4 G date: doc 134 vs data 134
+OK  H4 G firm: doc 47 vs data 47
+OK  H1 twin est: doc -0.2009 vs data -0.200924
+OK  H1 twin t: doc -17.65 vs data -17.6514
+OK  H1 one-way t: doc -31.24 vs data -31.2436
+OK  H1 one-way se (6.5): doc 0.0064 vs data 0.00638135
+OK  H1 kp_ow_t: doc -22.4 vs data -22.3899
+OK  H1 kpp_t: doc -23.0 vs data -22.9805
+OK  H1 bmp_t: doc -29.5 vs data -29.482
+OK  H1 patell: doc -79.1 vs data -79.0882
+OK  H1 sign share below 0: doc 0.991 vs data 0.991354
+OK  H2 two-way t: doc 13.43 vs data 13.4318
+OK  H2 two-way se (6.5): doc 0.0173 vs data 0.0172647
+OK  H2 one-way se (6.5): doc 0.014 vs data 0.0140418
+OK  H3 one-way se (6.5): doc 0.0241 vs data 0.0240724
+OK  H2 twin est: doc 0.2333 vs data 0.233307
+OK  H3 twin est: doc 0.003 vs data 0.0029612
+OK  H3 twin t: doc 0.09 vs data 0.0850703
+OK  AMC crush: doc -0.23 vs data -0.230298
+OK  AMC n: doc 182 vs data 182
+OK  BMO crush: doc -0.165 vs data -0.165269
+OK  BMO n: doc 165 vs data 165
+OK  coarse crush: doc -0.19 vs data -0.190419
+OK  coarse n: doc 110 vs data 110
+OK  path day -10: doc 0.239 vs data 0.238583
+OK  path day -1: doc 0.232 vs data 0.232235
+OK  path day 0: doc 0.033 vs data 0.0328586
+OK  path day 10: doc 0.007 vs data 0.0071277
+OK  H1 80%-power shift: doc 0.036 vs data 0.0365
+OK  H2 80%-power shift: doc 0.102 vs data 0.1015
+OK  H3 80%-power shift: doc 0.121 vs data 0.1214
+OK  H4 80%-power shift: doc 0.036 vs data 0.0357
+OK  H1 calibrated G1 rate: doc 0.0445 vs data 0.0445
+OK  H2 calibrated G1 rate: doc 0.004 vs data 0.004
+OK  H3 calibrated G1 rate: doc 0.005 vs data 0.005
+OK  H4 calibrated G1 rate: doc 0.0475 vs data 0.0475
+OK  11 calibrated H1 cluster_date_t: doc 0.2275 vs data 0.2275
+OK  11 calibrated H1 bmp_t: doc 0.242 vs data 0.242
+OK  11 calibrated H1 kp_ow_t: doc 0.1435 vs data 0.1435
+OK  11 calibrated H1 kpp_t: doc 0.144 vs data 0.144
+OK  11 calibrated H1 patell_z: doc 0.667 vs data 0.667
+OK  11 calibrated H1 gen_sign_z: doc 0.1975 vs data 0.1975
+OK  11 calibrated H1 rank_t: doc 0.372 vs data 0.372
+OK  stress D2+drift0.0015 H2 rad: doc 0.08 vs data 0.08
+OK  stress common_ar0.9 H1: doc 0.177 vs data 0.177
+OK  stress D3 H3: doc 0.068 vs data 0.068
+OK  date-cluster mutant H2: doc 0.2055 vs data 0.2055
+OK  date-cluster mutant H3: doc 0.228 vs data 0.228
+OK  11 calibrated H4 gen_sign_z: doc 0.0645 vs data 0.0645
+OK  11 calibrated H4 rank_t: doc 0.1395 vs data 0.1395
+OK  stress lag1 0.02 H4 (F7 row): doc 0.053 vs data 0.053
+OK  stress lag1 0.05 H4 (F7 row): doc 0.0695 vs data 0.0695
+OK  F1 H2 G=7 p: doc 0.0156 vs data 0.015625
+OK  F1 H2 G=7 p_holm: doc 0.0938 vs data 0.09375
+OK  F1 G: doc 7 vs data 7
+F6 withheld: ['H1 bmp_t', 'H1 cluster_date_t', 'H1 gen_sign_z', 'H1 kp_ow_t', 'H1 kpp_t', 'H1 patell_z', 'H1 rank_t', 'H4 gen_sign_z', 'H4 rank_t']
+OK  F6 withheld rows: doc 9 vs data 9
+OK  F7 daily events with window rows: doc 366 vs data 366
+OK  F7 failing the minimum: doc 7 vs data 7
+OK  6.5 beta median: doc 0.309 vs data 0.309454
+OK  mean vs market crush %: doc 0.78 vs data 0.776144
+OK  README H1 est: doc -0.199 vs data -0.199377
+OK  README H1 p: doc 5.8e-23 vs data 5.80048e-23
+OK  README H1 p_holm: doc 4.1e-22 vs data 4.06033e-22
+OK  README H2 est: doc 0.232 vs data 0.231896
+OK  README H2 p: doc 0.0078 vs data 0.0078125
+OK  README H2 p_holm: doc 0.047 vs data 0.046875
+OK  README H3 est: doc 0.008 vs data 0.00802043
+OK  README H3 p: doc 0.74 vs data 0.742819
+OK  README H3 p_holm: doc 1.0 vs data 1
+OK  README H4 est: doc 0.003 vs data 0.00310774
+OK  README H4 p: doc 0.78 vs data 0.782133
+OK  README H4 p_holm: doc 1.0 vs data 1
+OK  README H2 G=7 holm: doc 0.094 vs data 0.09375
+OK  README row text: | 347 | −0.199 | 5.8e−23 | 4.1e−22 |
+OK  README row text: | 356 | +0.232 | 0.0078 (randomisation floor, G = 8) | 0.047; **with G = 7: 0.094, not rejected** |
+OK  README row text: | 329 | +0.008 | 0.74 | 1 |
+OK  README row text: | 262 | +0.003 | 0.78 | 1 |
+11 caveat: Gate G1's calibrated design finds these robustness rows oversized (rejection rate under the null above 6.30%): H1 bmp_t 24.20%; H1 cluster_date_t 22.75%; H1 gen_sign_z 19.75%; H1 kp_ow_t 14.35%; H1 kpp_t 14.40%; H1 patell_z 66.70%; H1 rank_t 37.20%; H4 gen_sign_z 6.45%; H4 rank_t 13.95%. As ADR 0005 §4 does for rows known to be mis-sized, their p-values and intervals are withheld (null; g1_size gives the rate instead) and their estimates are shown.
+11 rows above 6.30% in the G1 table: ['H1 bmp_t 0.2420', 'H1 cluster_date_t 0.2275', 'H1 gen_sign_z 0.1975', 'H1 kp_ow_t 0.1435', 'H1 kpp_t 0.1440', 'H1 patell_z 0.6670', 'H1 rank_t 0.3720', 'H4 gen_sign_z 0.0645', 'H4 rank_t 0.1395']
+11 rows above the band not named in the caveat: []
+SUMMARY 103 of 103 numbers equal

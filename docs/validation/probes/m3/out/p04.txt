@@ -1,0 +1,7 @@
+4b RUNUP set n 356; raw seasons {'2024Q4': 4, '2025Q1': 46, '2025Q2': 46, '2025Q3': 49, '2025Q4': 50, '2026Q1': 48, '2026Q2': 45, '2026Q3': 49, '2026Q4': 19}
+4b merged seasons (8): {'2025Q1': 50, '2025Q2': 46, '2025Q3': 49, '2025Q4': 50, '2026Q1': 48, '2026Q2': 45, '2026Q3': 49, '2026Q4': 19}; max/min = 50/19 = 2.63 -> unbalanced True
+4a own rad_season_p: G 8, vectors 256, p 0.007812 (floor 2/2^G = 0.007812); one-way t 17.28; all 8 season means > 0: True
+4c tail '2026Q4' merged into '2026Q3': G 7, sizes {'2025Q1': 50, '2025Q2': 46, '2025Q3': 49, '2025Q4': 50, '2026Q1': 48, '2026Q2': 45, '2026Q3': 68}, unbalanced True, rad p 0.015625
+4c Holm with H2 p from G=8 (as built): H2 adjusted 0.0469, rejected True
+4c Holm with H2 p from G=7 (tail merged): H2 adjusted 0.0938, rejected False
+4c without the tail: G 7, unbalanced False, rad p 0.015625

@@ -412,7 +412,7 @@ erDiagram
         int16 baseline_n_changes
         float64 baseline_mean_ln_iv "nullable"
         float64 baseline_mean_iv "nullable"
-        float64 beta_vix "nullable"
+        float64 beta_vix_cboe "nullable"
         int32 beta_n
         float64 s_abn_cboe "nullable"
         float64 runup_cboe "nullable"
@@ -437,7 +437,7 @@ erDiagram
         float64 evar_m2 "nullable"
         float64 implied_move_m1 "nullable"
         float64 implied_abs_move_total_m1 "nullable"
-        enum implied_move_status
+        enum implied_move_status "nullable"
         float64 sigma_d_m1 "nullable"
         float64 cm30_m1 "nullable"
         float64 ts_slope_m1 "nullable"
@@ -485,6 +485,7 @@ erDiagram
         int32 n_clusters "nullable"
         int32 n_clusters_firm "nullable"
         float64 df "nullable"
+        float64 df_num "nullable"
         float64 estimate "nullable"
         float64 se "nullable"
         float64 stat "nullable"
@@ -549,6 +550,8 @@ erDiagram
         array rel_days
         array series
         array per_event
+        object lookups
+        array caveats
         object provenance
         string from_event_window_obs FK "nullable"
         string from_results FK "nullable"
@@ -556,9 +559,11 @@ erDiagram
     json_heatmap["heatmap.json"] {
         string kind PK
         array grids
+        object lookups
+        array caveats
         object provenance
         string from_event_measures FK "nullable"
-        string from_results FK "nullable"
+        string from_event_window_obs FK "nullable"
     }
     json_terrain["terrain.json"] {
         string kind PK
@@ -568,6 +573,8 @@ erDiagram
         array rows
         array values
         string row_order
+        object lookups
+        array caveats
         object provenance
         string from_event_window_obs FK "nullable"
         string from_security FK "nullable"
@@ -583,6 +590,10 @@ erDiagram
     json_tests["tests.json"] {
         string kind PK
         array rows
+        object g1
+        object holm
+        object lookups
+        array caveats
         object provenance
         string from_results FK "nullable"
     }
@@ -638,7 +649,7 @@ erDiagram
     event_window_obs |o--o{ json_event_paths : "feeds"
     results |o--o{ json_event_paths : "feeds"
     event_measures |o--o{ json_heatmap : "feeds"
-    results |o--o{ json_heatmap : "feeds"
+    event_window_obs |o--o{ json_heatmap : "feeds"
     event_window_obs |o--o{ json_terrain : "feeds"
     security |o--o{ json_terrain : "feeds"
     event_measures |o--o{ json_implied_vs_realised : "feeds"
@@ -684,7 +695,7 @@ no way to show enum members or unique constraints.
   R23). At milestone 2 `iv_daily` carries the same four columns and the funnel reads them there; the table is kept
   (it feeds `iv_daily`), and dropping it is left for milestone 3. The ERD draws it as its own table.
 - **`event_iv` is early.** It holds the IV columns of the planned `event_measures` (data model §3.11a, R24), built by
-  the measures layer at milestone 2; milestone 3 folds them into `event_measures`.
+  the measures layer at milestone 2. *Milestone 3:* `event_measures` copies them; `event_iv` is kept, not dropped.
 - **JSON entities show top-level keys only.** Nested fields (for example `tests.rows[].estimand`) and the members of
   `sample_funnel.timing_status_counts` (`confirmed`, `corrected`, `inferred`, `date_corrected`, `no_document`,
   `not_checked`, `ambiguous`) are in data-model section 4.
@@ -698,7 +709,8 @@ no way to show enum members or unique constraints.
   again on 2026-10-29 with a throwaway script: `security`, `timing_check` and `eps` in §3 equal `erd.yaml` column for
   column (name, order, nullability). *Re-checked after the milestone-2 review* with another throwaway script: the
   eleven built tables of `src/earnings_vol/schema.py` (155 columns) equal `erd.yaml` column for column (name, order,
-  nullability).
+  nullability). *Milestone 3:* the fourteen built tables (254 columns) equal it too, checked the same way after
+  `beta_vix` became `beta_vix_cboe`, `event_measures.implied_move_status` became nullable and `results.df_num` was added.
 - **Data flow.** There is no `iv_daily` to `events` edge any more: `events` needs no IV data (the per-measure
   `eligible_*` columns moved to `event_measures`). One dashed edge feeds `events` from `eps` (`match_status` to
   `orphan_nearby`). It stays inside the events layer, whose fixed internal order makes it legal. Two more dashed edges

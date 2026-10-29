@@ -1,0 +1,7 @@
+1a beta recomputed for 50 securities; max |beta_pkg - beta_own| = 7.772e-16; max |beta_n diff| = 0.0
+1a' beta changes by sample of the contributing event: {'daily': 10212, 'coarse': 4038, 'mixed': 677, 'none': 0}; changes from events whose baseline fails 20/15: 3168 (632 events)
+1b beta changes with an end inside another same-security event's [-21,+10] zone: 0 of 14927
+1c events with a beta: 1259; with >=1 beta change after day 0: 1209; after +10: 1209; median share after day 0 0.799; beta changes inside the event's own [-21,+10]: 0
+1d daily crush: max |crush_cboe + beta dm - crush_mean_adj| = 2.220e-16 over 353
+1d aliv: max |aliv_cboe - aliv_mean_adj + beta (m - mu_m)| = 7.216e-16 over 32173 rows
+1d runup_cboe == aliv_cboe(-1) for daily+mixed? max |diff| = 0.000e+00 (coarse may read -2)

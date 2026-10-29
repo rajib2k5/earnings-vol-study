@@ -112,12 +112,12 @@ flowchart TB
     t_ewo -->|"per-event aliv_mean_adj"| j_paths
     t_results -->|"aliv_path"| j_paths
     t_em -->|"crush_mean_adj by season"| j_heat
-    t_results -->|"BH q"| j_heat
+    t_ewo -->|"mean aliv_mean_adj by security and day"| j_heat
     t_ewo -->|"mean aliv_mean_adj by security"| j_terrain
     t_security -->|"ticker, sector"| j_terrain
     t_em -->|"event_var, realized_ret_0, surprise_scaled"| j_ivr
     t_results -->|"H7 regression"| j_ivr
-    t_results -->|"event_test#58; estimand, n_clusters_firm"| j_tests
+    t_results -->|"event_test rows, G1 sizes (family validation)"| j_tests
     t_results -->|"regression#58; n_clusters_season"| j_drivers
     t_results -->|"family validation"| j_valid
     classDef source fill:#E0F2FE,stroke:#0284C7,color:#0F172A

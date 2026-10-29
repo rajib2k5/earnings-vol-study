@@ -1,0 +1,17 @@
+M01 CR1 residuals not demeaned [clustering.py]: KILLED rc=1 ['tests/test_clustering.py::test_oneway_cr1_hand_worked'] | 1 failed in 1.11s | restored sha256 ok=True
+M02 rad t* variance not re-centred per sign vector [clustering.py]: KILLED rc=1 ['tests/test_clustering.py::test_rademacher_enumerates_every_sign_vector_hand_worked'] | 1 failed, 6 passed in 1.05s | restored sha256 ok=True
+M03 merge the LAST small season first [clustering.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 5.95s | restored sha256 ok=True
+M04 sign test pooled share <= 0 [eventtests.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 5.72s | restored sha256 ok=True
+M05 kp_ow sector fallback ignored [eventtests.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 8.82s | restored sha256 ok=True
+M06 span weight read at the START of the span [abnormal.py]: KILLED rc=1 ['tests/test_ramp_identity.py::test_span_sum_equals_aliv[0.0-gap_after_min_b]'] | 1 failed, 24 passed, 4 warnings in 2.66s | restored sha256 ok=True
+M07 Bartlett taper 1 - k/L instead of 1 - k/(L+1) [abnormal.py]: KILLED rc=1 ['tests/test_eventtests.py::test_rhat_psd_check_tapers_and_checks_again'] | 1 failed, 14 passed in 1.16s | restored sha256 ok=True
+M08 coarse change may span a null_iv session [window.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 8.55s | restored sha256 ok=True
+M09 coarse PERSIST tries h+1 before h-1 [window.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 6.38s | restored sha256 ok=True
+M10 daily PERSIST may fall back to +-1 [window.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 6.61s | restored sha256 ok=True
+M11 BH q-values not capped at 1 [multiple.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 6.33s | restored sha256 ok=True
+M12 G1 uses the TRUE beta, not a re-estimated one [g1.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 6.22s | restored sha256 ok=True
+M13 G1 AR without the Kendall correction [g1.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 13.11s | restored sha256 ok=True
+M14 G1 firm effect sd without the sampling-variance correction [g1.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 14.43s | restored sha256 ok=True
+M15 G1 DGP drops the day-0 jumps [g1.py]: SURVIVED rc=0 [] | 59 passed, 4 warnings in 15.58s | restored sha256 ok=True
+M16 G1 band at 99% one-sided (0.99) instead of 99.5% [g1.py]: KILLED rc=1 ['tests/test_g1.py::test_exact_binomial_band'] | 1 failed, 43 passed, 4 warnings in 13.23s | restored sha256 ok=True
+SUMMARY killed 5 of 16

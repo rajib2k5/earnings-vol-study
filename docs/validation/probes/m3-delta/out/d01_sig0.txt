@@ -1,0 +1,47 @@
+/home/rajib2k5/dev/earnings-vol-study/src/earnings_vol/stats/g1.py:335: RuntimeWarning: Mean of empty slice
+  csm = np.where(n_t >= min_firms, np.nanmean(np.where(np.isfinite(Z), Z, np.nan), axis=0), np.nan)
+/home/rajib2k5/dev/earnings-vol-study/src/earnings_vol/stats/g1.py:335: RuntimeWarning: Mean of empty slice
+  csm = np.where(n_t >= min_firms, np.nanmean(np.where(np.isfinite(Z), Z, np.nan), axis=0), np.nan)
+a) g1_calibration: package sig0 0.033558  committed 0.033558  diff 0.00e+00
+a) g1_calibration_sigma_d: package sig0 0.049115  committed 0.049115  diff 0.00e+00
+a) cm30: own sig0 0.033558 (package 0.033558); geo-mean s 0.0472; rho1 package -0.2460 own-uncentred -0.2585; phi 0.9853; n 0.6960; firms 50
+a) sigma_d: own sig0 0.049115 (package 0.049115); geo-mean s 0.0843; rho1 package -0.3261 own-uncentred -0.3505; phi 0.8680; n 0.9685; firms 47
+b) crush vals permuted: dsig0 +0.00e+00 dphi +0.00e+00 dnoise +0.00e+00 dfirm_fx -3.60e-02 djump_k +1.06e+00
+b) dsigma_d vals permuted: dsig0 +0.00e+00 dphi +0.00e+00 dnoise +0.00e+00 dfirm_fx -1.51e-02 djump_k +1.02e+00
+b) crush vals negated: dsig0 +0.00e+00 dphi +0.00e+00 dnoise +0.00e+00 dfirm_fx +0.00e+00 djump_k +0.00e+00
+b) dsigma_d vals negated: dsig0 +0.00e+00 dphi +0.00e+00 dnoise +0.00e+00 dfirm_fx +0.00e+00 djump_k +0.00e+00
+b) crush vals shift+1: dsig0 +0.00e+00 dphi +0.00e+00 dnoise +0.00e+00 dfirm_fx +1.39e-17 djump_k +4.94e+00
+b) dsigma_d vals shift+1: dsig0 +0.00e+00 dphi +0.00e+00 dnoise +0.00e+00 dfirm_fx -2.95e-17 djump_k +5.94e+00
+b) crush vals x3: dsig0 +0.00e+00 dphi +0.00e+00 dnoise +0.00e+00 dfirm_fx +1.42e-01 djump_k +6.32e+00
+b) dsigma_d vals x3: dsig0 +0.00e+00 dphi +0.00e+00 dnoise +0.00e+00 dfirm_fx +3.02e-02 djump_k +6.85e+00
+c) production seeds, cal: H1 4.45%; H2 0.40%; H3 0.50%; H4 4.75%
+c) production seeds, cal_sig003: H1 4.75%; H2 0.40%; H3 0.50%; H4 5.15%
+c)   H1 bmp_t                  cal  24.20%  sig0=0.03  26.50%  OVER/OVER
+c)   H1 cluster_date_t         cal  22.75%  sig0=0.03  24.65%  OVER/OVER
+c)   H1 gen_sign_z             cal  19.75%  sig0=0.03  21.45%  OVER/OVER
+c)   H1 kp_ow_t                cal  14.35%  sig0=0.03  16.25%  OVER/OVER
+c)   H1 kpp_t                  cal  14.40%  sig0=0.03  16.30%  OVER/OVER
+c)   H1 patell_z               cal  66.70%  sig0=0.03  69.15%  OVER/OVER
+c)   H1 rank_t                 cal  37.20%  sig0=0.03  39.10%  OVER/OVER
+c)   H1 twoway_date_t          cal   4.45%  sig0=0.03   4.75%      /    
+c)   H4 bmp_t                  cal   6.00%  sig0=0.03   7.20%      /OVER
+c)   H4 cluster_date_t         cal   5.15%  sig0=0.03   5.55%      /    
+c)   H4 gen_sign_z             cal   6.45%  sig0=0.03   6.85%  OVER/OVER
+c)   H4 kp_ow_t                cal   4.30%  sig0=0.03   5.15%      /    
+c)   H4 kpp_t                  cal   4.25%  sig0=0.03   5.20%      /    
+c)   H4 rank_t                 cal  13.95%  sig0=0.03  15.25%  OVER/OVER
+c)   H4 twoway_date_t          cal   4.75%  sig0=0.03   5.15%      /    
+d) 10000 fresh seeds, cal: H1 5.00%; H2 0.59%; H3 0.53%; H4 4.72%
+d) 10000 fresh seeds, cal_sig003: H1 5.08%; H2 0.59%; H3 0.52%; H4 4.64%
+d)   H1 twoway_date_t: cal - sig0=0.03 = -0.080 pp (paired se 0.058); flips cal-only 13, 0.03-only 21
+d)   H2 rad_season_p: cal - sig0=0.03 = +0.000 pp (paired se 0.000); flips cal-only 0, 0.03-only 0
+d)   H3 twoway_season_t: cal - sig0=0.03 = +0.010 pp (paired se 0.017); flips cal-only 2, 0.03-only 1
+d)   H4 twoway_date_t: cal - sig0=0.03 = +0.080 pp (paired se 0.107); flips cal-only 61, 0.03-only 53
+d)   H4 bmp_t                  cal   6.03%  sig0=0.03   6.99%
+d)   H4 cluster_date_t         cal   5.23%  sig0=0.03   6.01%
+d)   H4 gen_sign_z             cal   6.06%  sig0=0.03   6.62%
+d)   H4 kp_ow_t                cal   4.10%  sig0=0.03   4.79%
+d)   H4 kpp_t                  cal   4.09%  sig0=0.03   4.83%
+d)   H4 rank_t                 cal  13.80%  sig0=0.03  15.08%
+d)   H4 twoway_date_t          cal   4.72%  sig0=0.03   4.64%
+e) H4 real set 262; sigma_d usable at day -1 and 0 in the G1 mask: 262

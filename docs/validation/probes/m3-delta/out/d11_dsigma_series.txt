@@ -1,0 +1,1 @@
+H4 events 262; both finite 262; |DSIGMA_D - series change|: equal (<1e-9) 254, median 0.0000, 90th pct 0.0000, corr 0.986; sd real 0.1568 sd series 0.1587

@@ -211,7 +211,7 @@ erDiagram
         int16 baseline_n_changes
         float64 baseline_mean_ln_iv "nullable"
         float64 baseline_mean_iv "nullable"
-        float64 beta_vix "nullable"
+        float64 beta_vix_cboe "nullable"
         int32 beta_n
         float64 s_abn_cboe "nullable"
         float64 runup_cboe "nullable"
@@ -236,7 +236,7 @@ erDiagram
         float64 evar_m2 "nullable"
         float64 implied_move_m1 "nullable"
         float64 implied_abs_move_total_m1 "nullable"
-        enum implied_move_status
+        enum implied_move_status "nullable"
         float64 sigma_d_m1 "nullable"
         float64 cm30_m1 "nullable"
         float64 ts_slope_m1 "nullable"
@@ -284,6 +284,7 @@ erDiagram
         int32 n_clusters "nullable"
         int32 n_clusters_firm "nullable"
         float64 df "nullable"
+        float64 df_num "nullable"
         float64 estimate "nullable"
         float64 se "nullable"
         float64 stat "nullable"
@@ -348,6 +349,8 @@ erDiagram
         array rel_days
         array series
         array per_event
+        object lookups
+        array caveats
         object provenance
         string from_event_window_obs FK "nullable"
         string from_results FK "nullable"
@@ -355,9 +358,11 @@ erDiagram
     json_heatmap["heatmap.json"] {
         string kind PK
         array grids
+        object lookups
+        array caveats
         object provenance
         string from_event_measures FK "nullable"
-        string from_results FK "nullable"
+        string from_event_window_obs FK "nullable"
     }
     json_terrain["terrain.json"] {
         string kind PK
@@ -367,6 +372,8 @@ erDiagram
         array rows
         array values
         string row_order
+        object lookups
+        array caveats
         object provenance
         string from_event_window_obs FK "nullable"
         string from_security FK "nullable"
@@ -382,6 +389,10 @@ erDiagram
     json_tests["tests.json"] {
         string kind PK
         array rows
+        object g1
+        object holm
+        object lookups
+        array caveats
         object provenance
         string from_results FK "nullable"
     }
@@ -437,7 +448,7 @@ erDiagram
     event_window_obs |o--o{ json_event_paths : "feeds"
     results |o--o{ json_event_paths : "feeds"
     event_measures |o--o{ json_heatmap : "feeds"
-    results |o--o{ json_heatmap : "feeds"
+    event_window_obs |o--o{ json_heatmap : "feeds"
     event_window_obs |o--o{ json_terrain : "feeds"
     security |o--o{ json_terrain : "feeds"
     event_measures |o--o{ json_implied_vs_realised : "feeds"

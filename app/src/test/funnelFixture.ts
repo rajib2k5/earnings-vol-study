@@ -2,7 +2,7 @@ import { PROVENANCE_FIXTURE } from './metaFixture'
 
 /**
  * Hand-built `data/sample_funnel.json` body for tests, in the shape the Python exporter writes
- * (schema 0.3.0). Every label, reason, count and caveat is invented ("Fixture ...") so a page that
+ * (schema 0.4.0). Every label, reason, count and caveat is invented ("Fixture ...") so a page that
  * still showed the real file's text, or computed anything itself, would not match. The counts are
  * chosen so the bar widths are easy to work out by hand: 200 -> 100%, 150 -> 75%, 50 -> 25%.
  *
@@ -84,7 +84,7 @@ export const FUNNEL_NULL_DATA_FIXTURE = {
 }
 
 export const FUNNEL_FIXTURE = {
-  schema_version: '0.3.0',
+  schema_version: '0.4.0',
   kind: 'sample_funnel',
   generated_at: '2031-03-04T05:06:07Z',
   source_commit: 'fix1234',

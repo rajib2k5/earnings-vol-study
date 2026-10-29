@@ -2,7 +2,7 @@ Licence for the files in data/derived/
 
 Everything in this folder is licensed under the Creative Commons
 Attribution-ShareAlike 4.0 International licence (CC BY-SA 4.0), EXCEPT the
-two columns named under "Not under CC BY-SA" below.
+columns named under "Not under CC BY-SA" below.
 
   Legal code: https://creativecommons.org/licenses/by-sa/4.0/legalcode
   Summary:    https://creativecommons.org/licenses/by-sa/4.0/
@@ -27,8 +27,10 @@ ShareAlike: if you remix or build on these files, you must share your
 version under CC BY-SA 4.0 (or a compatible licence) as well.
 
 Not under CC BY-SA (owner decision of 2026-10-29: real values the app and the
-docs need may be committed). These two columns are derived from Yahoo Finance
-prices and fall under Yahoo's terms of service, not under CC BY-SA:
+docs need may be committed). These columns are derived from Yahoo Finance
+prices or from the Cboe VIX index and fall under those providers' terms, not
+under CC BY-SA. Two are derived from Yahoo Finance prices (Yahoo's terms of
+service):
 
   - timing_check.parquet, column gap_verdict_yf: the verdict of the Yahoo
     overnight price gap on the timing label in use (supports, contradicts,
@@ -45,9 +47,35 @@ Treasury Bill Secondary Market Rate, Discount Basis [DTB3], retrieved from
 FRED, Federal Reserve Bank of St. Louis; https://fred.stlouisfed.org/series/DTB3,
 2026-10-29.
 
-Cboe: no Cboe value is in this folder or anywhere else in this repository.
-security.parquet's cboe_vx_index only names the Cboe index that exists for a
-company (VXAPL and four others); it holds no index value.
+Cboe VIX (milestone 3): results.parquet holds statistics computed with the
+VIX close, which FRED republishes from Cboe as VIXCLS (Cboe copyright). The
+numbers of its market-adjusted rows (adjustment = market: estimate, se, stat,
+p_value, ci_lo, ci_hi, p_holm, q_bh, rbar) and of gate G1's rows (family =
+validation, among them the calibration rows g1_calibration:* and
+g1_calibration_sigma_d:*) are aggregates over many VIX-adjusted values and
+fall under Cboe's terms, not under CC BY-SA. Two of the calibration rows are
+named here because they are statistics of VIX itself or of the VIX betas:
+dm_sd, the standard deviation of the daily change of ln VIX over the study
+period, and beta_median, the median over the 50 companies of their VIX beta.
+They are committed under the owner's decision of 2026-10-29 (ADR 0001 §7:
+commit the real data the apps and docs need, including Cboe values). FRED asks for this citation: Chicago Board Options Exchange,
+CBOE Volatility Index: VIX [VIXCLS], retrieved from FRED, Federal Reserve
+Bank of St. Louis; https://fred.stlouisfed.org/series/VIXCLS, 2026-10-29.
+No VIX value, and no per-event or per-company VIX-adjusted value, is in this
+folder: event_window_obs and event_measures hold only the mean-adjusted
+values (the VIX-adjusted columns, names ending in _cboe, stay local).
+
+Outside this folder, docs/milestones/03-event-study.md §6.5 quotes further
+Cboe-derived aggregates under the same decision (ADR 0001 §7) and the same
+terms: the median, minimum and maximum company VIX beta (the minimum and
+the maximum are each one unnamed company's beta), and six named per-company
+firm-cluster terms of the VIX-adjusted RUNUP and PERSIST_10 (the sum over one
+company's events of its deviations from the mean). The root DATA.md lists
+them.
+
+Cboe VX*: no VX* value is in this folder or anywhere else in this
+repository. security.parquet's cboe_vx_index only names the Cboe index that
+exists for a company (VXAPL and four others); it holds no index value.
 
 The timing labels (events.parquet) are not derived from Yahoo data: they come
 from the DoltHub calendar and from company press releases. A Yahoo price gap

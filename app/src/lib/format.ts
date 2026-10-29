@@ -13,3 +13,8 @@ export function bps(n: number, dp = 1): string {
   if (!Number.isFinite(n)) return '—'
   return `${(n * 10_000).toFixed(dp)} bps`
 }
+
+/** A number exactly as the data file has it (no rounding, no arithmetic), or "—" for null (no value). */
+export function asGiven(n: number | null): string {
+  return n === null ? '—' : String(n)
+}

@@ -1,0 +1,5 @@
+as built: G 8, sizes [50, 46, 49, 50, 48, 45, 49, 19], unbalanced True, season-mean signs ++++++++, own rad p 0.007812 (floor 2/2^G 0.007812)
+cut: 2026Q4 into 2026Q3
+cut: G 7, sizes [50, 46, 49, 50, 48, 45, 68], unbalanced True, season-mean signs +++++++, own rad p 0.015625 (floor 2/2^G 0.015625)
+results: H2 primary p 0.007812 p_holm 0.046875; own Holm 0.046875
+results: cut row 2026Q4_into_2026Q3 G 7.0 p 0.015625 p_holm 0.093750; own Holm 0.093750
