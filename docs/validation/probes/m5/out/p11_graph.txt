@@ -1,0 +1,23 @@
+top-level keys: ['built_at_commit', 'directed', 'graph', 'hyperedges', 'links', 'multigraph', 'nodes']
+nodes 3,559; edges 9,107
+communities (distinct node.community): 141
+distinct source_file over nodes: 371
+node keys: {'id': 3559, 'label': 3559, '_callable': 2023, '_callable_class': 203, '_origin': 3491, 'community': 3559, 'community_name': 3559, 'file_type': 3559, 'norm_label': 3559, 'source_file': 3559, 'source_location': 3491, 'metadata': 47, '_py_fixture': 32, '_py_property': 2, 'ecosystem': 1, 'type': 69, 'version': 1, 'external': 68}
+edge keys: {'source': 9107, 'target': 9107, 'relation': 9107, '_origin': 9107, 'confidence': 9107, 'confidence_score': 9107, 'context': 6280, 'source_file': 9107, 'source_location': 9106, 'weight': 9106, 'deferred': 1, 'type_only': 13}
+node file_type: {'code': 2868, 'rationale': 601, 'concept': 90}
+node type: {'external': 68, 'package': 1}
+edge relation: {'calls': 2902, 'contains': 2217, 'imports': 1489, 'imports_from': 990, 'rationale_for': 601, 'references': 590, 'indirect_call': 112, 'uses': 91, 'method': 87, 'inherits': 14, 'defines': 13, 'dynamic_import': 1}
+edge confidence: {'EXTRACTED': 8810, 'INFERRED': 297}
+edge confidence_score: {'1.0': 8810, '0.85': 206, '0.95': 91}
+edge source: {'app_src_lib_drivers': 78, 'app_src_lib_results': 69, 'app_src_lib_impliedrealised': 53, 'app_src_lib_funnel': 47, 'tools_diagrams_diagram_kit_cli': 44, 'app_src_lib_eventpaths': 43, 'app_src_app_test': 42, 'app_src_lib_crushpathspage': 42, 'tools_diagrams_diagram_kit_erd': 42, 'tools_diagrams_diagram_kit_flow': 42, 'app_src_lib_meta': 41, 'app_src_lib_resultspage': 40, 'tools_diagrams_diagram_kit_spec': 40, 'src_earnings_vol_measures_run': 39, 'src_earnings_vol_stats_run': 39}
+source file suffixes: {'.py': 243, '.ts': 64, '.sh': 12, '.json': 4, '.tsx': 39, '.toml': 1, '.mjs': 6, '.js': 2}
+source files outside the stated scope: 0 []
+source files in excluded folders: 0 []
+GRAPH_REPORT summary lines: ['- 371 files · ~335,379 words', '- 3559 nodes · 9107 edges · 141 communities (125 shown, 16 thin omitted)', '- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 297 edges (avg confidence: 0.88)', '1. `fail()` - 61 edges', '2. `show()` - 61 edges', '3. `isObject()` - 51 edges']
+GRAPH_REPORT mentions of LLM/semantic/INFERRED: {'LLM': 0, 'semantic': 0, 'INFERRED': 7, 'AMBIGUOUS': 1, 'EXTRACTED': 1}
+INFERRED edges by relation/_origin/score: [(('indirect_call', 'ast', 0.85), 112), (('calls', 'ast', 0.85), 91), (('uses', 'ast', 0.95), 91), (('references', 'ast', 0.85), 3)]
+node _origin: [('ast', 3491), (None, 68)]
+edge _origin: [('ast', 9107)]
+concept nodes: by source suffix Counter({'': 68, 'json': 22}) examples ['react-dom', 'eslint', '@eslint/js', 'eslint-plugin-react-hooks', 'eslint-plugin-react-refresh']
+rationale examples: ['Probe: runtime checks of library-behaviour stateme', 'Probe: resolve every relative link in one or more ', "GitHub's heading anchor: lowercase, drop punctuati"] Counter({'ast': 601})
+hyperedges: 0 graph attrs: {'schema_version': 1, 'graphify_version': '0.9.93'} built_at_commit: 4a241276e46443816d3e0e5bfb9a706075e68c80

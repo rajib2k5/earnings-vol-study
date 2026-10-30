@@ -41,3 +41,7 @@ diagrams = [
     "pyyaml==6.0.3",
     "resvg-py==0.5.0",
 ]
+report = [
+    "markdown-it-py==4.2.0",
+    "python-docx==1.2.0",
+]

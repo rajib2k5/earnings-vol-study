@@ -1,0 +1,17 @@
+markdown: 22 headings, 30 table rows, 7 images, 96 paragraphs
+pdf: 699,850 B, 13 pages, 6 embedded images (pdfimages; smasks not counted)
+  headings missing: 0 []
+  table rows with a cell missing: 1 [['Planted row xyzzy', '999,999']]
+  image captions missing: 1 ['Planted caption qwerty']
+  FEWER IMAGES THAN THE MARKDOWN: 6 < 7
+  paragraphs not found verbatim (whitespace-insensitive): 0 []
+docx: 337,424 B, 22 headings, 4 tables / 29 rows, 6 inline images
+  headings missing: 0 []
+  TABLE ROW COUNT DIFFERS: docx 29 vs markdown 30
+  table rows with a cell missing: 1 [['Planted row xyzzy', '999,999']]
+  IMAGE COUNT DIFFERS: docx 6 vs markdown 7
+  image captions missing: 1 ['Planted caption qwerty']
+  paragraphs not found verbatim: 0 []
+number tokens in the markdown: 645; missing from pdf: 1; missing from docx: 1
+MISSING ITEMS: 7
+rc=1

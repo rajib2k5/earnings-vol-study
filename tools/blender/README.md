@@ -5,6 +5,10 @@ It is the same grid as the app's 3D terrain view, drawn once with Cycles or Eeve
 
 ## Status: renders are pending
 
+**2026-10-29 (milestone 5): not rendered: Blender unreachable.** The Blender MCP answered "Could not connect to
+Blender" in the owner's session, and this machine has no `blender` binary. The README and the report use three.js
+stills of the app's 3D terrain view instead (`docs/images/terrain-*.png`, made by `tools/screenshots.py`).
+
 **No render has been made yet.** The machine that wrote the script (aarch64 Linux) has no Blender, so the script has
 never run inside Blender. What was checked:
 

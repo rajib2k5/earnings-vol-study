@@ -1,0 +1,9 @@
+git status lines changed since the start (only docs/validation/m5-ledger.md and probes/m5/ allowed):
+> ?? docs/validation/m5-ledger.md
+> ?? docs/validation/probes/m5/
+tracked + untracked file hashes vs start (m5 paths excluded):
+  identical (664 files)
+stage cache hashes vs start:
+  identical (1443 files)
+files in the cache now vs start:
+  same set

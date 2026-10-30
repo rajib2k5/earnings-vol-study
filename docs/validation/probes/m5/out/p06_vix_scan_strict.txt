@@ -1,0 +1,17 @@
+reference forms: VIX 14,180; per-event VIX-adjusted (15 columns) 13,354
+report.md    hits that are a generated aggregate's string:  18; unexplained hits: 0
+README.md    hits that are a generated aggregate's string:   8; unexplained hits: 0
+prfaq.md     hits that are a generated aggregate's string:   4; unexplained hits: 1 at ['prfaq.md:188 (per-event form)']
+report.pdf   hits that are a generated aggregate's string:  18; unexplained hits: 0
+report.docx  hits that are a generated aggregate's string:  18; unexplained hits: 0
+UNEXPLAINED TOTAL: 1
+rc=0
+--- plant
+reference forms: VIX 14,180; per-event VIX-adjusted (15 columns) 13,354
+report.md    hits that are a generated aggregate's string:  18; unexplained hits: 1 at ['report.md:400 (per-event form)']
+README.md    hits that are a generated aggregate's string:   8; unexplained hits: 0
+prfaq.md     hits that are a generated aggregate's string:   4; unexplained hits: 1 at ['prfaq.md:188 (per-event form)']
+report.pdf   hits that are a generated aggregate's string:  18; unexplained hits: 0
+report.docx  hits that are a generated aggregate's string:  18; unexplained hits: 0
+UNEXPLAINED TOTAL: 2
+rc=0

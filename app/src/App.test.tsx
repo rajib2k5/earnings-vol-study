@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import App from './App'
 import { ARCH_LAYERS } from './lib/architecture'
-import { PITCH, PROJECT_TITLE, QUESTIONS } from './lib/studyContent'
+import { MILESTONES, PITCH, PROJECT_TITLE, QUESTIONS } from './lib/studyContent'
 import { resetMemoryFallback, safeStorage } from './lib/storage'
 import { DRIVERS_DATA_FIXTURE, DRIVERS_FIXTURE } from './test/driversFixture'
 import { EVENT_PATHS_DATA_FIXTURE, EVENT_PATHS_FIXTURE } from './test/eventPathsFixture'
@@ -45,6 +45,17 @@ describe('App (integration)', () => {
     expect(screen.getByText(META_DATA_FIXTURE.data_licence.attribution)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Not financial advice' })).toBeInTheDocument()
     await screen.findByText(/source commit abc1234/) // let the footer fetch settle
+  })
+
+  it('names under the milestones exactly the pages the navigation has, each once', async () => {
+    render(<App />)
+    const labels = within(screen.getByRole('navigation', { name: 'Primary' }))
+      .getAllByRole('link')
+      .map((a) => a.textContent)
+    const named = MILESTONES.flatMap((m) => m.pages)
+    for (const p of named) expect(labels).toContain(p)
+    expect([...named].sort()).toEqual([...labels].sort()) // every navigation page belongs to one milestone
+    await screen.findByText(/source commit abc1234/)
   })
 
   it('shows the milestone and source commit from data/meta.json in the footer', async () => {

@@ -1,0 +1,44 @@
+S0 control: a stale number inside the README block
+   1. --check on the edited copy: rc 1  FAIL: stale: README.md (run tools/report_numbers.py)
+S1 H2's run-up turns negative (same floor p): "IV is high before the news", "every season mean is positive" 
+   1. --check on the edited copy: rc 1  FAIL: stale: docs/report/earnings-vol-report.md, README.md, docs/prfaq.md (run tools/report_numbers.py)
+   2. render: rc 0  222 numbers; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   3. --check after render: rc 0  ok: 3 file(s) match 222 numbers from the committed data; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   rendered text now: **IV is high before the news.** At day −1 the 30-day IV sits −0.232 log points above its own quiet baseline.
+S2 b at day -2 falls below b at day -1: "which may inflate E a little" becomes backwards
+   1. --check on the edited copy: rc 1  FAIL: stale: docs/report/earnings-vol-report.md (run tools/report_numbers.py)
+   2. render: rc 0  222 numbers; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   3. --check after render: rc 0  ok: 3 file(s) match 222 numbers from the committed data; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   rendered text now: With E read one session earlier, b is 0.60: day −1 quotes are often wide on after-close announcement days, which may inflate E a little.
+S3 the sample grows to 365: "inside the draft's 330-360" 
+   1. --check on the edited copy: rc 1  FAIL: stale: docs/report/earnings-vol-report.md, README.md, docs/prfaq.md (run tools/report_numbers.py)
+   2. render: rc 0  222 numbers; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   3. --check after render: rc 0  ok: 3 file(s) match 222 numbers from the committed data; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   rendered text now: Confirmed as predicted: the sample size (365 events, inside the draft's 330–360)
+S4 tests.json says H1's G1 rate is 7.00% (above the 6.30% bar) but keeps pass: true; results.parquet: 4.60%
+   1. --check on the edited copy: rc 1  FAIL: stale: docs/report/earnings-vol-report.md, README.md, docs/prfaq.md (run tools/report_numbers.py)
+   2. render: rc 0  222 numbers; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   3. --check after render: rc 0  ok: 3 file(s) match 222 numbers from the committed data; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   rendered text now: | Primary rejects under the null (target 5%) | 7.00% | 0.40% | 0.50% | 4.60% | 9.55% | 8.10% | 16.15% | | Verdict | pass
+S5 one look-up turns ambiguous: the list "16 confirmed, 2 corrected, 1 ..., 1 inferred" no longer sums to 20
+   1. --check on the edited copy: rc 1  FAIL: stale: docs/report/earnings-vol-report.md (run tools/report_numbers.py)
+   2. render: rc 0  222 numbers; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   3. --check after render: rc 0  ok: 3 file(s) match 222 numbers from the committed data; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   rendered text now: **Timing labels.** 20 labels were checked against press releases (15 confirmed, 2 corrected, 1 with a corrected date and 1 inferred).
+S6 a placeholder typo with a capital letter: "an unknown key is an error, so a template cannot render with a hole" 
+   1. --check on the edited copy: rc 1  FAIL: stale: README.md (run tools/report_numbers.py)
+   2. render: rc 0  222 numbers; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   3. --check after render: rc 0  ok: 3 file(s) match 222 numbers from the committed data; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   rendered text now: two-way t {{H2.twoway_t}})
+S7 rho-bar without the top 10 dates drops to 0.02: "spread over most dates" is then false 
+   1. --check on the edited copy: rc 1  FAIL: stale: docs/report/earnings-vol-report.md (run tools/report_numbers.py)
+   2. render: rc 0  222 numbers; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   3. --check after render: rc 0  ok: 3 file(s) match 222 numbers from the committed data; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   rendered text now: It is spread over most dates (0.02 without the ten largest)
+S8 the two-way season t that says "the direction is not in doubt" becomes 1.20 (p 0.27)
+   1. --check on the edited copy: rc 1  FAIL: stale: docs/report/earnings-vol-report.md, README.md (run tools/report_numbers.py)
+   2. render: rc 0  222 numbers; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   3. --check after render: rc 0  ok: 3 file(s) match 222 numbers from the committed data; look-ups: 473 pinned, not re-measured (no local events_report.json)
+   rendered text now: The direction is not in doubt: the two-way season × company t, a robustness row, is 1.20 (p 0.27)
+scenarios whose contradicted sentence renders and passes --check: 8 of 8
+rc=0

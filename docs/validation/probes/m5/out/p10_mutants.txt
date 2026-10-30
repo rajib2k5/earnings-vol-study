@@ -1,0 +1,25 @@
+[py] baseline rc 0: 11 passed in 0.73s
+KILLED   R01 fnum writes an ASCII hyphen: rc 1 (FAILED tests/test_report_numbers.py::test_number_formats - AssertionError: as... | 7 failed, 4 passed in 0.67s); restore sha256 ok=True
+KILLED   R02 fp: 3 sig digits below 0.01: rc 1 (FAILED tests/test_report_numbers.py::test_number_formats - AssertionError: as... | 6 failed, 5 passed in 0.72s); restore sha256 ok=True
+KILLED   R03 fpct keeps one decimal: rc 1 (FAILED tests/test_report_numbers.py::test_number_formats - AssertionError: as... | 6 failed, 5 passed in 0.71s); restore sha256 ok=True
+KILLED   R04 --check compares the report only: rc 1 (tests/test_report_numbers.py:134: AssertionError | 2 failed, 9 passed in 0.71s); restore sha256 ok=True
+KILLED   R05 render's unknown-key guard removed: rc 1 (tests/test_report_numbers.py:88: AssertionError | 1 failed, 10 passed in 0.72s); restore sha256 ok=True
+KILLED   R05c guard removed and lookup tolerant: rc 1 (E       Failed: DID NOT RAISE KeyError | 1 failed, 10 passed in 1.13s); restore sha256 ok=True
+KILLED   R06 H1 from the mean-adjusted twin: rc 1 (tests/test_report_numbers.py:191: AssertionError | 9 failed, 2 passed in 0.35s); restore sha256 ok=True
+KILLED   R07 lookups.left = required: rc 1 (tests/test_report_numbers.py:191: AssertionError | 5 failed, 6 passed in 0.86s); restore sha256 ok=True
+KILLED   R08 cross_check skips H5's Holm p: rc 1 (tests/test_report_numbers.py:170: AssertionError | 1 failed, 10 passed in 0.73s); restore sha256 ok=True
+KILLED   R09 prose_check skips H2's cut: rc 1 (tests/test_report_numbers.py:181: AssertionError | 1 failed, 10 passed in 0.73s); restore sha256 ok=True
+KILLED   R10 stage comparison skipped: rc 1 (tests/test_report_numbers.py:194: AssertionError | 1 failed, 10 passed in 0.74s); restore sha256 ok=True
+KILLED   R11 pct_fall = -estimate: rc 1 (tests/test_report_numbers.py:191: AssertionError | 6 failed, 5 passed in 0.62s); restore sha256 ok=True
+SURVIVED X1 prose_check: b's interval-holds-1 claim dropped: rc 0 (11 passed in 0.68s); restore sha256 ok=True
+SURVIVED X2 cross_check: H7 F comparison dropped: rc 0 (11 passed in 0.68s); restore sha256 ok=True
+[app] baseline rc 0: Test Files  3 passed (3) | Tests  30 passed (30)
+KILLED   A1 StudySections drops the pages line: rc 1 (⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯ | Error: [2mexpect([22m[31melement[39m[2m).toHaveTextContent()[22m); restore sha256 ok=True
+KILLED   A2 a page label misspelt: rc 1 (⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯ | AssertionError: expected [ 'About', 'Sample', …(9) ] to include 'Implied vs Realised'); restore sha256 ok=True
+KILLED   A3 milestone 5 marked done: rc 1 (⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯ | AssertionError: expected [ Array(6) ] to deeply equal [ Array(6) ]); restore sha256 ok=True
+KILLED   A4 milestone 5 removed: rc 1 (AssertionError: expected [ +0, 1, 2, 3, 4 ] to deeply equal [ +0, 1, 2, 3, 4, 5 ] | AssertionError: expected [] to deeply equal [ 5 ]); restore sha256 ok=True
+KILLED   A5 About says synthetic again: rc 1 (⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯ | AssertionError: expected 'An event study of how earnings announ…' not to contain 'synthetic'); restore sha256 ok=True
+KILLED   A6 3D view under two milestones: rc 1 (AssertionError: expected [ '3D view', '3D view', 'About', …(9) ] to deeply equal [ '3D view', 'About', …(9) ] | AssertionError: expected [ '3D view' ] to deeply equal []); restore sha256 ok=True
+KILLED   A7 Heatmap under none: rc 1 (⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯ | AssertionError: expected [ '3D view', 'About', …(8) ] to deeply equal [ '3D view', 'About', …(9) ]); restore sha256 ok=True
+SUMMARY killed 19 of 21
+rc=0

@@ -1,0 +1,12 @@
+{
+  "docx": {
+    "file": "earnings-vol-report.docx",
+    "sha256": "a7ba50037ff54a7638e188b013df3ef6ea1b85ebaeba35d0aa0e1c8cc988b5ee",
+    "markdown_sha256": "4b5c196f8ae1c2df6d176665e9bb48b161fde82cd1d9044e73d1db8246180cb7"
+  },
+  "pdf": {
+    "file": "earnings-vol-report.pdf",
+    "sha256": "c6d156b3bbb95010ad8eb45b9e2a6be3688ff106ccc11b98bb37410c3a361377",
+    "markdown_sha256": "4b5c196f8ae1c2df6d176665e9bb48b161fde82cd1d9044e73d1db8246180cb7"
+  }
+}

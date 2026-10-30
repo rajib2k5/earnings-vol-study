@@ -1,0 +1,1 @@
+per-event day -1 values: 347; equal to the VIX-adjusted run-up: 2; equal to the mean-adjusted level: 347

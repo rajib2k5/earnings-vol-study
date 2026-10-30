@@ -13,7 +13,7 @@ export const PITCH =
 /** About-page intro paragraphs (the pitch comes first). */
 export const ABOUT_INTRO: string[] = [
   PITCH,
-  'Python computes every number. This app only draws the JSON files that Python exports and checks, so no result is calculated in the browser. The 3D preview is a labelled synthetic shape, not data. The Architecture page shows how the data flows.',
+  'Python computes every number. This app only draws the JSON files that Python exports and checks, so no result is calculated in the browser. The 3D view draws the exported terrain file (each company’s mean abnormal log IV by event day). The Architecture page shows how the data flows.',
 ]
 
 export const QUESTIONS: string[] = [
@@ -30,10 +30,19 @@ export interface Milestone {
   id: number
   title: string
   status: MilestoneStatus
+  /** The app pages this milestone added, by their navigation label (App.tsx); empty when it added none. */
+  pages: string[]
 }
 
-/** M0 is the only milestone recorded here; add a line when the next one starts. */
-export const MILESTONES: Milestone[] = [{ id: 0, title: 'App shell: architecture page, JSON data contract, 3D proof of life', status: 'in progress' }]
+/** Milestones 0 to 5 (docs/milestones/). Milestones 0 to 4 are built and reviewed; the report of milestone 5 is a draft that waits for the owner. */
+export const MILESTONES: Milestone[] = [
+  { id: 0, title: 'Scaffold and design: app shell, JSON data contract, architecture page, a 3D proof of life', status: 'done', pages: ['About', 'Architecture', 'Metrics', '3D view'] },
+  { id: 1, title: 'Universe and events: the companies, their announcements and day 0', status: 'done', pages: ['Sample'] },
+  { id: 2, title: 'IV measures: implied volatility recomputed from quotes, the 30-day IV and the event variance', status: 'done', pages: ['IV measures'] },
+  { id: 3, title: 'Event study: abnormal IV, the tests of H1–H4 and gate G1; the 3D view draws real data', status: 'done', pages: ['Results', 'Crush paths', 'Heatmap'] },
+  { id: 4, title: 'Drivers: what changes the crush (H5, H6) and implied against realised moves (H7)', status: 'done', pages: ['Drivers', 'Implied vs realised'] },
+  { id: 5, title: 'Report and polish: the written report (a draft for the owner), screenshots and the README', status: 'in progress', pages: [] },
+]
 
 export const DISCLAIMER =
   'Not financial advice. This is an educational research project. Nothing here is a recommendation to buy, sell or hold any security or option, and past patterns in implied volatility do not predict future returns.'
