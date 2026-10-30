@@ -15,7 +15,7 @@
 
 Data: DoltHub `post-no-preference/earnings` at `fjrb6h5le9h1qiif2j4pl6cpaas7pnee` and `post-no-preference/options` at
 `msfqpodh24viv7prdqdan8517rkjp861`; parameters hash `74bed6f4b1281810`; app data contract 0.5.0, exported from
-commit `28e06b3`. Every measured number in this report is filled in by `tools/report_numbers.py` from
+commit `75948b3`. Every measured number in this report is filled in by `tools/report_numbers.py` from
 `data/derived/results.parquet`, the app's JSON files and the kept ρ̄ output (section 8); one count, the
 473 required look-ups, is pinned in that script. Design parameters quoted from the ADRs (window
 lengths, minimum counts) are written by hand.
