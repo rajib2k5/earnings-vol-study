@@ -1,9 +1,18 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { ResultsDisplay, ResultsPage } from './ResultsPage'
 import { parseTests, type TestsData } from './results'
 import { TESTS_DATA_FIXTURE, TESTS_FIXTURE } from '../test/resultsFixture'
 import { edited } from '../test/editHelpers'
+
+/*
+ * Mutations of fix R1 this file must catch (7 of 7 killed). Each was applied to src/lib/ResultsPage.tsx, one at a time, and
+ * this file then failed; the file was restored and its sha256 checked each time (script outside the repo).
+ *   RP1: the season-cut suffix of the Holm p dropped            RP2: its G taken from the primary row, not the cut row
+ *   RP3: a cut row paired with a primary of any hypothesis      RP4: the failed-size-check note names hypotheses outside the family
+ *   RP5: the Drivers-page pointer names every failed hypothesis RP6: the left-the-family item shown with none left
+ *   RP7: the failed-size-check note dropped
+ */
 
 const respond = (res: Partial<Response>) => vi.fn(async () => res as Response) as unknown as typeof fetch
 const serving = (body: unknown) => respond({ ok: true, status: 200, json: async () => body })
@@ -61,9 +70,9 @@ describe('ResultsPage: loading and errors', () => {
     expect(screen.queryByRole('table')).toBeNull()
     expect(screen.queryByRole('complementary')).toBeNull()
   })
-  it('shows an error for the previous schema version (0.3.0)', async () => {
-    render(<ResultsPage fetchImpl={serving({ ...TESTS_FIXTURE, schema_version: '0.3.0' })} />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.3.0": this app only understands "0.4.0"')
+  it('shows an error for the previous schema version (0.4.0)', async () => {
+    render(<ResultsPage fetchImpl={serving({ ...TESTS_FIXTURE, schema_version: '0.4.0' })} />)
+    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.4.0": this app only understands "0.5.0"')
     expect(screen.queryByRole('table')).toBeNull()
   })
   it('shows an error when the file is another kind (heatmap.json served at the tests url)', async () => {
@@ -329,19 +338,76 @@ describe('ResultsDisplay: the G1 gate', () => {
 
 describe('ResultsDisplay: the Holm statement', () => {
   const items = () => within(screen.getByRole('list', { name: 'Holm statement' })).getAllByRole('listitem').map((li) => li.textContent)
+  const failedNote = () => screen.queryByLabelText('Failed size checks')
 
-  it('states the family, what was tested, the untested hypotheses entering as p = 1, and that none left the family', () => {
+  it('states the family, what was tested and the untested hypotheses entering as p = 1, and lists no left_family when it is empty', () => {
     render(<ResultsDisplay tests={checked()} />)
-    expect(items()).toEqual([
-      'Family: H1, H2, H3',
-      'Tested: H1, H2',
-      'Untested, entering the family as p = 1: H3',
-      'Left the family: none',
-    ])
+    expect(items()).toEqual(['Family: H1, H2, H3', 'Tested: H1, H2', 'Untested, entering the family as p = 1: H3'])
+    expect(screen.queryByText(/left/i)).toBeNull()
   })
-  it('lists the hypotheses that left the family, and says none when everything was tested', () => {
-    const holm = { family: ['H1', 'H2'], tested: ['H1', 'H2'], untested: [], left_family: ['H2'] }
-    render(<ResultsDisplay tests={checked({ holm })} />)
-    expect(items()).toEqual(['Family: H1, H2', 'Tested: H1, H2', 'Untested, entering the family as p = 1: none', 'Left the family: H2'])
+  it('says a hypothesis of the family whose size check failed stays in it with its p-value (fix R1), and does not point elsewhere when its rows are here', () => {
+    render(<ResultsDisplay tests={checked()} />)
+    expect(failedNote()).toHaveTextContent(
+      "H2 failed gate G1's size check and stays in the family with its p-value: the statistic is liberal on this design, so a rejection by it would not be trusted.",
+    )
+    expect(screen.queryByText(/Drivers page/)).toBeNull()
+  })
+  it('names every failed hypothesis of the declared family once, and points to the Drivers page for those whose rows are not in this file', () => {
+    const holm = { family: ['H1', 'H2', 'H5', 'H6', 'H7'], tested: ['H1', 'H2', 'H5', 'H6', 'H7'], untested: [], left_family: [] }
+    const calibrated = [
+      { hypothesis: 'H1', statistic: 'fix_stat_one', rejection_rate: 0.375, pass: true },
+      { hypothesis: 'H5', statistic: 'fix_stat_five', rejection_rate: 0.625, pass: false },
+      { hypothesis: 'H5', statistic: 'fix_stat_five_b', rejection_rate: 0.75, pass: false },
+      { hypothesis: 'H6', statistic: 'fix_stat_six', rejection_rate: 0.5625, pass: false },
+      { hypothesis: 'H7', statistic: 'fix_stat_seven', rejection_rate: 0.875, pass: false },
+    ]
+    render(<ResultsDisplay tests={checked({ holm, g1: { ...TESTS_DATA_FIXTURE.g1, calibrated } })} />)
+    expect(items()).toEqual(['Family: H1, H2, H5, H6, H7', 'Tested: H1, H2, H5, H6, H7', 'Untested, entering the family as p = 1: none'])
+    expect(failedNote()).toHaveTextContent(
+      "H5, H6, H7 failed gate G1's size check and stay in the family with their p-values: the statistic is liberal on this design, so a rejection by it would not be trusted. " +
+        'The rows of H5, H6, H7 are on the Drivers page.',
+    )
+    expect(failedNote()).not.toHaveTextContent('left')
+  })
+  it('lists the hypotheses that left the family when there are some, and says nothing of a failed hypothesis outside the family', () => {
+    const holm = { ...TESTS_DATA_FIXTURE.holm, left_family: ['H4'] }
+    const calibrated = [
+      { hypothesis: 'H1', statistic: 'fix_stat_one', rejection_rate: 0.375, pass: true },
+      { hypothesis: 'H4', statistic: 'fix_stat_four', rejection_rate: 0.625, pass: false },
+    ]
+    render(<ResultsDisplay tests={checked({ holm, g1: { ...TESTS_DATA_FIXTURE.g1, calibrated } })} />)
+    expect(items()).toEqual(['Family: H1, H2, H3', 'Tested: H1, H2', 'Untested, entering the family as p = 1: H3', 'Left the family: H4'])
+    expect(failedNote()).toBeNull()
+  })
+})
+
+describe('ResultsDisplay: the season-cut counterfactual next to the Holm p', () => {
+  const cutRows = (patch: Record<string, unknown> = {}) => {
+    const rows: Record<string, unknown>[] = structuredClone(TESTS_DATA_FIXTURE.rows)
+    rows[4] = { ...rows[4], subgroup_key: 'season_cut', subgroup_value: 'FX9_into_FX8', n_clusters: 3, p_holm: 0.75, ...patch }
+    return rows
+  }
+  const holmColumn = () => bodyOf(screen.getByRole('table', { name: 'Primary family' })).map((r) => r[10])
+
+  it('shows the Holm p of a primary with the cut row\'s cluster count G and Holm p, and leaves the other primaries alone', () => {
+    render(<ResultsDisplay tests={checked({ rows: cutRows() })} />)
+    expect(holmColumn()).toEqual(['0.0492', '1 (G = 3: 0.75)'])
+  })
+  it('takes G and the Holm p from the cut row as given, a dash when it has none', () => {
+    render(<ResultsDisplay tests={checked({ rows: cutRows({ n_clusters: null, p_holm: null }) })} />)
+    expect(holmColumn()).toEqual(['0.0492', '1 (G = —: —)'])
+  })
+  it('does not pair a cut row with a primary of another hypothesis, nor a primary without a hypothesis', () => {
+    render(<ResultsDisplay tests={checked({ rows: cutRows({ hypothesis: 'H3' }) })} />)
+    expect(holmColumn()).toEqual(['0.0492', '1'])
+    cleanup()
+    const rows = cutRows({ hypothesis: null })
+    rows[1] = { ...rows[1], hypothesis: null }
+    render(<ResultsDisplay tests={checked({ rows })} />)
+    expect(holmColumn()).toEqual(['0.0492', '1'])
+  })
+  it('does not treat a robustness row of another subgroup as a cut', () => {
+    render(<ResultsDisplay tests={checked()} />)
+    expect(holmColumn()).toEqual(['0.0492', '1'])
   })
 })

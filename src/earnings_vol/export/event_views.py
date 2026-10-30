@@ -27,6 +27,13 @@
 # (2,000, or 10,000 for a rate re-measured near the bar: stats.g1.size_verdicts,
 # the rule the results run withheld by), and a re-measured row that keeps its
 # p-value says so in its note.
+# Milestone 4: H5-H7 are regression rows (export/driver_views.py draws them);
+# here they count in the Holm summary (`tested`, `left_family`), gate G1's
+# calibrated list and designs; the power curves stay H1-H4's (H5-H7's power is
+# per coefficient or slope, in drivers.json). Fixes after the milestone-4
+# review: the Holm family is read from the rows as the results run built it
+# (holm_family: H1-H7, H5-H7 staying in with a failed size check), and the
+# caveat gives the post-gate sensitivity (post_gate).
 # =============================================================================
 
 import math
@@ -155,6 +162,54 @@ def row_notes(ev: pd.DataFrame, verdicts: dict, reps: int, alpha: float) -> dict
     return out
 
 
+def holm_family(results: pd.DataFrame, declared: list) -> tuple[list, list]:
+    """(binding family, left the family) as the results run built them: a declared hypothesis
+    left the family when its declared primary statistic is a row of role exploratory (ADR 0005 §5);
+    the others are the family. A family member whose primary row has no p_holm is an error."""
+    tested = results[results["family"].isin(results_mod.TESTED_FAMILIES) & results["hypothesis"].notna()]
+    left = sorted(set(tested.loc[tested["role"] == "exploratory", "hypothesis"]) & set(declared))
+    family = [h for h in declared if h not in left]
+    prim = tested[tested["role"] == "primary"]
+    bad = sorted(set(prim.loc[prim["p_holm"].isna(), "hypothesis"]) | (set(prim["hypothesis"]) - set(family)))
+    if bad:
+        raise ValueError(f"primary rows of {', '.join(bad)} without a Holm p, or outside the family")
+    return family, left
+
+
+def post_gate(results: pd.DataFrame) -> dict:
+    """The descriptive Holm sensitivity (results.holm_post_gate_rows): the post-gate family, each
+    member's Holm p over it, and each season-cut counterfactual's ({hypothesis: Holm p})."""
+    d = results[(results["family"] == "descriptive") & (results["measure"] == "holm_post_gate")]
+    main = d[d["subgroup_key"] == "all"]
+    cut = d[d["subgroup_key"] == "season_cut"]
+    return {"family": [h for h in main["hypothesis"]],
+            "p_holm": {r["hypothesis"]: _sig(r["estimate"]) for r in main.to_dict("records")},
+            "season_cut": {r["hypothesis"]: _sig(r["estimate"]) for r in cut.to_dict("records")}}
+
+
+def holm_caveat(family: list, failed: list, calibrated: list, stayed: list | None = None,
+                pg: dict | None = None) -> str:
+    """The sentences on Holm's family: who is in it; who failed G1's size check and stays in it
+    (H5-H7, ADR 0005 §5 dated note of 2026-10-29), with the post-gate sensitivity `pg`
+    (post_gate()); and who left it after a failed gate (ADR 0005 §5)."""
+    rate = {c["hypothesis"]: c["rejection_rate"] for c in calibrated}
+    out = f"Holm runs over {', '.join(family)} ({len(family)} hypotheses)"
+    if stayed:
+        out += (". " + ", ".join(f"{h} ({rate[h]:.2%})" for h in stayed) + " failed gate G1's regression size check, "
+                "which ran before their results were computed: their statistics are liberal on this design, so a "
+                "rejection by them would not be trusted. They stay in the declared family with their real p-values "
+                "(ADR 0005 §5, dated note of 2026-10-29); their rows are in drivers.json")
+        if pg and pg["family"]:
+            cut = "".join(f", {h}'s season cut {v}" for h, v in pg["season_cut"].items())
+            out += (f". Sensitivity, not binding: over the family without them ({', '.join(pg['family'])}) the Holm p "
+                    "would be " + ", ".join(f"{h} {v}" for h, v in pg["p_holm"].items()) + cut)
+    if failed:
+        out += (". " + ", ".join(f"{h} ({rate[h]:.2%})" for h in failed) + " failed gate G1's calibrated design, which "
+                "ran before their results were computed, and left the binding family (ADR 0005 §5): their primary "
+                "rows are exploratory")
+    return out + "."
+
+
 def tests_data(results: pd.DataFrame, events: pd.DataFrame, p, provenance: dict) -> dict:
     ev = results[results["family"] == "event_test"]
     val = results[results["family"] == "validation"]
@@ -186,7 +241,7 @@ def tests_data(results: pd.DataFrame, events: pd.DataFrame, p, provenance: dict)
         if name == results_mod.REMEASURED:      # other replications than g1.reps: in the rows' notes
             continue
         if name.startswith("power_"):
-            if r["role"] == "primary":
+            if r["role"] == "primary" and r["hypothesis"] in g1.TESTS:
                 power.setdefault(r["hypothesis"], []).append((float(name.split(":")[1]), float(r["estimate"])))
             continue
         item = {"design": name, "hypothesis": r["hypothesis"], "statistic": r["statistic"],
@@ -202,9 +257,11 @@ def tests_data(results: pd.DataFrame, events: pd.DataFrame, p, provenance: dict)
                    "detectable_80": _r(g1.detectable_shift([s for s, _ in pts], [x for _, x in pts]))})
     cal = val[val["measure"] == "g1_calibration:params"]
     cal_sd = val[val["measure"] == "g1_calibration_sigma_d:params"]
-    family = [h for h in p["stats"]["holm_family"]]
-    tested = sorted(set(ev.loc[ev["role"] == "primary", "hypothesis"]))
+    family, left = holm_family(results, list(p["stats"]["holm_family"]))
+    tested_rows = results[results["family"].isin(results_mod.TESTED_FAMILIES)]
+    tested = sorted(set(tested_rows.loc[tested_rows["role"] == "primary", "hypothesis"]))
     failed = [c["hypothesis"] for c in calibrated if not c["pass"]]
+    stayed = [h for h in failed if h in family]
     over = sorted((h, s, v["rate"], v["reps"]) for (h, s), v in verdicts.items() if v["oversized"])
     again = sorted((h, s, v["rate"], v["reps"], v["oversized"]) for (h, s), v in verdicts.items() if v["reps"] != reps)
     lk = lookups(events, p)
@@ -228,13 +285,12 @@ def tests_data(results: pd.DataFrame, events: pd.DataFrame, p, provenance: dict)
                "calibration": {**{r["statistic"]: _r(r["estimate"], 6) for r in cal.to_dict("records")},
                                **{f"sigma_d:{r['statistic']}": _r(r["estimate"], 6)
                                   for r in cal_sd.to_dict("records")}}},
-        "holm": {"family": [h for h in family if h not in failed], "tested": tested,
-                 "untested": [h for h in family if h not in tested and h not in failed], "left_family": failed},
+        "holm": {"family": family, "tested": tested, "untested": [h for h in family if h not in tested],
+                 "left_family": left},
         "lookups": lk,
         "caveats": [
             provisional_caveat(lk),
-            "H5-H7 (the drivers and the implied-versus-realised test) are milestone 4. Until then they enter Holm's "
-            "family as p = 1, so each p_holm here is an upper bound: it can only fall when they are tested.",
+            holm_caveat(family, left, calibrated, stayed, post_gate(results)),
             "Primary rows are equal-weighted means of market-adjusted abnormal log IV (VIX, beta per company). "
             "Precision-weighted rows (BMP, KP, KPP, Patell) test another estimand and are robustness only.",
             "Market-adjusted numbers are aggregates of values computed with the Cboe VIX index (via FRED VIXCLS); "

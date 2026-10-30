@@ -4,7 +4,9 @@
 # Run:  uv run python -m earnings_vol.panel.run
 #
 # Reads (stage cache of this params hash): session, events, eps, market_daily
-# (ln VIX), iv_daily, event_iv, chain_expiry (T1*'s IV inside the window).
+# (ln VIX), iv_daily, event_iv, chain_expiry (T1*'s IV inside the window);
+# since milestone 4 also raw/yfinance/<symbol>.parquet and the rank date's
+# market caps (local, Yahoo) for the regressor columns (panel/regressors.py).
 # Writes, in ADR 0001's order (window rows -> beta -> market-adjusted columns
 # -> event_measures; each table once, at the end):
 #   cache/stage/<hash>/{event_window_obs,event_measures}.parquet + manifests
@@ -18,16 +20,19 @@ import json
 from collections import Counter
 
 import numpy as np
+import pandas as pd
 
-from earnings_vol import params as params_mod, schema, store
+from earnings_vol import config, params as params_mod, schema, store
 from earnings_vol.events import calendar
 from earnings_vol.events.run import DERIVED, stage_dir
+from earnings_vol.ingest import prices, universe
 from earnings_vol.measures import tables
-from earnings_vol.panel import window
+from earnings_vol.panel import regressors, window
 
 
-def build(p, t: dict) -> dict:
-    """The two tables and the report, from the stage tables in `t`."""
+def build(p, t: dict, yahoo: dict | None = None, caps: dict | None = None) -> dict:
+    """The two tables and the report, from the stage tables in `t`; `yahoo` ({security_id: Yahoo
+    rows}) and `caps` ({security_id: market cap on the rank date}) feed the _yf regressors."""
     sessions = calendar.Sessions(t["session"]["session_date"].tolist())
     look = window.lookups(t["iv_daily"], t["market_daily"], sessions)
     pan = window.build_panel(t["events"], t["eps"], look, sessions, p["windows"])
@@ -43,7 +48,9 @@ def build(p, t: dict) -> dict:
     anchors = tables.event_anchors(t["events"], sessions)
     front = window.front_fixed_ivs(pan, t["event_iv"], chains, anchors, sessions, int(p["iv"]["tau_min_sessions"]))
     ewo = window.window_table(pan, m, front, sessions, schema.EVENT_WINDOW_OBS.names)
-    em = window.measures_table(t["events"], t["event_iv"], pan, m, schema.EVENT_MEASURES.names)
+    regs = regressors.regressor_table(t["events"], t["eps"], t["event_iv"], t["iv_daily"], ce, t["market_daily"],
+                                      sessions, yahoo or {}, caps or {}, p["drivers"])
+    em = window.measures_table(t["events"], t["event_iv"], pan, m, schema.EVENT_MEASURES.names, regs)
     smp = pan.events["sample"].to_numpy(object)
     rep = {
         "event_window_obs_rows": int(len(ewo)), "events_with_window": int(len(pan.events)),
@@ -60,8 +67,32 @@ def build(p, t: dict) -> dict:
                      .astype(float)),
         "rhat": {k: {"rho": [round(float(x), 4) for x in v[0]], "flag": v[1]} for k, v in m["rhat"].items()},
         "front_fixed_interpolated_rows": int(front[1].sum()),
+        "regressors": {c: int(em[c].notna().sum()) for c in regressors.COLUMNS},
+        "regressors_daily_crush": {c: int(em.loc[_primary(t["events"], em), c].notna().sum())
+                                   for c in regressors.COLUMNS},
+        "vix_regime_daily": {k: int(v) for k, v in em.loc[(t["events"]["sample"] == "daily").to_numpy(),
+                                                         "vix_regime"].value_counts().items()},
     }
     return {"event_window_obs": ewo, "event_measures": em, "report": rep}
+
+
+def _primary(events: pd.DataFrame, em: pd.DataFrame) -> np.ndarray:
+    """The rows of the primary sample (daily, eligible_crush); em is 1:1 with events, same order."""
+    return ((events["sample"] == "daily").to_numpy() & em["eligible_crush"].to_numpy(bool))
+
+
+def yahoo_inputs(p, security_ids: list[str]) -> tuple[dict, dict]:
+    """({security_id: Yahoo rows}, {security_id: market cap on the rank date}), local files only:
+    raw/yfinance/<symbol>.parquet and raw/yfinance/market_cap_<rank_date>.csv (ingest/run.py)."""
+    raw = config.raw_dir()
+    yahoo = {}
+    for s in security_ids:
+        path = raw / "yfinance" / f"{universe.yahoo_symbol(s)}.parquet"
+        if path.exists():
+            yahoo[s] = prices.load(universe.yahoo_symbol(s), raw)
+    caps_df = pd.read_csv(raw / "yfinance" / f"market_cap_{p['universe']['rank_date']}.csv")
+    caps = {s: float(c) for s, c in zip(caps_df["symbol"], caps_df["market_cap_yf"]) if pd.notna(c)}
+    return yahoo, caps
 
 
 def _q(a: np.ndarray) -> dict:
@@ -77,7 +108,8 @@ def main(argv: list[str] | None = None) -> int:
     sd = stage_dir(p)
     names = ("session", "events", "eps", "market_daily", "iv_daily", "event_iv", "chain_expiry")
     t = {n: store.read_table(sd / f"{n}.parquet", schema.REGISTRY[n]) for n in names}
-    out = build(p, t)
+    yahoo, caps = yahoo_inputs(p, sorted(set(t["events"]["security_id"])))
+    out = build(p, t, yahoo, caps)
     commits = {"options": p["dolt"]["options_commit"], "earnings": p["dolt"]["earnings_commit"]}
     for name in ("event_window_obs", "event_measures"):
         table = schema.REGISTRY[name]

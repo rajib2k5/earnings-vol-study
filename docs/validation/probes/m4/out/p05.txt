@@ -1,0 +1,16 @@
+price_ref                own n  1200 committed n  1200 only-own 0 only-committed 0 max|diff| 0.00e+00 ok
+surprise_scaled          own n  1198 committed n  1198 only-own 0 only-committed 0 max|diff| 0.00e+00 ok
+abs_surprise_scaled_w    own n  1198 committed n  1198 only-own 0 only-committed 0 max|diff| 0.00e+00 ok
+sue_hist                 own n   998 committed n   998 only-own 0 only-committed 0 max|diff| 0.00e+00 ok
+sue_hist_n               own n   998 committed n   998 only-own 0 only-committed 0 max|diff| 0.00e+00 ok
+sue_hist: previous quarters dated on/after the event's own effective day 0: 0; same-day ties within a security: 0
+ln_mcap_yf               own n  1307 committed n  1307 only-own 0 only-committed 0 max|diff| 0.00e+00 ok
+ln_mcap_yf: day -1 sessions after the rank date: 0
+daily eligible AMC: n 182; pre == day -1: 182; post == day 0: 182; pre >= day 0: 0; announce date == day 0: 0; announce date == day -1: 182
+daily eligible BMO: n 165; pre == day -1: 165; post == day 0: 165; pre >= day 0: 0; announce date == day 0: 162; announce date == day -1: 0
+every event with a pre session and day 0: pre >= day 0 in 0 of 1200
+model: N 347 K 21 z means max 2.6e-15 z sd (ddof 1) [1.0, 1.0, 1.0, 1.0]
+sector dummies 8 of 9 sectors; season dummies 8 of 9 seasons; dropped levels: ['Communication Services'] ['2024Q4']
+size column == zscore(ln_mcap_yf): True
+primary model rows == H1 set with every regressor: 347
+mismatching columns: 0

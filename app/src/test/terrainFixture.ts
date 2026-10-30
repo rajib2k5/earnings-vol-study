@@ -1,7 +1,7 @@
 import { PROVENANCE_FIXTURE } from './metaFixture'
 
 /**
- * Hand-built `data/terrain.json` body for tests (schema 0.4.0), invented values. Three companies and
+ * Hand-built `data/terrain.json` body for tests (schema 0.5.0), invented values. Three companies and
  * three event days; the middle company has no data on day 0 (null), which must become a hole in the mesh.
  */
 export const TERRAIN_DATA_FIXTURE = {
@@ -25,7 +25,7 @@ export const TERRAIN_DATA_FIXTURE = {
 }
 
 export const TERRAIN_FIXTURE = {
-  schema_version: '0.4.0',
+  schema_version: '0.5.0',
   kind: 'terrain',
   generated_at: '2031-03-04T05:06:07Z',
   source_commit: 'fix1234',

@@ -1,0 +1,32 @@
+H1 events 347, firms 50, sectors 9, calendar dates 538
+1. rho-bar 0.3006 (eventtests.pynnonen_rhobar 0.3006)
+   dates with >= 2 events: 489; mean events per such date 20.1
+   share of dates with a positive cross-product: 0.759
+   top  1 dates: 0.086 of the cross-product, 0.005 of the pairs
+   top  5 dates: 0.274 of the cross-product, 0.023 of the pairs
+   top 10 dates: 0.392 of the cross-product, 0.047 of the pairs
+   top 25 dates: 0.570 of the cross-product, 0.106 of the pairs
+   top 50 dates: 0.706 of the cross-product, 0.201 of the pairs
+   rho-bar without the top 10 dates: 0.1920
+   per-date mean pair product: median 0.093, quartiles 0.001 / 0.327
+2. top 10 dates by cross-product (date, events, mean z, mean pair product, share snapshot not that session or stale, share zero ln cm30 change):
+   2025-11-24  n  37  mean z -2.27  pair +5.13  not-that-session/stale 0.00  zero change 0.00
+   2026-06-05  n  41  mean z -2.03  pair +4.09  not-that-session/stale 0.00  zero change 0.00
+   2024-12-19  n  33  mean z +1.66  pair +2.73  not-that-session/stale 0.00  zero change 0.00
+   2026-03-09  n  31  mean z +1.71  pair +2.91  not-that-session/stale 0.00  zero change 0.00
+   2026-03-10  n  32  mean z -1.63  pair +2.63  not-that-session/stale 0.00  zero change 0.00
+   2024-12-18  n  34  mean z -1.44  pair +2.07  not-that-session/stale 0.00  zero change 0.00
+   2026-06-08  n  41  mean z +1.09  pair +1.18  not-that-session/stale 0.00  zero change 0.00
+   2025-03-10  n  38  mean z +1.13  pair +1.24  not-that-session/stale 0.00  zero change 0.00
+   2025-03-14  n  37  mean z -1.13  pair +1.27  not-that-session/stale 0.00  zero change 0.00
+   2025-06-23  n  33  mean z -1.27  pair +1.60  not-that-session/stale 0.00  zero change 0.00
+3. rho-bar after removing a factor (per-firm loading, residuals rescaled):
+   all-firm leave-one-out factor: -0.0282 (loadings median 0.89, range 0.48 to 1.25)
+   sector leave-one-out factor:   0.0301
+   sector factor after the all-firm one: -0.0245
+   for scale: G1's calibration measured the same-date correlation 0.294 across sectors and 0.360 within
+4. VIX:
+   rho-bar of the raw changes (no market adjustment): 0.3741
+   rho-bar with beta = 1 for every firm:              0.6578
+   corr(date mean z, change of ln VIX) over 361 dates with >= 10 events: -0.016
+   corr(date mean raw z, change of ln VIX): +0.681

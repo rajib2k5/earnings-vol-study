@@ -68,7 +68,7 @@ describe('HeatmapPage: loading and errors', () => {
   })
   it('shows an error for the previous schema version, another kind and a ragged grid', async () => {
     const { unmount } = render(<HeatmapPage fetchImpl={serving({ ...HEATMAP_FIXTURE, schema_version: '0.3.0' })} />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.3.0": this app only understands "0.4.0"')
+    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.3.0": this app only understands "0.5.0"')
     unmount()
     const other = render(<HeatmapPage fetchImpl={serving({ ...HEATMAP_FIXTURE, kind: 'tests' })} />)
     expect(await screen.findByRole('alert')).toHaveTextContent('has kind "tests", expected "heatmap"')

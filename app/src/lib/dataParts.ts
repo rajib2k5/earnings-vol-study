@@ -1,6 +1,6 @@
 /**
- * Pieces shared by the parsers of the milestone-3 files (`results.ts` for tests.json, `eventPaths.ts`,
- * `terrainData.ts`, `heatmap.ts`): the `lookups` and `caveats` fields every one of them carries,
+ * Pieces shared by the parsers of the milestone-3 and milestone-4 files (`results.ts` for tests.json, `eventPaths.ts`,
+ * `terrainData.ts`, `heatmap.ts`, `drivers.ts`, `impliedRealised.ts`): the `lookups` and `caveats` fields every one of them carries,
  * checked arrays and grids, and the fetch + envelope + kind + shape pipeline. Like `validate.ts` it is
  * pure: nothing throws, nothing is coerced, and a failure comes back as `{ ok: false, error }` with
  * a message that names the rule.
@@ -51,6 +51,25 @@ export function parseArrayOf<T>(input: unknown, where: string, test: (x: unknown
     return fail(`${where} must have ${length.n} entries (one per ${length.per}), got ${input.length}`)
   }
   return { ok: true, data: [...(input as T[])] }
+}
+
+/**
+ * An array of objects, each with exactly the keys `keys`; `build` then checks the fields of one record
+ * (`at` is its place in the file, e.g. "g1.calibrated[2]", for the messages) and returns it.
+ */
+export function parseRecords<T>(input: unknown, where: string, keys: readonly string[], build: (o: Record<string, unknown>, at: string) => Parsed<T>): Parsed<T[]> {
+  if (!Array.isArray(input)) return fail(`${where} must be an array, got ${show(input)}`)
+  const out: T[] = []
+  for (const [i, o] of input.entries()) {
+    const at = `${where}[${i}]`
+    if (!isObject(o)) return fail(`${at} must be an object, got ${show(o)}`)
+    const problem = keyProblem(at, o, keys)
+    if (problem) return fail(problem)
+    const r = build(o, at)
+    if (!r.ok) return r
+    out.push(r.data)
+  }
+  return { ok: true, data: out }
 }
 
 /**

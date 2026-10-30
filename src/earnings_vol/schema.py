@@ -84,7 +84,7 @@ HYPOTHESES = ("H1", "H2", "H3", "H4", "H5", "H6", "H7")
 ROLES = ("primary", "robustness", "exploratory")
 ESTIMANDS = ("equal_weighted", "precision_weighted")
 RESULT_SAMPLES = ("daily", "mixed", "coarse", "cboe5")
-ADJUSTMENTS = ("market", "mean")
+ADJUSTMENTS = ("market", "mean", "none")   # "none": milestone 4, H7's unadjusted moves
 
 
 @dataclass(frozen=True)

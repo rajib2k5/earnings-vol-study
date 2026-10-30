@@ -127,3 +127,20 @@ table.heat th[scope="row"] { text-align: right; position: sticky; left: 0; backg
 .heat-empty { background: transparent; outline: 1px dashed var(--line); outline-offset: -2px; }
 .heat-legend { display: flex; align-items: center; gap: .5rem; font-size: .72rem; color: var(--muted); margin: 0 0 .8rem; }
 .heat-legend-bar { flex: 0 1 14rem; height: .6rem; border-radius: 2px; border: 1px solid var(--line); }
+
+/* ---- drivers page (DriversPage) and implied-vs-realised page (ImpliedRealisedPage) ---- */
+.gate-note { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; background: var(--surface); padding: .6rem 1rem; margin: 0 0 1rem; max-width: 70ch; }
+.note-cell { min-width: 18rem; max-width: 30rem; }
+.model-badge { margin-left: .6rem; vertical-align: middle; }
+.forest .row-label { fill: var(--ink); font-family: var(--mono); font-size: 10px; }
+.forest .forest-ci { stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+.forest .forest-point { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.forest .forest-point.withheld { fill: var(--surface); stroke: var(--accent); }
+.scatter .diagonal { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.mark-bmo { fill: var(--teal); stroke: var(--surface); stroke-width: 1.5; }
+.mark-amc { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.mark-unknown { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.legend { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; list-style: none; padding: 0; margin: 0 0 .6rem; }
+.legend-mark { vertical-align: middle; }
+.implied .scatter { max-width: 560px; }
+.results table caption { caption-side: top; text-align: left; padding: 0 0 .4rem; }

@@ -45,9 +45,10 @@ EXPECTED_DATA_SOURCES = [
     },
     {
         "name": "FRED VIXCLS (Cboe VIX)",
-        "uses": "the VIX close, for the market adjustment; committed: aggregates of VIX-adjusted values (the "
-                "market-adjusted rows of results.parquet, tests.json and event_paths.json); the VIX series and every "
-                "per-event VIX-adjusted value stay local",
+        "uses": "the VIX close, for the market adjustment and (milestone 4) the VIX tercile label at day -1; "
+                "committed: aggregates of VIX-adjusted values (the market-adjusted rows of results.parquet, "
+                "tests.json, event_paths.json and drivers.json) and the tercile label "
+                "event_measures.vix_regime; the VIX series and every per-event VIX-adjusted value stay local",
         "url": "https://fred.stlouisfed.org/series/VIXCLS",
         "licence": "Cboe copyright (see source)",
         "committed": True,
@@ -62,7 +63,8 @@ EXPECTED_DATA_SOURCES = [
     {
         "name": "Yahoo Finance",
         "uses": "daily prices and market caps, read with yfinance (local); committed: two labels made from "
-                "them, security.in_universe and timing_check.gap_verdict_yf",
+                "them, security.in_universe and timing_check.gap_verdict_yf, and since milestone 4 the regression "
+                "coefficients of SIZE (ln market cap at day -1) in results.parquet and drivers.json",
         "url": "https://finance.yahoo.com/",
         "licence": "Yahoo terms of service (see source)",
         "committed": True,
@@ -87,8 +89,10 @@ EXPECTED_DATA_LICENCE = {
         "Bill Secondary Market Rate, Discount Basis [DTB3], retrieved from FRED, Federal Reserve Bank "
         "of St. Louis, https://fred.stlouisfed.org/series/DTB3, 2026-10-29 (public domain). Not under "
         "CC BY-SA: the labels made from Yahoo Finance prices (security.in_universe and "
-        "timing_check.gap_verdict_yf, and the share of gap contradictions built from it) fall under "
-        "Yahoo's terms of service. The market-adjusted aggregates (results.parquet, tests.json, event_paths.json) "
+        "timing_check.gap_verdict_yf, and the share of gap contradictions built from it) and the regression "
+        "coefficients of ln market cap (SIZE, results.parquet and drivers.json) fall under Yahoo's terms of "
+        "service. The market-adjusted aggregates (results.parquet, tests.json, event_paths.json, drivers.json) and "
+        "the VIX tercile label event_measures.vix_regime "
         "are computed with FRED VIXCLS (Cboe VIX): Chicago Board Options Exchange, CBOE Volatility Index: VIX "
         "[VIXCLS], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/VIXCLS, "
         "2026-10-29; they fall under Cboe's terms, not CC BY-SA. No Cboe VX* data is committed."
@@ -110,7 +114,7 @@ def run_export(exporter, tmp_path, kind="meta"):
 def test_writes_envelope_with_five_keys(exporter, tmp_path):
     doc = run_export(exporter, tmp_path)
     assert set(doc) == {"schema_version", "kind", "generated_at", "source_commit", "data"}
-    assert doc["schema_version"] == "0.4.0"
+    assert doc["schema_version"] == "0.5.0"
     assert doc["kind"] == "meta"
     # ISO-8601 UTC with a trailing Z, e.g. 2026-10-27T12:00:00Z
     assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", doc["generated_at"])
@@ -122,7 +126,7 @@ def test_meta_data_fields(exporter, tmp_path):
     assert set(data) == {"project", "milestone", "title", "data_sources", "data_licence", "sample", "params",
                          "files", "provenance"}
     assert data["project"] == "earnings-vol-study"
-    assert data["milestone"] == 3
+    assert data["milestone"] == 4
     assert data["title"] == "Earnings and implied volatility: an event study"
 
 
@@ -229,7 +233,8 @@ def without_code_commit(data: dict) -> dict:
     return out
 
 
-@pytest.mark.parametrize("kind", ["meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain", "heatmap"])
+@pytest.mark.parametrize("kind", ["meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain", "heatmap",
+                                  "drivers", "implied_vs_realised"])
 def test_committed_json_matches_what_the_exporter_writes(exporter, kind):
     # Nothing else ties the committed files to the exporter: the app reads the
     # files, the exporter owns the content, and a number edited by hand in a file
@@ -245,7 +250,7 @@ def test_committed_json_matches_what_the_exporter_writes(exporter, kind):
              **exporter.BUILDERS}
     fresh = build[kind](tables, p, "x")
     assert set(committed) == {"schema_version", "kind", "generated_at", "source_commit", "data"}
-    assert committed["schema_version"] == "0.4.0"
+    assert committed["schema_version"] == "0.5.0"
     assert committed["kind"] == kind
     assert committed["generated_at"] and committed["source_commit"]
     assert committed["data"]["provenance"]["code_commit"]
@@ -259,7 +264,8 @@ def test_meta_lists_exactly_the_files_written(exporter, tmp_path):
     assert exporter.main(["--out-dir", str(out)]) == 0
     meta = json.loads((out / "meta.json").read_text(encoding="utf-8"))
     assert sorted(meta["data"]["files"]) == sorted(f.stem for f in out.glob("*.json")) == [
-        "event_paths", "heatmap", "iv_measures", "meta", "sample_funnel", "terrain", "tests"]
+        "drivers", "event_paths", "heatmap", "implied_vs_realised", "iv_measures", "meta", "sample_funnel", "terrain",
+        "tests"]
 
 
 def test_funnel_and_meta_agree_on_the_primary_sample(exporter, tmp_path):
@@ -273,7 +279,8 @@ def test_funnel_and_meta_agree_on_the_primary_sample(exporter, tmp_path):
 def test_exported_json_has_no_restricted_field(exporter, tmp_path):
     # No _yf or _cboe KEY appears in the app files, at any depth: the funnel reports the share of gap
     # contradictions under a plain name (the owner allowed the values themselves on 2026-10-29).
-    for kind in ("meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain", "heatmap"):
+    for kind in ("meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain", "heatmap", "drivers",
+                 "implied_vs_realised"):
         text = json.dumps(run_export(exporter, tmp_path, kind))
         keys = re.findall(r'"([A-Za-z0-9_]+)":', text)
         assert not [k for k in keys if k.endswith(("_yf", "_cboe"))], kind

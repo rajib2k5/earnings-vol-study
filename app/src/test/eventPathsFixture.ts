@@ -2,7 +2,7 @@ import { PROVENANCE_FIXTURE } from './metaFixture'
 
 /**
  * Hand-built `data/event_paths.json` body for tests, in the shape the Python exporter writes (schema
- * 0.4.0). Names, units, numbers and caveats are invented ("Fixture ...") so a page that still showed
+ * 0.5.0). Names, units, numbers and caveats are invented ("Fixture ...") so a page that still showed
  * the real file's text, or computed anything itself, would not match. Five event days, six series
  * (market and mean x all, BMO, AMC) and three events:
  *   E1 BMO  [1, 2, 3, 4, 5]        E2 AMC  [0, 1, null, 3, 4]        E3 BMO  [5, 4, 3, 2, 1]
@@ -43,7 +43,7 @@ export const EVENT_PATHS_DATA_FIXTURE = {
 }
 
 export const EVENT_PATHS_FIXTURE = {
-  schema_version: '0.4.0',
+  schema_version: '0.5.0',
   kind: 'event_paths',
   generated_at: '2031-03-04T05:06:07Z',
   source_commit: 'fix1234',

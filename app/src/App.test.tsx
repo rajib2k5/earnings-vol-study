@@ -4,9 +4,11 @@ import App from './App'
 import { ARCH_LAYERS } from './lib/architecture'
 import { PITCH, PROJECT_TITLE, QUESTIONS } from './lib/studyContent'
 import { resetMemoryFallback, safeStorage } from './lib/storage'
+import { DRIVERS_DATA_FIXTURE, DRIVERS_FIXTURE } from './test/driversFixture'
 import { EVENT_PATHS_DATA_FIXTURE, EVENT_PATHS_FIXTURE } from './test/eventPathsFixture'
 import { FUNNEL_DATA_FIXTURE, FUNNEL_FIXTURE } from './test/funnelFixture'
 import { HEATMAP_DATA_FIXTURE, HEATMAP_FIXTURE } from './test/heatmapFixture'
+import { IMPLIED_REALISED_DATA_FIXTURE, IMPLIED_REALISED_FIXTURE } from './test/impliedRealisedFixture'
 import { IV_MEASURES_DATA_FIXTURE, IV_MEASURES_FIXTURE } from './test/ivMeasuresFixture'
 import { jsonFetch, META_DATA_FIXTURE, META_FIXTURE } from './test/metaFixture'
 import { TESTS_DATA_FIXTURE, TESTS_FIXTURE } from './test/resultsFixture'
@@ -47,7 +49,7 @@ describe('App (integration)', () => {
 
   it('shows the milestone and source commit from data/meta.json in the footer', async () => {
     render(<App />)
-    expect(await screen.findByText(/data contract 0\.4\.0 · milestone M0 · source commit abc1234/)).toBeInTheDocument()
+    expect(await screen.findByText(/data contract 0\.5\.0 · milestone M4 · source commit abc1234/)).toBeInTheDocument()
     expect(fetch).toHaveBeenCalledWith('data/meta.json', { cache: 'no-cache' }) // relative URL (works under a sub-path), always revalidated
   })
 
@@ -75,7 +77,7 @@ describe('App (integration)', () => {
     vi.stubGlobal('fetch', server)
     render(<App />)
     const nav = within(screen.getByRole('navigation', { name: 'Primary' }))
-    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['About', 'Sample', 'IV measures', 'Results', 'Crush paths', 'Heatmap', 'Architecture', '3D view', 'Metrics'])
+    expect(nav.getAllByRole('link').map((a) => a.textContent)).toEqual(['About', 'Sample', 'IV measures', 'Results', 'Drivers', 'Implied vs realised', 'Crush paths', 'Heatmap', 'Architecture', '3D view', 'Metrics'])
     expect(server).not.toHaveBeenCalledWith('data/sample_funnel.json', expect.anything()) // not fetched until the page is opened
     fireEvent.click(nav.getByRole('link', { name: 'Sample' }))
     const steps = await screen.findByRole('table', { name: 'Funnel steps' })
@@ -154,6 +156,55 @@ describe('App (integration)', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Results' }))
     expect(await screen.findByText(/results could not be shown/i)).toHaveTextContent('data/tests.json returned HTTP 404')
     expect(screen.queryByRole('table', { name: 'Primary family' })).toBeNull()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('has a Drivers page, after Results, that draws drivers.json (the fixture here) under a provisional-labels notice', async () => {
+    const server = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => (url === 'data/drivers.json' ? DRIVERS_FIXTURE : META_FIXTURE) }) as Response)
+    vi.stubGlobal('fetch', server)
+    render(<App />)
+    expect(server).not.toHaveBeenCalledWith('data/drivers.json', expect.anything()) // not fetched until the page is opened
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Primary' })).getByRole('link', { name: 'Drivers' }))
+    const gate = await screen.findByRole('table', { name: 'G1 calibration' })
+    expect(server).toHaveBeenCalledWith('data/drivers.json', { cache: 'no-cache' })
+    expect(within(gate).getAllByRole('row')).toHaveLength(DRIVERS_DATA_FIXTURE.g1.calibrated.length + 1)
+    expect(screen.getAllByRole('table', { name: /^Model \d terms$/ })).toHaveLength(DRIVERS_DATA_FIXTURE.models.length)
+    const notice = screen.getByRole('complementary', { name: 'Provisional timing labels' })
+    expect(notice).toHaveTextContent('Timing labels are provisional')
+    // every caveat is in the notice (the one on the exploratory p and q also sits next to the coefficient tables)
+    for (const c of DRIVERS_DATA_FIXTURE.caveats) expect(within(notice).getByText(c)).toBeInTheDocument()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('shows the Drivers page error, and keeps the app usable, when drivers.json is missing', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (url === 'data/meta.json' ? ({ ok: true, status: 200, json: async () => META_FIXTURE } as Response) : ({ ok: false, status: 404 } as Response))))
+    render(<App />)
+    fireEvent.click(screen.getByRole('link', { name: 'Drivers' }))
+    expect(await screen.findByText(/drivers could not be shown/i)).toHaveTextContent('data/drivers.json returned HTTP 404')
+    expect(screen.queryByRole('table', { name: 'G1 calibration' })).toBeNull()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('has an Implied vs realised page, after Drivers, that draws implied_vs_realised.json (the fixture here) under a provisional-labels notice', async () => {
+    const server = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => (url === 'data/implied_vs_realised.json' ? IMPLIED_REALISED_FIXTURE : META_FIXTURE) }) as Response)
+    vi.stubGlobal('fetch', server)
+    render(<App />)
+    expect(server).not.toHaveBeenCalledWith('data/implied_vs_realised.json', expect.anything())
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Primary' })).getByRole('link', { name: 'Implied vs realised' }))
+    expect(await screen.findByRole('img', { name: /Scatter of the realised absolute move against the expected absolute move, 4 events/ })).toBeInTheDocument()
+    expect(server).toHaveBeenCalledWith('data/implied_vs_realised.json', { cache: 'no-cache' })
+    expect(screen.getByRole('table', { name: 'Summary' })).toBeInTheDocument()
+    expect(screen.getByRole('complementary', { name: 'Provisional timing labels' })).toHaveTextContent('Timing labels are provisional')
+    for (const c of IMPLIED_REALISED_DATA_FIXTURE.caveats) expect(screen.getByText(c)).toBeInTheDocument()
+    await screen.findByText(/source commit abc1234/)
+  })
+
+  it('shows the Implied vs realised page error, and keeps the app usable, when implied_vs_realised.json is missing', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (url === 'data/meta.json' ? ({ ok: true, status: 200, json: async () => META_FIXTURE } as Response) : ({ ok: false, status: 404 } as Response))))
+    render(<App />)
+    fireEvent.click(screen.getByRole('link', { name: 'Implied vs realised' }))
+    expect(await screen.findByText(/implied and realised moves could not be shown/i)).toHaveTextContent('data/implied_vs_realised.json returned HTTP 404')
+    expect(screen.queryByRole('table', { name: 'Summary' })).toBeNull()
     await screen.findByText(/source commit abc1234/)
   })
 

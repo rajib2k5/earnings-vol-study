@@ -1,7 +1,15 @@
 # ADR 0004: Event window, baseline and the definition of abnormal IV
 
 - **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review** (note below),
-  and 2026-10-29 after the milestone-1 and milestone-3 reviews (notes below)
+  and 2026-10-29 after the milestone-1 and milestone-3 reviews (notes below). *Milestone 4 (2026-10-29):* the market
+  model is unchanged, but its residual is not free of common movement: the crush baselines' ρ̂̄ of 0.30 is one
+  common date component, linearly unrelated to Δln VIX (a leave-one-firm-out factor takes it to −0.03, which one pure
+  common factor would also give). The date-mean residual's correlation with Δln VIX (−0.016) is near zero by
+  construction, because β is each company's least-squares slope on Δln VIX, so it does not show that β is correct;
+  VIX entering in another form is not ruled out. *Softened 2026-10-29 after the milestone-4 review (fix R6).* Adding
+  an equal-weighted IV index as a second market
+  factor would change every market-adjusted number and is left to the owner
+  ([milestone 4 page](../milestones/04-drivers.md) §6.6, concept note 15).
 - **Date:** 2026-10-28
 - **Related:** [0002 day 0](0002-day-zero-convention.md), [0003 IV measures](0003-iv-measures.md),
   [0005 tests](0005-statistical-test-suite.md), [data model](../architecture/data-model.md) (`event_window_obs`, `event_measures`)

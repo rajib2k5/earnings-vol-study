@@ -8,6 +8,11 @@
 #   - the CI multiplier compared with 1.96 instead of t_{df, 0.975}
 #   - a Wald row accepted without its numerator df
 #   - schema.RESULTS without its invariant (store.write_table accepts a broken row)
+# Added at milestone 4 (H7's Wald rows; each applied to a scratch copy, seen to fail, the file
+# restored and its SHA-256 checked):
+#   - twoway_date_wald left out of the clustered rows (its df not checked against the clusters)
+#   - a Wald row's p checked against the t tail (is_t not excluding Wald rows)
+#   - cluster_date_wald treated as two-way (df from min of the cluster counts)
 
 import math
 
@@ -71,3 +76,33 @@ def test_the_writer_refuses_a_results_table_that_breaks_it(tmp_path):
         store.write_table(bad, schema.RESULTS, tmp_path / "r2.parquet", params_hash="h", dolt_commits={})
     with pytest.raises(store.SchemaError):
         store.write_derived(bad, schema.RESULTS, tmp_path)
+
+
+def wald_row(**kw):
+    # H7's two-way Wald: n_clusters 30 (dates), n_clusters_firm 12 -> df = 11; F = 3.0 on (2, 11).
+    r = dict(family="regression", hypothesis="H7", role="primary", measure="r0_squared",
+             statistic="twoway_date_wald", sample="daily", subgroup_key="all", subgroup_value="all",
+             adjustment="none", model_id="implied_realised", term="a=0,b=1", n=100, n_clusters=30,
+             n_clusters_firm=12, df=11.0, df_num=2.0, stat=3.0, p_value=stats.f.sf(3.0, 2, 11),
+             params_hash="h", code_commit="c")
+    r.update(kw)
+    return results.row(**r)
+
+
+def test_wald_rows_of_h7():
+    assert invariants.row_problems(wald_row()) == []
+    # df from the clusters: 29 is the date count - 1, wrong for a two-way row.
+    bad = invariants.row_problems(wald_row(df=29.0, p_value=stats.f.sf(3.0, 2, 29)))
+    assert any("min(n_clusters, n_clusters_firm) - 1 = 11" in p for p in bad)
+    # A chi-square p (statsmodels' default use_t=False) breaks the F rule.
+    assert any("F(2.0, 11.0)" in p for p in invariants.row_problems(wald_row(p_value=stats.chi2.sf(6.0, 2))))
+    # The one-way date Wald: df = n_clusters - 1 = 29.
+    one = wald_row(statistic="cluster_date_wald", n_clusters_firm=None, df=29.0, p_value=stats.f.sf(3.0, 2, 29))
+    assert invariants.row_problems(one) == []
+    assert invariants.row_problems(dict(one, df=11.0, p_value=stats.f.sf(3.0, 2, 11)))
+    assert any("cluster counts" in p for p in invariants.row_problems(wald_row(n_clusters_firm=None)))
+    # A withheld row (no p-value) passes; a regression coefficient row is a clustered t.
+    assert invariants.row_problems(wald_row(statistic="cluster_date_wald", n_clusters_firm=None, df=29.0,
+                                            p_value=None)) == []
+    coef = good_row(family="regression", hypothesis="H5", model_id="crush_drivers", term="abs_surprise")
+    assert invariants.row_problems(coef) == []

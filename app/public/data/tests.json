@@ -2,10 +2,10 @@
   "data": {
     "caveats": [
       "Timing labels are provisional: 20 press releases were looked up and every other event keeps the calendar's label (not_checked) until SEC EDGAR is set up, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
-      "H5-H7 (the drivers and the implied-versus-realised test) are milestone 4. Until then they enter Holm's family as p = 1, so each p_holm here is an upper bound: it can only fall when they are tested.",
+      "Holm runs over H1, H2, H3, H4, H5, H6, H7 (7 hypotheses). H5 (9.55%), H6 (8.10%), H7 (16.15%) failed gate G1's regression size check, which ran before their results were computed: their statistics are liberal on this design, so a rejection by them would not be trusted. They stay in the declared family with their real p-values (ADR 0005 \u00a75, dated note of 2026-10-29); their rows are in drivers.json. Sensitivity, not binding: over the family without them (H1, H2, H3, H4) the Holm p would be H1 2.32e-22, H2 0.02344, H3 1.0, H4 1.0, H2's season cut 0.04688.",
       "Primary rows are equal-weighted means of market-adjusted abnormal log IV (VIX, beta per company). Precision-weighted rows (BMP, KP, KPP, Patell) test another estimand and are robustness only.",
       "Market-adjusted numbers are aggregates of values computed with the Cboe VIX index (via FRED VIXCLS); see DATA.md for Cboe's terms.",
-      "Gate G1's calibrated design finds these robustness rows oversized (rejection rate under the null above the band's upper edge for the replications it was measured on: 6.30% at 2,000, 5.57% at 10,000): H1 bmp_t 27.55%; H1 cluster_date_t 25.15%; H1 gen_sign_z 21.90%; H1 kp_ow_t 17.40%; H1 kpp_t 17.55%; H1 patell_z 65.75%; H1 rank_t 39.45%; H4 gen_sign_z 5.68% (on 10,000); H4 rank_t 13.65%. As ADR 0005 \u00a74 does for rows known to be mis-sized, their p-values and intervals are withheld (null; g1_size and g1_reps give the rate and its replications instead) and their estimates are shown.",
+      "Gate G1's calibrated design finds these robustness rows oversized (rejection rate under the null above the band's upper edge for the replications it was measured on: 6.30% at 2,000, 5.57% at 10,000): H1 bmp_t 27.55%; H1 cluster_date_t 25.15%; H1 gen_sign_z 21.90%; H1 kp_ow_t 17.40%; H1 kpp_t 17.55%; H1 patell_z 65.75%; H1 rank_t 39.45%; H4 gen_sign_z 5.68% (on 10,000); H4 rank_t 13.65%; H5 cluster_date_t 18.45%; H5 twoway_date_t:mean_adj 9.65%; H6 cluster_date_t 20.10%; H6 twoway_date_t:mean_adj 8.35%; H7 cluster_date_wald 17.00%. As ADR 0005 \u00a74 does for rows known to be mis-sized, their p-values and intervals are withheld (null; g1_size and g1_reps give the rate and its replications instead) and their estimates are shown.",
       "Robustness rates within one point of the 6.30% bar on 2,000 replications are re-measured on more replications and decided against that count's bar (ADR 0005 \u00a74): H4 bmp_t 5.34% on 10,000, p-value kept; H4 cluster_date_t 4.98% on 10,000, p-value kept; H4 gen_sign_z 5.68% on 10,000, withheld."
     ],
     "g1": {
@@ -37,6 +37,24 @@
           "pass": true,
           "rejection_rate": 0.046,
           "statistic": "twoway_date_t"
+        },
+        {
+          "hypothesis": "H5",
+          "pass": false,
+          "rejection_rate": 0.0955,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "hypothesis": "H6",
+          "pass": false,
+          "rejection_rate": 0.081,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "hypothesis": "H7",
+          "pass": false,
+          "rejection_rate": 0.1615,
+          "statistic": "twoway_date_wald"
         }
       ],
       "calibration": {
@@ -3390,6 +3408,370 @@
           "primary": true,
           "rejection_rate": 0.046,
           "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.0625,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H5",
+          "primary": true,
+          "rejection_rate": 0.087,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.0745,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.062,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H5",
+          "primary": true,
+          "rejection_rate": 0.088,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.084,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.061,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H5",
+          "primary": true,
+          "rejection_rate": 0.075,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.072,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.054,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H5",
+          "primary": true,
+          "rejection_rate": 0.0725,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.0795,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.0785,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H5",
+          "primary": true,
+          "rejection_rate": 0.08,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.0875,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.1845,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H5",
+          "primary": true,
+          "rejection_rate": 0.0955,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.0965,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "calibrated_random_scale",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.1745,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "calibrated_random_scale",
+          "hypothesis": "H5",
+          "primary": true,
+          "rejection_rate": 0.082,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "calibrated_random_scale",
+          "hypothesis": "H5",
+          "primary": false,
+          "rejection_rate": 0.083,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.0575,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H6",
+          "primary": true,
+          "rejection_rate": 0.0745,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D0",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.065,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.0545,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H6",
+          "primary": true,
+          "rejection_rate": 0.0655,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.0595,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.0555,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H6",
+          "primary": true,
+          "rejection_rate": 0.069,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D2+common_ar0.5",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.064,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.054,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H6",
+          "primary": true,
+          "rejection_rate": 0.063,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.067,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.084,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H6",
+          "primary": true,
+          "rejection_rate": 0.0755,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "D4+firm_fx0.03",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.0715,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.201,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H6",
+          "primary": true,
+          "rejection_rate": 0.081,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.0835,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "calibrated_random_scale",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.2085,
+          "statistic": "cluster_date_t"
+        },
+        {
+          "design": "calibrated_random_scale",
+          "hypothesis": "H6",
+          "primary": true,
+          "rejection_rate": 0.0805,
+          "statistic": "twoway_date_t"
+        },
+        {
+          "design": "calibrated_random_scale",
+          "hypothesis": "H6",
+          "primary": false,
+          "rejection_rate": 0.076,
+          "statistic": "twoway_date_t:mean_adj"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H7",
+          "primary": false,
+          "rejection_rate": 0.17,
+          "statistic": "cluster_date_wald"
+        },
+        {
+          "design": "calibrated",
+          "hypothesis": "H7",
+          "primary": true,
+          "rejection_rate": 0.1615,
+          "statistic": "twoway_date_wald"
+        },
+        {
+          "design": "h7:date0.3",
+          "hypothesis": "H7",
+          "primary": false,
+          "rejection_rate": 0.165,
+          "statistic": "cluster_date_wald"
+        },
+        {
+          "design": "h7:date0.3",
+          "hypothesis": "H7",
+          "primary": true,
+          "rejection_rate": 0.164,
+          "statistic": "twoway_date_wald"
+        },
+        {
+          "design": "h7:firm0.5",
+          "hypothesis": "H7",
+          "primary": false,
+          "rejection_rate": 0.235,
+          "statistic": "cluster_date_wald"
+        },
+        {
+          "design": "h7:firm0.5",
+          "hypothesis": "H7",
+          "primary": true,
+          "rejection_rate": 0.2025,
+          "statistic": "twoway_date_wald"
+        },
+        {
+          "design": "h7:normal",
+          "hypothesis": "H7",
+          "primary": false,
+          "rejection_rate": 0.1175,
+          "statistic": "cluster_date_wald"
+        },
+        {
+          "design": "h7:normal",
+          "hypothesis": "H7",
+          "primary": true,
+          "rejection_rate": 0.123,
+          "statistic": "twoway_date_wald"
+        },
+        {
+          "design": "h7:t4.5",
+          "hypothesis": "H7",
+          "primary": false,
+          "rejection_rate": 0.2105,
+          "statistic": "cluster_date_wald"
+        },
+        {
+          "design": "h7:t4.5",
+          "hypothesis": "H7",
+          "primary": true,
+          "rejection_rate": 0.205,
+          "statistic": "twoway_date_wald"
         }
       ],
       "power": [
@@ -3499,25 +3881,24 @@
         "H1",
         "H2",
         "H3",
-        "H4"
-      ],
-      "untested": [
+        "H4",
         "H5",
         "H6",
         "H7"
-      ]
+      ],
+      "untested": []
     },
     "lookups": {
       "complete": false,
       "n_done": 20
     },
     "provenance": {
-      "code_commit": "d6d5ea4",
+      "code_commit": "8c3221b",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "94065662cd46610cd788566f6d71f0bbddedce8e91a4837da0149e3e5cd9be09",
+      "params_hash": "74bed6f4b1281810d09f7bf6bc90addd10e20be263c3ea7005369b9ebb6e288e",
       "sample_label": "daily"
     },
     "rows": [
@@ -3941,7 +4322,7 @@
         "n": 356,
         "n_clusters": 8,
         "n_clusters_firm": null,
-        "note": "This Holm p rests on 8 season clusters: rad_season_p sits at its floor 2/2^8 = 0.007812, so the verdict depends on G alone. With 2026Q4 merged into 2026Q3 (7 clusters, as ADR 0005 \u00a72b expected) the p is 0.01562 and the Holm p 0.09375: not rejected at 5%. The sign is not in question: the two-way t is 13.4.",
+        "note": "This Holm p rests on 8 season clusters: rad_season_p sits at its floor 2/2^8 = 0.007812, so the verdict depends on G alone. With 2026Q4 merged into 2026Q3 (7 clusters, as ADR 0005 \u00a72b expected) the p is 0.01562 and the Holm p 0.07812: not rejected at 5%. The sign is not in question: the two-way t is 13.4.",
         "p_holm": 0.04688,
         "p_value": 0.007812,
         "q_bh": null,
@@ -3999,8 +4380,8 @@
         "n": 356,
         "n_clusters": 7,
         "n_clusters_firm": null,
-        "note": "Counterfactual season cut (2026Q4 merged into 2026Q3), not a test of its own. Its p_holm (0.09375) is the Holm p H2 would get with this p, the family's other p-values as reported.",
-        "p_holm": 0.09375,
+        "note": "Counterfactual season cut (2026Q4 merged into 2026Q3), not a test of its own. Its p_holm (0.07812) is the Holm p H2 would get with this p, the family's other p-values as reported.",
+        "p_holm": 0.07812,
         "p_value": 0.01562,
         "q_bh": null,
         "rbar": null,
@@ -4828,8 +5209,8 @@
       }
     ]
   },
-  "generated_at": "2026-10-29T23:33:36Z",
+  "generated_at": "2026-10-30T03:11:26Z",
   "kind": "tests",
-  "schema_version": "0.4.0",
-  "source_commit": "d6d5ea4"
+  "schema_version": "0.5.0",
+  "source_commit": "8c3221b"
 }

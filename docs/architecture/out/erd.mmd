@@ -382,6 +382,8 @@ erDiagram
         string kind PK
         array points
         object summary
+        object lookups
+        array caveats
         object provenance
         string from_event_measures FK "nullable"
         string from_results FK "nullable"
@@ -399,6 +401,10 @@ erDiagram
     json_drivers["drivers.json"] {
         string kind PK
         array models
+        object g1
+        object holm
+        object lookups
+        array caveats
         object provenance
         string from_results FK "nullable"
     }

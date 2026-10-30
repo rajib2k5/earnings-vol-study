@@ -3,9 +3,9 @@
 #
 # Run:  uv run python tools/export_app_data.py
 #
-# The app only draws charts; Python does all the computing. Milestone 3
-# writes seven files to app/public/data/, all in the envelope of
-# src/earnings_vol/contract.py (schema 0.4.0):
+# The app only draws charts; Python does all the computing. Milestone 4
+# writes nine files to app/public/data/, all in the envelope of
+# src/earnings_vol/contract.py (schema 0.5.0):
 #   meta.json           what the project is, where the data comes from, the
 #                       primary sample and the parameters behind it
 #   sample_funnel.json  how many events survive each rule (export/funnel.py)
@@ -18,6 +18,11 @@
 #                       primary event's own path (the animated crush paths)
 #   terrain.json        company x event day: the 3D view
 #   heatmap.json        company x event day and company x season grids
+#   drivers.json        the regressions of the crush on its drivers (H5, H6)
+#                       and of r0^2 on the implied variance (H7), gate G1's
+#                       verdicts on them (export/driver_views.py)
+#   implied_vs_realised.json  one point per primary event (implied |move|,
+#                       realised move) and H7's summary
 #
 # Inputs: only committed files (data/derived/*.parquet and params.yaml), so
 # the committed JSON can be rebuilt and checked without the local cache.
@@ -29,7 +34,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from earnings_vol import contract, params as params_mod, schema, store
-from earnings_vol.export import event_views, funnel, iv_view
+from earnings_vol.export import driver_views, event_views, funnel, iv_view
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT_DIR = ROOT / "app" / "public" / "data"
@@ -87,9 +92,10 @@ DATA_SOURCES = [
     },
     {
         "name": "FRED VIXCLS (Cboe VIX)",
-        "uses": "the VIX close, for the market adjustment; committed: aggregates of VIX-adjusted values (the "
-                "market-adjusted rows of results.parquet, tests.json and event_paths.json); the VIX series and every "
-                "per-event VIX-adjusted value stay local",
+        "uses": "the VIX close, for the market adjustment and (milestone 4) the VIX tercile label at day -1; "
+                "committed: aggregates of VIX-adjusted values (the market-adjusted rows of results.parquet, "
+                "tests.json, event_paths.json and drivers.json) and the tercile label "
+                "event_measures.vix_regime; the VIX series and every per-event VIX-adjusted value stay local",
         "url": "https://fred.stlouisfed.org/series/VIXCLS",
         "licence": "Cboe copyright (see source)",
         "committed": True,
@@ -104,7 +110,8 @@ DATA_SOURCES = [
     {
         "name": "Yahoo Finance",
         "uses": "daily prices and market caps, read with yfinance (local); committed: two labels made from "
-                "them, security.in_universe and timing_check.gap_verdict_yf",
+                "them, security.in_universe and timing_check.gap_verdict_yf, and since milestone 4 the regression "
+                "coefficients of SIZE (ln market cap at day -1) in results.parquet and drivers.json",
         "url": "https://finance.yahoo.com/",
         "licence": "Yahoo terms of service (see source)",
         "committed": True,
@@ -133,8 +140,10 @@ DATA_LICENCE = {
         "Bill Secondary Market Rate, Discount Basis [DTB3], retrieved from FRED, Federal Reserve Bank "
         "of St. Louis, https://fred.stlouisfed.org/series/DTB3, 2026-10-29 (public domain). Not under "
         "CC BY-SA: the labels made from Yahoo Finance prices (security.in_universe and "
-        "timing_check.gap_verdict_yf, and the share of gap contradictions built from it) fall under "
-        "Yahoo's terms of service. The market-adjusted aggregates (results.parquet, tests.json, event_paths.json) "
+        "timing_check.gap_verdict_yf, and the share of gap contradictions built from it) and the regression "
+        "coefficients of ln market cap (SIZE, results.parquet and drivers.json) fall under Yahoo's terms of "
+        "service. The market-adjusted aggregates (results.parquet, tests.json, event_paths.json, drivers.json) and "
+        "the VIX tercile label event_measures.vix_regime "
         "are computed with FRED VIXCLS (Cboe VIX): Chicago Board Options Exchange, CBOE Volatility Index: VIX "
         "[VIXCLS], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/VIXCLS, "
         "2026-10-29; they fall under Cboe's terms, not CC BY-SA. No Cboe VX* data is committed."
@@ -199,7 +208,17 @@ def heatmap_data(tables: dict, p, code_commit: str) -> dict:
                                     tables["security"], p, provenance(p, code_commit))
 
 
-BUILDERS = {"tests": tests_data, "event_paths": event_paths_data, "terrain": terrain_data, "heatmap": heatmap_data}
+def drivers_data(tables: dict, p, code_commit: str) -> dict:
+    return driver_views.drivers_data(tables["results"], tables["events"], p, provenance(p, code_commit))
+
+
+def implied_vs_realised_data(tables: dict, p, code_commit: str) -> dict:
+    return driver_views.implied_vs_realised_data(tables["results"], tables["events"], tables["event_measures"],
+                                                 tables["security"], p, provenance(p, code_commit))
+
+
+BUILDERS = {"tests": tests_data, "event_paths": event_paths_data, "terrain": terrain_data, "heatmap": heatmap_data,
+            "drivers": drivers_data, "implied_vs_realised": implied_vs_realised_data}
 
 
 def meta_data(tables: dict, p, code_commit: str, funnel_payload: dict | None = None) -> dict:
@@ -207,7 +226,7 @@ def meta_data(tables: dict, p, code_commit: str, funnel_payload: dict | None = N
     w = p["windows"]
     return {
         "project": "earnings-vol-study",
-        "milestone": 3,
+        "milestone": 4,
         "title": "Earnings and implied volatility: an event study",
         "data_sources": DATA_SOURCES,
         "data_licence": DATA_LICENCE,

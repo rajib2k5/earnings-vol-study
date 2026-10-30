@@ -9,7 +9,11 @@ React app only checks and draws those files. Every design choice is written down
 **Not financial advice.** This is research for learning. It describes the past, ignores transaction costs and covers
 large, liquid US stocks only.
 
-**Status:** Milestone 3: the event study (built, adversarially reviewed and fixed, pending the owner's review). Milestone 1
+**Status:** Milestone 4: the drivers of the crush and implied against realised moves (built, adversarially reviewed
+and fixed; pending the owner's review). Its three driver hypotheses (H5–H7) failed the size gate G1, run before their
+results: their statistics are liberal at this design. They stay in Holm's declared family H1–H7 with their real
+p-values and their G1 size beside them, and none is rejected
+([milestone 4 page](docs/milestones/04-drivers.md)). Milestone 3: the event study (built, reviewed and fixed). Milestone 1
 chose the 50 companies and built their 1,353 earnings announcements with the session each reached the option market
 (day 0); milestone 2 recomputed implied volatility from the DoltHub bid/ask quotes. Milestone 3 measures abnormal IV
 around each announcement (log IV against its own clean baseline, adjusted for VIX with a beta per company) and tests
@@ -54,10 +58,11 @@ earnings-vol-study/
 │   ├── ingest/                 Dolt (through a private mirror), Wikipedia, Yahoo, FRED; the gated EDGAR client
 │   ├── events/                 sessions, market_daily, security, events, eps, timing_check
 │   ├── measures/               session_snapshot, Black-76 on the parity forward, chain_expiry, iv_daily, event_iv
-│   ├── panel/                  the clean baseline (the rest arrives at milestone 3)
-│   └── export/                 the sample funnel and the IV-measures view
+│   ├── panel/                  the window matrices, abnormal IV, event_measures and its regressor columns
+│   ├── stats/                  clustering, the event tests, regressions, gate G1 (H1-H7), Holm and BH, results
+│   └── export/                 the JSON views: funnel, IV measures, tests, paths, terrain, heatmap, drivers
 ├── tools/
-│   ├── export_app_data.py      writes app/public/data/meta.json, sample_funnel.json and iv_measures.json
+│   ├── export_app_data.py      writes the nine app/public/data/*.json files (contract 0.5.0)
 │   ├── build_notebooks.py      generates the notebooks from src/
 │   ├── diagrams/               vendored local diagram toolkit (build.py + diagram_kit/); also public at github.com/rajib2k5/vol-diagram-kit
 │   └── blender/                3D hero-render script
@@ -65,11 +70,14 @@ earnings-vol-study/
 ├── notebooks/                  generated notebooks (never edited by hand)
 │   ├── 00_scaffold_tour.ipynb
 │   ├── 01_events.ipynb
-│   └── 02_iv_measures.ipynb
+│   ├── 02_iv_measures.ipynb
+│   ├── 03_event_study.ipynb
+│   └── 04_drivers.ipynb
 ├── data/derived/               small derived tables, CC BY-SA 4.0
 │   ├── README.md               what is here, and the licence terms
 │   ├── LICENSE                 CC BY-SA 4.0 notice
-│   ├── security, ticker_alias, session, events, eps, session_snapshot   .parquet, written by the pipeline
+│   ├── security, ticker_alias, session, events, eps, session_snapshot, iv_daily, event_iv,
+│   │   timing_check, event_window_obs, event_measures, results   .parquet, written by the pipeline
 │   └── earnings_calendar_30_large_caps.json   DoltHub extract, input to research/prototypes/spacing.py
 ├── data/manual/
 │   └── press_release_checks.csv   the hand-kept record of press-release timing look-ups (read by the events layer)
@@ -79,6 +87,8 @@ earnings-vol-study/
 │   ├── leak_grid.py            the event-variance leak of blind 30-day interpolation (ADR 0003)
 │   ├── kp_sim.py, kp_partial.py, kp_partial_clamp.py   size of the KP tests, one-session measure (ADR 0005)
 │   ├── h2h3_size_sim.py, h2h3_followup_sim.py   size and power at the real daily design (ADR 0005)
+│   ├── g1_moments.py, g1_phi.py   gate G1's moment check and its sensitivity to the AR of levels (milestone 3)
+│   ├── g1_regression_size.py, rhobar_crush.py   why H5-H7 fail G1; the crush's common IV factor (milestone 4)
 │   └── iv_persistence_mc.py    why IV levels must not be summed (ADR 0004); outputs in *.out.txt
 ├── docs/
 │   ├── prfaq.md                the product story
@@ -91,10 +101,11 @@ earnings-vol-study/
 │   │   └── graph/              a graphify knowledge graph of the repository (generated; see its README)
 │   ├── concepts/               background reading, one note per new idea
 │   │   ├── 00-background.md
-│   │   └── 01-sessions-and-day-zero.md … 05-survivorship-bias.md
+│   │   └── 01-sessions-and-day-zero.md … 15-a-common-factor-in-single-stock-iv.md
 │   ├── milestones/             one learning page per milestone
 │   │   ├── 00-scaffold-and-design.md
-│   │   └── 01-universe-and-events.md
+│   │   ├── 01-universe-and-events.md, 02-iv-measures.md, 03-event-study.md
+│   │   └── 04-drivers.md
 │   └── validation/             adversarial review ledgers and the probe scripts behind them
 │       ├── m0-code-ledger.md, m0-methodology-ledger.md, m0-delta-ledger.md, m0-delta2-ledger.md
 │       └── probes/
@@ -164,8 +175,10 @@ same data. The milestone pages list the exact commands and what each one measure
   committed. Every column computed from them carries a `_yf` or `_cboe` suffix. Until 2026-10-29 none of them left the
   machine; since the owner's decision of that day, values the app or the docs need may be committed (see the root
   [`DATA.md`](DATA.md) for each source's terms). Committed: the Yahoo-derived labels `timing_check.gap_verdict_yf`
-  and `security.in_universe`, and since milestone 3 aggregates of VIX-adjusted values (the market-adjusted rows of
-  `results.parquet` and of the app's `tests.json` and `event_paths.json`), under Cboe's terms. The VIX series and every
+  and `security.in_universe`, since milestone 3 aggregates of VIX-adjusted values (the market-adjusted rows of
+  `results.parquet` and of the app's `tests.json`, `event_paths.json` and, since milestone 4, `drivers.json`), under
+  Cboe's terms, and since milestone 4 the VIX tercile label `event_measures.vix_regime` (Cboe) and the regression
+  coefficients of ln market cap (Yahoo). The VIX series and every
   per-event VIX-adjusted value stay local (ADR 0001 §7, data model §2.1).
 - **Wikipedia (CC BY-SA 4.0) and SEC EDGAR.** Company names, GICS sectors and CIKs come from a pinned revision of
   Wikipedia's "List of S&P 500 companies". The before/after-market labels come from documents: company press releases
@@ -183,25 +196,37 @@ Details and the JSON contract are in [`app/DATA.md`](app/DATA.md).
 
 ## Results
 
-Milestone 3, 2026-10-29, **provisional timing labels**, after the adversarial review's fixes
-([§9 of the milestone page](docs/milestones/03-event-study.md#9-fixes-after-review)). Daily sample (day 0 from
-2024-12-05), equal-weighted means of VIX-adjusted abnormal log IV; Holm over the seven declared hypotheses, with the
-three of milestone 4 entered as p = 1
-([milestone 3 page](docs/milestones/03-event-study.md#62-the-primary-family-h1h4-daily-market-adjusted)):
+Milestone 4, 2026-10-29, **provisional timing labels**, adversarially reviewed and fixed (no delta review yet). Daily sample (day 0 from
+2024-12-05). H1–H4: equal-weighted means of VIX-adjusted abnormal log IV (milestone 3). H5–H6: coefficients of the
+crush regression, log points per standard deviation of the regressor; H7: the joint test that the options' implied
+variance is unbiased for the realised squared move. **Gate G1 ran first and failed H5–H7**: their primary statistics
+reject 9.55%, 8.10% and 16.15% at 5% under its calibrated null, above the 6.30% bar, so they are liberal and a
+rejection by them would not be trusted. ADR 0005 declared G1's size designs for H1–H4 only, so H5–H7 stay in the
+declared Holm family H1–H7 with their real p-values
+([milestone 4 page](docs/milestones/04-drivers.md#6-measured-results), §6.2 and §9):
 
-| | Question | n | Estimate (log points) | p | Holm p |
+| | Question | n | Estimate | p | Holm p (H1–H7) |
 |---|---|---:|---:|---:|---:|
-| H1 | How much does the 30-day IV fall from day −1 to day 0? | 347 | −0.199 | 5.8e−23 | 4.1e−22 |
-| H2 | Is IV abnormally high at day −1? | 356 | +0.232 | 0.0078 (randomisation floor, G = 8) | 0.047; **with G = 7: 0.094, not rejected** |
-| H3 | Is IV back at its baseline at day +10? | 329 | +0.008 | 0.74 | 1 |
-| H4 | Did ordinary volatility (σ_d) change? | 262 | +0.003 | 0.78 | 1 |
+| H1 | How much does the 30-day IV fall from day −1 to day 0? | 347 | −0.199 log points | 5.8e−23 | 4.1e−22 |
+| H2 | Is IV abnormally high at day −1? | 356 | +0.232 log points | 0.0078 (randomisation floor, G = 8) | 0.047; with G = 7: 0.078 |
+| H3 | Is IV back at its baseline at day +10? | 329 | +0.008 log points | 0.74 | 1 |
+| H4 | Did ordinary volatility (σ_d) change? | 262 | +0.003 log points | 0.78 | 1 |
+| H5 | Does a bigger earnings surprise change the crush? | 347 | +0.013 per sd (a smaller fall) | 0.010 (G1 size 9.55%: liberal) | 0.051 |
+| H6 | Does the prior ordinary volatility level change it? | 347 | −0.001 per sd | 0.89 (G1 size 8.10%) | 1 |
+| H7 | Is the implied variance unbiased for the realised one (a = 0, b = 1)? | 336 | b = 0.77 (CI 0.46–1.07) | 0.28 (G1 size 16.15%) | 1 |
 
-H2's Holm pass depends on the number of season clusters, not on the strength of the data: its p sits on the
-enumeration floor 2/2^G, so with the October 2026 tail merged into July (G = 7, as ADR 0005 expected) Holm would give
-0.094. The direction is not in doubt (all 8 season means are positive; the two-way t is 13.4). The crush is the event
-variance leaving the 30-day horizon; ordinary volatility does not change measurably, and IV is back at its baseline
-within ten sessions (a persistence effect below about 0.12 log points could go undetected). The app draws the results,
-the animated crush paths, a company × event-day heatmap and the 3D terrain.
+The crush is the event variance leaving the 30-day horizon; ordinary volatility does not change measurably, and IV is
+back at its baseline within ten sessions. H2's p sits on the enumeration floor 2/2^G, so its Holm verdict depends on
+the number of season clusters (with the October 2026 tail merged into July, G = 7, it is 0.078: not rejected); its
+direction is not in doubt (all 8 season means are positive). Over the family without H5–H7 (a descriptive
+sensitivity, not binding) the Holm p would be H1 2.3e−22 and H2 0.023 (G = 7: 0.047). Among the drivers, the
+term-structure slope at day −1 is the strongest (−0.032 per sd, exploratory, BH q 0.0006): a steeper slope, a larger
+crush. That q, and every other driver p and q, comes from the same two-way t that G1 measured as liberal at this
+design (9.55% and 8.10% for H5's and H6's coefficients); G1 never sized the slope's coefficient itself, so read them
+as indications, not tests at 5%. The surprise effect does not survive other surprise measures or firm fixed effects.
+Realised day-0 moves exceed the implied |move| 40.1% of the time against the 42.5% that fair pricing of a normal move
+gives. The app draws the results, the
+drivers' coefficients, the implied-against-realised scatter, the animated crush paths, a heatmap and the 3D terrain.
 
 ## Screenshots
 
@@ -219,8 +244,8 @@ Added at the final milestone.
   They are not part of the package and are not tested or reviewed.
 - Learning: [LEARNING_LOG.md](LEARNING_LOG.md), the [milestone 0 page](docs/milestones/00-scaffold-and-design.md), the
   [milestone 1 page](docs/milestones/01-universe-and-events.md), the
-  [milestone 2 page](docs/milestones/02-iv-measures.md), the [milestone 3 page](docs/milestones/03-event-study.md) and
-  the concept notes in
+  [milestone 2 page](docs/milestones/02-iv-measures.md), the [milestone 3 page](docs/milestones/03-event-study.md), the
+  [milestone 4 page](docs/milestones/04-drivers.md) and the concept notes in
   [`docs/concepts/`](docs/concepts/).
 
 ## License

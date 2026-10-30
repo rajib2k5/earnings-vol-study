@@ -10,12 +10,12 @@
     },
     "measure": "aliv_mean_adj",
     "provenance": {
-      "code_commit": "d6d5ea4",
+      "code_commit": "8c3221b",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "94065662cd46610cd788566f6d71f0bbddedce8e91a4837da0149e3e5cd9be09",
+      "params_hash": "74bed6f4b1281810d09f7bf6bc90addd10e20be263c3ea7005369b9ebb6e288e",
       "sample_label": "daily"
     },
     "rel_days": [
@@ -1498,8 +1498,8 @@
       ]
     ]
   },
-  "generated_at": "2026-10-29T23:33:36Z",
+  "generated_at": "2026-10-30T03:11:26Z",
   "kind": "terrain",
-  "schema_version": "0.4.0",
-  "source_commit": "d6d5ea4"
+  "schema_version": "0.5.0",
+  "source_commit": "8c3221b"
 }

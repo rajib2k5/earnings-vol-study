@@ -47,7 +47,8 @@ class Frame:
 
 
 def build_frame(events: pd.DataFrame, measures: pd.DataFrame, ewo: pd.DataFrame, security: pd.DataFrame,
-                market_daily: pd.DataFrame, session_tbl: pd.DataFrame) -> Frame:
+                market_daily: pd.DataFrame, session_tbl: pd.DataFrame, eps: pd.DataFrame | None = None) -> Frame:
+    """The Frame; `eps` (milestone 4), when given, adds the linked eps row's surprise_disp."""
     sessions = calendar.Sessions(session_tbl["session_date"].tolist())
     w = ewo.sort_values(["event_id", "rel_day"], kind="mergesort")
     ids = w["event_id"].to_numpy(object)[::abnormal.REL_DAYS.size]
@@ -65,6 +66,9 @@ def build_frame(events: pd.DataFrame, measures: pd.DataFrame, ewo: pd.DataFrame,
     ev = pd.DataFrame({"event_id": ids}).merge(events, on="event_id", how="left") \
         .merge(measures, on="event_id", how="left") \
         .merge(security[["security_id", "gics_sector"]], on="security_id", how="left")
+    if eps is not None:
+        linked = eps[eps["event_id"].notna()][["event_id", "surprise_disp"]]
+        ev = ev.merge(linked, on="event_id", how="left")
     return Frame(ev, sess, np.isfinite(mat("cm30_iv")), mat("in_baseline", bool), mat("e_abn_cboe"),
                  mat("aliv_cboe"), mat("aliv_mean_adj"), mat("sigma_d_iv"), M, sessions)
 

@@ -1,0 +1,10 @@
+(a) main() with no g1_report.json: refused: run gate G1 first: uv run python -m earnings_vol.stats.run -
+(b) result_rows without the H5-H7 gate: produced 865 rows (no refusal)
+    holm family: ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7']
+    H5 twoway_date_t      role=primary     p_holm=0.0510753901076816 p_value=set
+    H5 cluster_date_t     role=robustness  p_holm=None p_value=set
+    H6 twoway_date_t      role=primary     p_holm=1.0 p_value=set
+    H6 cluster_date_t     role=robustness  p_holm=None p_value=set
+    H7 twoway_date_wald   role=primary     p_holm=1.0 p_value=set
+    H7 cluster_date_wald  role=robustness  p_holm=None p_value=set
+    H1-H4 p_holm: {'H1': 4.0603331239898117e-22, 'H2': 0.046875, 'H3': 1.0, 'H4': 1.0}

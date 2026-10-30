@@ -26,6 +26,10 @@
 #   notebooks/03_event_study.ipynb     milestone 3: abnormal IV, the span-change
 #                                      identity, two-way clustering, gate G1 and
 #                                      the committed results
+#   notebooks/04_drivers.ipynb         milestone 4: the regressor columns, the
+#                                      two-way regression and the Wald test, H7's
+#                                      units, gate G1 for H5-H7, the committed
+#                                      regression rows and the common IV factor
 # =============================================================================
 
 import argparse
@@ -358,8 +362,9 @@ def build_event_study_notebook() -> nbformat.NotebookNode:
         new_markdown_cell(
             "## 4. Gate G1 and the primary family (committed `results`)\n"
             "G1's calibrated design is binding: each primary statistic must reject at most 6.30% of 2,000 null "
-            "replications. Then the primary rows, with Holm over the seven declared hypotheses (H5-H7 enter as "
-            "p = 1 until milestone 4). H2's p sits on the rad_season_p floor 2/2^G, so its Holm verdict depends on "
+            "replications. Then the primary rows, with Holm over the declared hypotheses whose gate passed (since "
+            "milestone 4 the declared family H1-H7: H5-H7 failed G1's regression size check, which is reported "
+            "beside their rows but does not move them out; notebook 04). H2's p sits on the rad_season_p floor 2/2^G, so its Holm verdict depends on "
             "the number of season clusters G: the season-cut row (the last season merged into the one before, "
             "G - 1) prints the Holm p it would get instead.\n\n"
             "A robustness row whose statistic G1 finds oversized keeps its estimate and loses its p-value and "
@@ -401,9 +406,134 @@ def build_event_study_notebook() -> nbformat.NotebookNode:
     ])
 
 
+def build_drivers_notebook() -> nbformat.NotebookNode:
+    """notebooks/04_drivers.ipynb: milestone 4, from made-up numbers and the committed tables."""
+    return _finish([
+        new_markdown_cell(
+            "# Milestone 4: what drives the crush, and implied against realised moves\n\n"
+            "This notebook imports `earnings_vol` and defines no logic of its own. The walkthrough is "
+            "`docs/milestones/04-drivers.md`; the decisions are ADR 0005 §3-§5.\n\n"
+            "**The timing labels are provisional**: 20 press releases were looked up and every other event keeps the "
+            "calendar's label until SEC EDGAR is set up. Every result below depends on them.\n\n"
+            "To rebuild (it needs the local cache; gate G1 runs before any H5-H7 result):\n\n"
+            "```\n"
+            "uv run python -m earnings_vol.panel.run\n"
+            "uv run python -m earnings_vol.stats.run --g1\n"
+            "uv run python -m earnings_vol.stats.run\n"
+            "uv run python tools/export_app_data.py\n"
+            "```\n\n"
+            f"Contract schema version: `{contract.SCHEMA_VERSION}`."
+        ),
+        new_markdown_cell(
+            "## 1. The surprise in price units, and its history (data model §3.11)\n"
+            "Made-up numbers. |SURP| = |reported - estimate| / the as-of price (the option forward times the "
+            "discount factor at day -1). SUE_hist compares a quarter with the same company's previous ones: "
+            "(this - mean of the previous) / their sd, with at least 4 of them."
+        ),
+        new_code_cell(
+            "from datetime import date\n"
+            "\n"
+            "from earnings_vol.panel import regressors\n"
+            "\n"
+            "print(\"surprise_scaled\", regressors.surprise_scaled(__import__(\"pandas\").DataFrame(\n"
+            "    {\"event_id\": [\"E1\"], \"surprise\": [0.25]}), {\"E1\": 99.8}))\n"
+            "order = [(\"A\", date(2025, 1, k), f\"A{k}\") for k in range(1, 7)]\n"
+            "vals = {\"A1\": 1.0, \"A2\": 2.0, \"A3\": 3.0, \"A4\": 4.0, \"A5\": 10.0, \"A6\": 5.0}\n"
+            "print(\"SUE_hist\", {k: (round(v, 6), n) for k, (v, n) in regressors.sue_hist(order, vals, 8, 4).items()})\n"
+        ),
+        new_markdown_cell(
+            "## 2. OLS with two-way clustered errors, and the Wald F (ADR 0005 §3)\n"
+            "Four made-up events, x = 0..3, y = 1, 3, 3, 8, on two dates and two firms. V = V_date + V_firm - "
+            "V_date&firm, each CR1 with G/(G-1) (N-1)/(N-K); t on min(G) - 1 = 1 degree of freedom. The Wald test of "
+            "(a, b) = (0, 1) is an F(2, 1), never a chi-square."
+        ),
+        new_code_cell(
+            "import numpy as np\n"
+            "\n"
+            "from earnings_vol.stats import regression\n"
+            "\n"
+            "X = np.column_stack([np.ones(4), [0.0, 1.0, 2.0, 3.0]])\n"
+            "fit = regression.fit(np.array([1.0, 3.0, 3.0, 8.0]), X)\n"
+            "cov = regression.covariance(fit, X, [\"d1\", \"d1\", \"d2\", \"d2\"], [\"f1\", \"f2\", \"f1\", \"f2\"])\n"
+            "print(\"V\", cov[\"V\"].round(4).tolist(), \"df\", cov[\"df\"])\n"
+            "b = regression.coef_test(fit, cov, 1)\n"
+            "print({k: round(v, 6) if isinstance(v, float) else v for k, v in b.items()})\n"
+            "w = regression.wald_test(fit, cov, np.eye(2), np.array([0.0, 1.0]))\n"
+            "print({k: round(v, 6) if isinstance(v, float) else v for k, v in w.items()})\n"
+        ),
+        new_markdown_cell(
+            "## 3. H7's regressor in w units (ADR 0003 §c \"Units\")\n"
+            "The stored sigma_d is annualised: the ordinary variance per session is sigma_d^2 / 252. The AAPL worked "
+            "example: E = 0.00088284, sigma_d = 0.2442."
+        ),
+        new_code_cell(
+            "from earnings_vol.stats import drivers\n"
+            "\n"
+            "print(\"E + sigma_d^2/252 =\", round(float(drivers.implied_variance(np.array([0.00088284]), np.array([0.2442]))[0]), 7))\n"
+            "print(\"without the /252  =\", round(0.00088284 + 0.2442 ** 2, 7))\n"
+        ),
+        new_markdown_cell(
+            "## 4. Gate G1 for H5-H7, then the results (committed `results`)\n"
+            "G1 ran first. At the real design H5's, H6's and H7's primary statistics reject more than the 6.30% bar "
+            "of 2,000 null replications: they are liberal, so a rejection by them would not be trusted. G1's size "
+            "designs were declared for H1-H4 only (ADR 0005 §5), so H5-H7 stay in the declared Holm family H1-H7 "
+            "with their real p-values (fix R1 after the milestone-4 review); none of them is rejected. H2's Holm p "
+            "is printed with its G = 7 season-cut counterfactual (at this commit: H2 0.0469, G = 7 0.0781, not "
+            "rejected; H5 0.0511). The `holm_post_gate` rows are a descriptive sensitivity: the Holm p over the "
+            "family without the hypotheses whose size check failed (H1-H4: H2 0.0234, G = 7 0.0469)."
+        ),
+        new_code_cell(
+            "import pandas as pd\n"
+            "\n"
+            "from earnings_vol import params, schema, store\n"
+            "\n"
+            "derived = params.ROOT / \"data\" / \"derived\"\n"
+            "res = store.read_table(derived / \"results.parquet\", schema.RESULTS)\n"
+            "g1 = res[(res[\"family\"] == \"validation\") & (res[\"measure\"] == \"g1:calibrated\")\n"
+            "         & res[\"hypothesis\"].isin([\"H5\", \"H6\", \"H7\"])]\n"
+            "print(g1[[\"hypothesis\", \"statistic\", \"role\", \"n\", \"estimate\"]].to_string(index=False))\n"
+            "reg = res[(res[\"family\"] == \"regression\") & res[\"hypothesis\"].notna()]\n"
+            "cols = [\"hypothesis\", \"role\", \"model_id\", \"adjustment\", \"term\", \"statistic\", \"estimate\", \"se\", \"stat\",\n"
+            "        \"df\", \"p_value\"]\n"
+            "with pd.option_context(\"display.width\", 180):\n"
+            "    print(reg[cols].to_string(index=False))\n"
+            "prim = res[res[\"family\"].isin([\"event_test\", \"regression\"]) & (res[\"role\"] == \"primary\")]\n"
+            "print(prim[[\"hypothesis\", \"statistic\", \"p_value\", \"p_holm\"]].to_string(index=False))\n"
+            "cut = res[(res[\"subgroup_key\"] == \"season_cut\") & (res[\"family\"] == \"event_test\")]\n"
+            "print(cut[[\"hypothesis\", \"subgroup_value\", \"n_clusters\", \"p_value\", \"p_holm\"]].to_string(index=False))\n"
+            "pg = res[res[\"measure\"] == \"holm_post_gate\"]\n"
+            "print(pg[[\"hypothesis\", \"subgroup_key\", \"estimate\"]].rename(columns={\"estimate\": \"holm_post_gate\"})\n"
+            "      .to_string(index=False))\n"
+        ),
+        new_markdown_cell(
+            "## 5. The exploratory slopes, and the common IV factor\n"
+            "Every other named coefficient, with its BH q within the sample's regression rows. Each p and q comes "
+            "from the same two-way t that G1 measured as liberal at this design for H5's and H6's coefficients "
+            "(8.10% and 9.55% under its calibrated null); the other coefficients, SLOPE's included, were never sized "
+            "by G1, so read them as indications, not tests at 5%. Then the milestone-3 "
+            "open item: the crush baselines' rho-bar of 0.30 (Pynnonen's eq. 32), and what is left after a "
+            "leave-one-firm-out factor is taken out, on made-up numbers (the real measurement is "
+            "`research/prototypes/rhobar_crush.out.txt`)."
+        ),
+        new_code_cell(
+            "ex = res[(res[\"family\"] == \"regression\") & (res[\"role\"] == \"exploratory\") & res[\"p_value\"].notna()]\n"
+            "with pd.option_context(\"display.width\", 180, \"display.max_rows\", 80):\n"
+            "    print(ex[[\"model_id\", \"sample\", \"term\", \"estimate\", \"stat\", \"p_value\", \"q_bh\"]].to_string(index=False))\n"
+            "\n"
+            "from earnings_vol.stats import common_factor\n"
+            "\n"
+            "rng = np.random.default_rng(0)\n"
+            "z = rng.standard_normal(200)[None, :] * 0.6 + rng.standard_normal((30, 200)) * 0.8\n"
+            "firms = [f\"F{k}\" for k in range(30)]\n"
+            "res_z, _ = common_factor.residualise(z, common_factor.loo_factor(z, firms), firms)\n"
+            "print(\"rho-bar\", round(common_factor.rhobar(z), 3), \"after the factor\", round(common_factor.rhobar(res_z), 3))\n"
+        ),
+    ])
+
+
 # name -> builder. The file is notebooks/<name>.ipynb.
 NOTEBOOKS = {"00_scaffold_tour": build_notebook, "01_events": build_events_notebook, "02_iv_measures": build_iv_notebook,
-             "03_event_study": build_event_study_notebook}
+             "03_event_study": build_event_study_notebook, "04_drivers": build_drivers_notebook}
 
 
 def render(name: str = "00_scaffold_tour") -> str:

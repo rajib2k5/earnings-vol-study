@@ -1,5 +1,5 @@
 /**
- * Loads and checks `data/heatmap.json` (kind "heatmap", schema 0.4.0): grids of cells (company by event
+ * Loads and checks `data/heatmap.json` (kind "heatmap", schema 0.5.0): grids of cells (company by event
  * day, company by season) for the Heatmap page. Written by the Python exporter; the app only
  * draws it. `fetch` is injected so tests never touch the network; nothing here throws or coerces.
  *

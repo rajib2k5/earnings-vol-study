@@ -35,6 +35,17 @@ fifth step (0.05/3 = 0.0167), after four other rejections. At milestone 3 the RU
 verdict depends on G alone: H2 passes with p_holm 0.0469 at G = 8, and would fail with 0.0938 had the October 2026
 tail been merged into July (G = 7), as ADR 0005 expected. The report prints both (milestone page §6.2 and §9 F1).
 
+*Milestone 4 (2026-10-29), as fixed after its review.* Gate G1 ran for H5–H7 before their results and all three
+primaries failed (two-way t 9.55% and 8.10%, two-way Wald 16.15% at 5%): their statistics are liberal at this
+design. The first build dropped them from the family and ran Holm over H1–H4 (m = 4), calling it the pre-declared
+gate rule. It was not: ADR 0005 declared G1's size designs for H1–H4 only, so a size gate for the regressions was a
+choice made after milestone 0. A failed gate can only remove hypotheses, so it can only lower the others' Holm p:
+H1 4.1e−22 → 2.3e−22, H2 0.0469 → 0.0234, and H2's G = 7 counterfactual 0.0781 → 3 × 0.0156 = 0.0469, from "not
+rejected" to "rejected". That is the "m = 4 after seeing part of the family" warned against above. **The declared
+family binds** (fix R1): Holm runs over H1–H7 with H5–H7's real p-values (H1 4.1e−22, H2 0.0469, H5 0.0511; G = 7:
+0.0781, not rejected), and each H5–H7 row carries its G1 size. The post-gate family H1–H4 is kept as a descriptive
+sensitivity (milestone 4 page §6.2).
+
 ## 3. Why a size gate
 
 Every rejection rate quoted in ADR 0005 came from simulations of a *prototype* design. Gate G1 re-measures the size of

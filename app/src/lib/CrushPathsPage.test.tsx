@@ -74,7 +74,7 @@ describe('CrushPathsPage: loading and errors', () => {
   })
   it('shows an error for the previous schema version, another kind, and a ragged path', async () => {
     const { unmount } = render(<CrushPathsPage fetchImpl={serving({ ...EVENT_PATHS_FIXTURE, schema_version: '0.3.0' })} />)
-    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.3.0": this app only understands "0.4.0"')
+    expect(await screen.findByRole('alert')).toHaveTextContent('unsupported schema_version "0.3.0": this app only understands "0.5.0"')
     unmount()
     const other = render(<CrushPathsPage fetchImpl={serving({ ...EVENT_PATHS_FIXTURE, kind: 'terrain' })} />)
     expect(await screen.findByRole('alert')).toHaveTextContent('has kind "terrain", expected "event_paths"')

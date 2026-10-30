@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { asGiven, fmt, pct, bps } from './format'
+import { asGiven, fmt, pct, bps, sizeCheckFailedText, withheldText } from './format'
 
 describe('formatters', () => {
   it('fmt formats with thousands separators and fixed decimals', () => {
@@ -30,5 +30,20 @@ describe('asGiven', () => {
   it('shows a dash for null, and zero as 0 (null is not 0)', () => {
     expect(asGiven(null)).toBe('—')
     expect(asGiven(0)).toBe('0')
+  })
+})
+
+describe('withheldText', () => {
+  it('shows the G1 rate as a percent with two decimals and the replications with a thousands separator', () => {
+    expect(withheldText(0.1845, 2000)).toBe('withheld (G1 size 18.45% over 2,000 replications)')
+    expect(withheldText(0.05, 10000)).toBe('withheld (G1 size 5.00% over 10,000 replications)')
+    expect(withheldText(0.0568, 500)).toBe('withheld (G1 size 5.68% over 500 replications)')
+  })
+})
+
+describe('sizeCheckFailedText', () => {
+  it('shows the failed G1 rate of a kept primary p-value as a percent, with the replications, and says a rejection would not be trusted', () => {
+    expect(sizeCheckFailedText(0.0955, 2000)).toBe('size check failed: G1 size 9.55% over 2,000 replications, liberal; a rejection would not be trusted')
+    expect(sizeCheckFailedText(0.5625, 500)).toBe('size check failed: G1 size 56.25% over 500 replications, liberal; a rejection would not be trusted')
   })
 })

@@ -232,4 +232,4 @@ def test_the_allow_lists_follow_the_registry_and_the_contract():
                                       "results", "security", "session", "session_snapshot", "ticker_alias",
                                       "timing_check")
     assert check.contract.KINDS == ("meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain",
-                                    "heatmap")
+                                    "heatmap", "drivers", "implied_vs_realised")

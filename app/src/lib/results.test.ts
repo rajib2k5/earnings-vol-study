@@ -17,6 +17,16 @@ const ROW_KEYS = [
 const ROW_KEY_LIST = ROW_KEYS.join(', ')
 const G1_KEY_LIST = 'reps, band, calibrated, designs, power, calibration'
 
+/*
+ * Mutations this file must catch (the cross-field rules of fix R4): 8 of 8 tried were killed. Each was applied to
+ * src/lib/results.ts, one at a time, and this file then failed; the file was restored and its sha256 checked each time
+ * (script outside the repo).
+ *   RS1: T1 dropped (a primary may lose its p-value)            RS2: T1 checks p_value only (a primary may lose its Holm p)
+ *   RS3: T2 dropped (any row may carry a Holm p)                RS4: T2 no longer lets a season-cut row carry one
+ *   RS5: T3 family / left_family overlap allowed                RS6: T3 tested / untested overlap allowed
+ *   RS7: T3 union no longer checked for a missing hypothesis    RS8: T3 union no longer checked for an extra hypothesis
+ */
+
 describe('parseTests: accepts the exporter shape', () => {
   it('returns the same values for a good file', () => {
     expect(parseTests(TESTS_DATA_FIXTURE)).toEqual({ ok: true, data: TESTS_DATA_FIXTURE })
@@ -45,15 +55,19 @@ describe('parseTests: accepts the exporter shape', () => {
     const g1 = { ...TESTS_DATA_FIXTURE.g1, calibrated: [], designs: [], power: [], calibration: {} }
     expect(parseTests(edited(['g1'], g1)).ok).toBe(true)
   })
-  it('accepts every null the row may carry, 0 and 1 as p-values, and a band of equal edges', () => {
+  it('accepts every null an exploratory row may carry, 0 and 1 as p-values, and a band of equal edges', () => {
     const nulls = Object.fromEntries(['hypothesis', 'estimand', 'rel_day', 'n_clusters', 'n_clusters_firm', 'estimate', 'se', 'stat', 'df', 'p_value', 'p_holm', 'q_bh', 'ci_lo', 'ci_hi', 'rbar', 'g1_size', 'g1_reps', 'note'].map((k) => [k, null]))
-    expect(parseTests(edited(['rows', 0], { ...TESTS_DATA_FIXTURE.rows[0], ...nulls })).ok).toBe(true)
+    expect(parseTests(edited(['rows', 5], { ...TESTS_DATA_FIXTURE.rows[5], ...nulls })).ok).toBe(true)
     expect(parseTests(edited(['rows', 0], { ...TESTS_DATA_FIXTURE.rows[0], p_value: 0, p_holm: 1, q_bh: 1 })).ok).toBe(true)
     expect(parseTests(edited(['g1', 'band'], [0.4, 0.4])).ok).toBe(true)
   })
   it('accepts an integer rel_day (also negative), every role, estimand, sample, adjustment and hypothesis', () => {
     expect(parseTests(edited(['rows', 0, 'rel_day'], -3)).ok).toBe(true)
-    for (const role of ['primary', 'robustness', 'exploratory']) expect(parseTests(edited(['rows', 0, 'role'], role)).ok, role).toBe(true)
+    // a row that is not primary carries no Holm p (T2)
+    for (const role of ['primary', 'robustness', 'exploratory']) {
+      const row = { ...TESTS_DATA_FIXTURE.rows[0], role, p_holm: role === 'primary' ? 0.0492 : null }
+      expect(parseTests(edited(['rows', 0], row)).ok, role).toBe(true)
+    }
     for (const sample of ['daily', 'mixed', 'coarse', 'cboe5']) expect(parseTests(edited(['rows', 0, 'sample'], sample)).ok, sample).toBe(true)
     for (const h of ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7']) expect(parseTests(edited(['rows', 0, 'hypothesis'], h)).ok, h).toBe(true)
     for (const e of ['equal_weighted', 'precision_weighted']) expect(parseTests(edited(['rows', 0, 'estimand'], e)).ok, e).toBe(true)
@@ -260,9 +274,45 @@ describe('parseTests: holm, lookups, caveats, provenance', () => {
   ])('rejects: %s', (_what, path, value, message) => {
     expect(errorOf(edited(path, value))).toContain(message)
   })
-  it('accepts a left_family with names and a tested list in any order', () => {
-    expect(parseTests(edited(['holm', 'left_family'], ['H2'])).ok).toBe(true)
+  it('accepts a left_family with names outside the family, and tested and untested lists in any order', () => {
+    expect(parseTests(edited(['holm', 'left_family'], ['H5'])).ok).toBe(true)
     expect(parseTests(edited(['holm', 'tested'], ['H2', 'H1'])).ok).toBe(true)
+    expect(parseTests({ ...TESTS_DATA_FIXTURE, holm: { family: ['H1', 'H2', 'H3'], tested: ['H3'], untested: ['H2', 'H1'], left_family: [] } }).ok).toBe(true)
+  })
+})
+
+describe('parseTests: cross-field rules (fix R4 of the milestone-4 review)', () => {
+  const rows = TESTS_DATA_FIXTURE.rows
+  describe('T1: a primary row keeps its p-value and Holm p', () => {
+    it.each(['p_value', 'p_holm'])('refuses a primary with %s null', (key) => {
+      expect(errorOf(edited(['rows', 1, key], null))).toBe(`rows[1] has role "primary" but ${key} is null: a primary keeps its p-value and Holm p`)
+    })
+    it('accepts a primary without an interval (a randomisation p-value has none)', () => {
+      expect([rows[1].role, rows[1].ci_lo, rows[1].ci_hi]).toEqual(['primary', null, null])
+      expect(parseTests(TESTS_DATA_FIXTURE).ok).toBe(true)
+    })
+  })
+  describe('T2: only a primary row or a season-cut counterfactual has a Holm p', () => {
+    it('refuses a Holm p on a robustness or exploratory row of another subgroup', () => {
+      expect(errorOf(edited(['rows', 4, 'p_holm'], 0.5))).toBe('rows[4].p_holm is given only for a primary row or a season-cut counterfactual, but role is "robustness" and subgroup_key is "all"')
+      expect(errorOf(edited(['rows', 5, 'p_holm'], 0.5))).toBe('rows[5].p_holm is given only for a primary row or a season-cut counterfactual, but role is "exploratory" and subgroup_key is "timing"')
+    })
+    it('accepts the Holm p of a season-cut counterfactual (H2\'s cut row of tests.json)', () => {
+      const cut = { ...rows[4], subgroup_key: 'season_cut', subgroup_value: 'FX9_into_FX8', n_clusters: 3, p_holm: 0.75 }
+      expect(parseTests(edited(['rows', 4], cut)).ok).toBe(true)
+    })
+  })
+  describe('T3: the Holm lists agree', () => {
+    it('refuses a hypothesis both in the family and out of it', () => {
+      expect(errorOf(edited(['holm', 'left_family'], ['H4', 'H2']))).toBe('holm: H2 is in both family and left_family')
+    })
+    it('refuses a hypothesis both tested and untested', () => {
+      expect(errorOf(edited(['holm', 'untested'], ['H3', 'H1']))).toBe('holm: H1 is in both tested and untested')
+    })
+    it('refuses tested and untested lists that miss a hypothesis of the family or name one outside it', () => {
+      expect(errorOf(edited(['holm', 'untested'], []))).toBe('holm.tested and holm.untested together must be holm.family [H1, H2, H3], but they lack [H3] and have the extra []')
+      expect(errorOf(edited(['holm', 'untested'], ['H3', 'H4']))).toBe('holm.tested and holm.untested together must be holm.family [H1, H2, H3], but they lack [] and have the extra [H4]')
+    })
   })
 })
 

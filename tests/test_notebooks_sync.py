@@ -1,6 +1,9 @@
 # Tests for tools/build_notebooks.py. The notebooks on disk must be exactly what
 # the builder makes from src/. If you change src/ or the builder and forget to
 # run tools/build_notebooks.py, the first test fails.
+#
+# Milestone 4: test_drivers_notebook_cells_run was seen to fail with drivers.implied_variance
+# without its /252 (applied to a scratch copy, file restored and its SHA-256 checked; [m4] reg10).
 
 import contextlib
 import io
@@ -19,7 +22,7 @@ def test_notebook_on_disk_is_in_sync(builder):
 
 
 def test_every_notebook_is_built_and_checked(builder):
-    assert list(builder.NOTEBOOKS) == ["00_scaffold_tour", "01_events", "02_iv_measures", "03_event_study"]
+    assert list(builder.NOTEBOOKS) == ["00_scaffold_tour", "01_events", "02_iv_measures", "03_event_study", "04_drivers"]
     for name in builder.NOTEBOOKS:
         assert builder.check(builder.NOTEBOOK_DIR / f"{name}.ipynb", name), name
 
@@ -73,7 +76,7 @@ def test_main_check_exit_codes(builder, monkeypatch, tmp_path, capsys):
     assert "01_events" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize("name", ["00_scaffold_tour", "01_events", "02_iv_measures", "03_event_study"])
+@pytest.mark.parametrize("name", ["00_scaffold_tour", "01_events", "02_iv_measures", "03_event_study", "04_drivers"])
 def test_build_is_deterministic(builder, name):
     assert builder.render(name) == builder.render(name)
 
@@ -154,3 +157,17 @@ def test_notebook_code_cells_run(builder, monkeypatch, tmp_path):
     assert '"generated_at": "2026-10-27T12:00:00Z"' in printed[1]
     # Cell 3: getsource prints the function, starting with its "def" line.
     assert printed[2].startswith("def envelope(")
+
+
+def test_drivers_notebook_cells_run(builder, monkeypatch, tmp_path):
+    # Milestone 4: the hand-worked numbers of tests/test_regressors.py and tests/test_regression.py, and the
+    # committed results (read from data/derived, not the cache).
+    monkeypatch.setenv("VOL_DATA_DIR", str(tmp_path))
+    printed = run_cells(builder, "04_drivers")
+    assert "0.002505" in printed[0] and "'A5': (5.809475, 4)" in printed[0]
+    assert printed[1].splitlines()[0] == "V [[0.6728, -0.3852], [-0.3852, 0.3618]] df 1.0"
+    assert "'stat': 3.491283" in printed[1] and "'stat': 7.643098" in printed[1]
+    assert printed[2].splitlines() == ["E + sigma_d^2/252 = 0.0011195", "without the /252  = 0.0605165"]
+    assert "twoway_date_wald" in printed[3] and "holm_post_gate" in printed[3]
+    assert "2026Q4_into_2026Q3" in printed[3] and "0.078125" in printed[3]      # H2's binding G = 7 Holm p
+    assert "rho-bar" in printed[4] and "after the factor" in printed[4]

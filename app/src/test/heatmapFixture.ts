@@ -1,7 +1,7 @@
 import { PROVENANCE_FIXTURE } from './metaFixture'
 
 /**
- * Hand-built `data/heatmap.json` body for tests (schema 0.4.0), invented values. Two grids:
+ * Hand-built `data/heatmap.json` body for tests (schema 0.5.0), invented values. Two grids:
  *   fix_by_day     2 companies x 3 days, values [[-0.5, 0, 0.25], [0.5, null, -0.25]]  -> largest |value| 0.5
  *   fix_by_season  2 companies x 2 seasons, values [[1, null], [-2, 0.5]] with q-values -> largest |value| 2
  * n is the number of events behind each cell (0 where the value is null).
@@ -54,7 +54,7 @@ export const HEATMAP_DATA_FIXTURE = {
 }
 
 export const HEATMAP_FIXTURE = {
-  schema_version: '0.4.0',
+  schema_version: '0.5.0',
   kind: 'heatmap',
   generated_at: '2031-03-04T05:06:07Z',
   source_commit: 'fix1234',

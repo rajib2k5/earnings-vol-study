@@ -5,11 +5,14 @@
  * timing labels behind every number are provisional, with the file's own look-up count and caveats.
  * A p-value the exporter withheld as mis-sized shows as "withheld" with the G1 rate the file gives (as a percent,
  * with the replications it was measured on), and
- * each table lists the file's row notes under it (for the primary family, its caption).
- * The file is checked with `loadTests` first, and a missing or invalid file shows an explicit error.
+ * each table lists the file's row notes under it (for the primary family, its caption). The Holm p of a primary that has a
+ * season-cut counterfactual (a row of the same hypothesis with subgroup_key "season_cut") shows that row's Holm p next to it,
+ * with its number of clusters G. The Holm statement says which hypotheses of the declared family failed their G1 size check
+ * and stay in the family (fix R1 of the milestone-4 review). The file is checked with `loadTests` first, and a missing or
+ * invalid file shows an explicit error.
  */
 import { useEffect, useState, type ReactNode } from 'react'
-import { asGiven, pct } from './format'
+import { asGiven, withheldText } from './format'
 import { ProvisionalNotice } from './ProvisionalNotice'
 import { groupByHypothesis, loadTests, rowsWithRole, TESTS_URL, type G1, type Holm, type TestRow, type TestsData } from './results'
 
@@ -42,15 +45,19 @@ const CI: Column = { header: 'CI', cell: interval, num: true }
 const STAT: Column = { header: 'Stat', cell: (r) => asGiven(r.stat), num: true }
 const DF: Column = { header: 'df', cell: (r) => asGiven(r.df), num: true }
 /** The p-value as given; a withheld one (null, with a G1 rate) says so and shows that rate, as a percent, and its replications instead. */
-const pValue = (r: TestRow): string =>
-  r.p_value === null && r.g1_size !== null
-    ? `withheld (G1 size ${pct(r.g1_size)} over ${Number(r.g1_reps).toLocaleString('en-US')} replications)`
-    : asGiven(r.p_value)
+const pValue = (r: TestRow): string => (r.p_value === null && r.g1_size !== null ? withheldText(r.g1_size, Number(r.g1_reps)) : asGiven(r.p_value))
 const P_VALUE: Column = { header: 'p', cell: pValue, num: true }
 const MEASURE: Column = { header: 'Measure', cell: measureCell }
 const STATISTIC: Column = { header: 'Statistic', cell: (r) => r.statistic }
 
-const PRIMARY_COLUMNS: Column[] = [
+/** The Holm p as given and, for each season-cut counterfactual of the same hypothesis, "(G = n: its Holm p)". */
+const holmWithCuts = (rows: readonly TestRow[]) => (r: TestRow): string => {
+  const cuts = r.hypothesis === null ? [] : rows.filter((c) => c.subgroup_key === 'season_cut' && c.hypothesis === r.hypothesis)
+  return [asGiven(r.p_holm), ...cuts.map((c) => `(G = ${asGiven(c.n_clusters)}: ${asGiven(c.p_holm)})`)].join(' ')
+}
+
+/** The columns of the primary family; the Holm p cell looks up the season-cut rows among `rows`. */
+const primaryColumns = (rows: readonly TestRow[]): Column[] => [
   { header: 'Hypothesis', cell: (r) => r.hypothesis ?? '—' },
   MEASURE,
   STATISTIC,
@@ -61,7 +68,7 @@ const PRIMARY_COLUMNS: Column[] = [
   STAT,
   DF,
   P_VALUE,
-  { header: 'Holm p', cell: (r) => asGiven(r.p_holm), num: true },
+  { header: 'Holm p', cell: holmWithCuts(rows), num: true },
 ]
 const ROBUSTNESS_COLUMNS: Column[] = [MEASURE, STATISTIC, { header: 'Estimand', cell: (r) => r.estimand ?? '—' }, N, ESTIMATE, SE, CI, STAT, DF, P_VALUE]
 const EXPLORATORY_COLUMNS: Column[] = [MEASURE, STATISTIC, N, ESTIMATE, SE, CI, STAT, DF, P_VALUE, { header: 'q (BH)', cell: (r) => asGiven(r.q_bh), num: true }]
@@ -109,14 +116,26 @@ function RowsTable({ label, columns, rows }: { label: string; columns: Column[];
 
 const listOrNone = (names: readonly string[]): string => (names.length === 0 ? 'none' : names.join(', '))
 
-function HolmStatement({ holm }: { holm: Holm }) {
+function HolmStatement({ holm, g1, rows }: { holm: Holm; g1: G1; rows: readonly TestRow[] }) {
+  // hypotheses of the declared family whose G1 size check failed: since fix R1 they stay in the family
+  const failed = [...new Set(g1.calibrated.filter((c) => !c.pass && holm.family.includes(c.hypothesis)).map((c) => c.hypothesis))]
+  const elsewhere = failed.filter((h) => !rows.some((r) => r.hypothesis === h))
   return (
-    <ul aria-label="Holm statement">
-      <li>Family: {listOrNone(holm.family)}</li>
-      <li>Tested: {listOrNone(holm.tested)}</li>
-      <li>Untested, entering the family as p = 1: {listOrNone(holm.untested)}</li>
-      <li>Left the family: {listOrNone(holm.left_family)}</li>
-    </ul>
+    <>
+      <ul aria-label="Holm statement">
+        <li>Family: {listOrNone(holm.family)}</li>
+        <li>Tested: {listOrNone(holm.tested)}</li>
+        <li>Untested, entering the family as p = 1: {listOrNone(holm.untested)}</li>
+        {holm.left_family.length > 0 && <li>Left the family: {holm.left_family.join(', ')}</li>}
+      </ul>
+      {failed.length > 0 && (
+        <p className="sub" aria-label="Failed size checks">
+          {failed.join(', ')} failed gate G1&apos;s size check and {failed.length === 1 ? 'stays' : 'stay'} in the family with {failed.length === 1 ? 'its p-value' : 'their p-values'}: the
+          statistic is liberal on this design, so a rejection by it would not be trusted.
+          {elsewhere.length > 0 && ` The rows of ${elsewhere.join(', ')} are on the Drivers page.`}
+        </p>
+      )}
+    </>
   )
 }
 
@@ -205,7 +224,7 @@ export function ResultsDisplay({ tests }: { tests: TestsData }) {
       </p>
 
       <h2>Primary family</h2>
-      <RowsTable label="Primary family" columns={PRIMARY_COLUMNS} rows={primary} />
+      <RowsTable label="Primary family" columns={primaryColumns(tests.rows)} rows={primary} />
 
       <section aria-label="Robustness checks">
         <h2>Robustness checks</h2>
@@ -232,7 +251,7 @@ export function ResultsDisplay({ tests }: { tests: TestsData }) {
       <G1Gate g1={tests.g1} />
 
       <h2>Holm adjustment</h2>
-      <HolmStatement holm={tests.holm} />
+      <HolmStatement holm={tests.holm} g1={tests.g1} rows={tests.rows} />
     </>
   )
 }

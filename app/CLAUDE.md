@@ -19,11 +19,12 @@ npm run coverage   # tests with the coverage table
   envelope (`src/lib/contract.ts`) and draws. UI-only transforms (grid to mesh, formatting, layout)
   are fine; statistics are not.
 - **`src/lib/` stays small and pure.** Transforms (`contract`, `validate`, `dataParts`, `provenance`, `terrain`,
-  `pathFrames`, `heatColour`, `format`, `motion`, `rng`, `architecture`) take data and return data: no I/O, no clock, no
+  `pathFrames`, `chartLayout`, `heatColour`, `format`, `motion`, `rng`, `architecture`) take data and return data: no I/O, no clock, no
   `Math.random()`. The parsers and loaders (`meta`, `funnel`, `ivMeasures`, `results` for tests.json, `eventPaths`,
-  `terrainData`, `heatmap`) fetch only through an injected `fetch`. React components in `src/lib/` (`FunnelPage`,
-  `IvMeasuresPage`, `ResultsPage`, `CrushPathsPage`, `HeatmapPage`, `ProvisionalNotice`, the shell) are thin and tested in
-  jsdom; the animation timer in `CrushPathsPage` only calls the pure `stepPlayback`. WebGL code lives in `src/three/`,
+  `terrainData`, `heatmap`, `drivers`, `impliedRealised`) fetch only through an injected `fetch`. React components in `src/lib/` (`FunnelPage`,
+  `IvMeasuresPage`, `ResultsPage`, `DriversPage`, `ImpliedRealisedPage`, `CrushPathsPage`, `HeatmapPage`, `ProvisionalNotice`, the shell) are thin and tested in
+  jsdom; the animation timer in `CrushPathsPage` only calls the pure `stepPlayback`, and the pixel layout of the Drivers and Implied vs realised
+  charts is the pure `chartLayout`. WebGL code lives in `src/three/`,
   outside the coverage gate because it needs a GPU; keep it as thin as possible and put every calculation in `src/lib/`.
 - **Seeded randomness only**, via `mulberry32` in `src/lib/rng.ts`, in code and in tests.
 - **Coverage thresholds (85% lines/functions, 75% branches on `src/lib/**`) are set in
@@ -32,13 +33,13 @@ npm run coverage   # tests with the coverage table
 - **Anything illustrative says so on screen** ("Illustrative synthetic shape — not data"). Since milestone 3 nothing is
   illustrative: the 3D view draws `terrain.json`. **Every page that shows a result says the timing labels are provisional**
   (`ProvisionalNotice`, built from the file's `lookups` and `caveats`) while the look-ups are incomplete.
-- **The JSON contract is shared with Python.** Envelope keys are exactly `schema_version` ("0.4.0"),
+- **The JSON contract is shared with Python.** Envelope keys are exactly `schema_version` ("0.5.0"),
   `kind`, `generated_at` (UTC, ends in `Z`), `source_commit`, `data`. Change `contract.ts` and
   `tools/export_app_data.py` together, and bump the version.
 - **Dependencies are pinned exactly** (no `^` or `~`). The lockfile was generated with npm 11
   because npm 10.9.8 crashed resolving vitest 4.1; `npm ci` works on both.
 - **Public repo hygiene**: no API keys, no Cboe VX\* data, no VIX series and no per-event VIX-adjusted value (only
-  aggregates of VIX-adjusted values are committed, `DATA.md`), no Yahoo prices (only the two derived labels, `DATA.md`), no
+  aggregates of VIX-adjusted values are committed, `DATA.md`), no Yahoo prices (only the two derived labels and the regression coefficients of SIZE, `DATA.md`), no
   absolute local paths in `dist/`.
 
 ## Layout
@@ -48,7 +49,7 @@ npm run coverage   # tests with the coverage table
 - `src/test/` shared test fixtures (one per data kind, invented values), `editHelpers.ts`, and `publicData.test.ts`, which
   checks the REAL files in `public/data/`
 - `public/data/` JSON written by Python (never edited by hand here): `meta`, `sample_funnel`, `iv_measures`, `tests`,
-  `event_paths`, `terrain`, `heatmap`; their keys are in `DATA.md`
+  `event_paths`, `terrain`, `heatmap`, `drivers`, `implied_vs_realised`; their keys are in `DATA.md`
 
 ## Tests
 

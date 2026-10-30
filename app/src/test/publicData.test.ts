@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { parseEnvelope } from '../lib/contract'
+import { failedHypotheses, forestTerms, parseDrivers } from '../lib/drivers'
 import { parseEventPaths, seriesOptions } from '../lib/eventPaths'
 import { parseSampleFunnel } from '../lib/funnel'
 import { parseHeatmap } from '../lib/heatmap'
+import { parseImpliedRealised } from '../lib/impliedRealised'
 import { parseIvMeasures } from '../lib/ivMeasures'
 import { summarizeMeta, formatMilestone, parseMetaData } from '../lib/meta'
 import { groupByHypothesis, parseTests, rowsWithRole } from '../lib/results'
@@ -26,7 +28,7 @@ describe('public/data/*.json (written by the Python exporter)', () => {
     expect(Object.keys(files).some((f) => f.endsWith('/meta.json'))).toBe(true)
   })
   for (const [path, raw] of Object.entries(files)) {
-    it(`${path.split('/').pop()} is valid JSON and satisfies the schema 0.4.0 envelope`, () => {
+    it(`${path.split('/').pop()} is valid JSON and satisfies the schema 0.5.0 envelope`, () => {
       const r = parseEnvelope(JSON.parse(raw))
       expect(r.ok, r.ok ? '' : r.error).toBe(true)
     })
@@ -80,10 +82,10 @@ describe('public/data/*.json (written by the Python exporter)', () => {
       expect(meta.data.files, `${path} (kind ${env.envelope.kind}) is missing from meta.json data.files`).toContain(env.envelope.kind)
     }
   })
-  it('meta.json data.files lists all seven kinds, and public/data holds a file for each', () => {
+  it('meta.json data.files lists all nine kinds, and public/data holds a file for each', () => {
     const meta = parseMetaData(envelopeOf('meta').data)
     if (!meta.ok) throw new Error(meta.error)
-    const kinds = ['meta', 'sample_funnel', 'iv_measures', 'tests', 'event_paths', 'terrain', 'heatmap']
+    const kinds = ['meta', 'sample_funnel', 'iv_measures', 'tests', 'event_paths', 'terrain', 'heatmap', 'drivers', 'implied_vs_realised']
     expect([...meta.data.files].sort()).toEqual([...kinds].sort())
     const present = Object.values(files).map((raw) => {
       const env = parseEnvelope(JSON.parse(raw))
@@ -141,17 +143,31 @@ describe('public/data/*.json (written by the Python exporter)', () => {
     if (!r.ok) throw new Error(r.error)
     expectProvisionalAndConsistent('tests', r.data)
   })
-  it('tests.json has one primary row for each of H1 to H4 and a Holm family H1 to H7 in which H5 to H7 are untested', () => {
+  it('tests.json has one primary row for each of H1 to H4, and the declared Holm family H1 to H7 binds: all tested, none untested, none left (fix R1)', () => {
     const r = parseTests(envelopeOf('tests').data)
     if (!r.ok) throw new Error(r.error)
     const primary = rowsWithRole(r.data.rows, 'primary')
     expect(primary.map((x) => x.hypothesis)).toEqual(['H1', 'H2', 'H3', 'H4'])
-    expect(r.data.holm.family).toEqual(['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7'])
-    expect(r.data.holm.tested).toEqual(['H1', 'H2', 'H3', 'H4'])
-    expect(r.data.holm.untested).toEqual(['H5', 'H6', 'H7'])
+    const declared = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7']
+    expect(r.data.holm.family).toEqual(declared)
+    expect(r.data.holm.tested).toEqual(declared)
+    expect(r.data.holm.untested).toEqual([])
+    expect(r.data.holm.left_family).toEqual([])
+    // the binding Holm p over H1 to H7 (fix R1)
+    expect(primary.map((x) => x.p_holm)).toEqual([4.06e-22, 0.04688, 1, 1])
+    // H2's binding season-cut counterfactual (G = 7) is not rejected, and its primary row says so
+    const h2 = primary[1]
+    expect(h2.note).toContain('Holm p 0.07812')
+    const cut = r.data.rows.filter((x) => x.subgroup_key === 'season_cut')
+    expect(cut.map((x) => [x.hypothesis, x.role, x.n_clusters, x.p_holm])).toEqual([['H2', 'robustness', 7, 0.07812]])
+    // the caveat on the family names the size failure of H5 to H7 and the post-gate sensitivity
+    expect(r.data.caveats[1]).toMatch(/H5 \(9\.55%\), H6 \(8\.10%\), H7 \(16\.15%\) failed gate G1's regression size check/)
+    expect(r.data.caveats[1]).toMatch(/Sensitivity, not binding: over the family without them \(H1, H2, H3, H4\)/)
     // the page groups the robustness rows under hypotheses; none may fall into the "no hypothesis" group
     expect(groupByHypothesis(rowsWithRole(r.data.rows, 'robustness')).every((g) => g.hypothesis !== null)).toBe(true)
-    expect(r.data.g1.calibrated.map((c) => c.hypothesis)).toEqual(['H1', 'H2', 'H3', 'H4'])
+    // gate G1 now also ran for H5 to H7, and all three failed it
+    expect(r.data.g1.calibrated.map((c) => c.hypothesis)).toEqual(['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7'])
+    expect(r.data.g1.calibrated.filter((c) => !c.pass).map((c) => c.hypothesis)).toEqual(['H5', 'H6', 'H7'])
   })
   it('event_paths.json exists, has kind "event_paths", passes its validator, and agrees with meta.json (window, events, adjustments, subgroups)', () => {
     const env = envelopeOf('event_paths')
@@ -190,5 +206,96 @@ describe('public/data/*.json (written by the Python exporter)', () => {
     const byDay = r.data.grids[0]
     expect(byDay.row_labels).toHaveLength(meta.sample.n_securities)
     expect(byDay.col_labels).toHaveLength(meta.params.event_window[1] - meta.params.event_window[0] + 1)
+  })
+  // ---- milestone 4: drivers, implied_vs_realised ----
+
+  it('drivers.json exists, has kind "drivers", passes its validator, and says the timing labels are provisional', () => {
+    const env = envelopeOf('drivers')
+    expect(env.kind).toBe('drivers')
+    const r = parseDrivers(env.data)
+    if (!r.ok) throw new Error(r.error)
+    expectProvisionalAndConsistent('drivers', r.data)
+    expect(r.data.caveats.join(' ')).toMatch(/provisional/i)
+  })
+  it('drivers.json has the primary crush model first, models that can be plotted, and a Holm family that matches tests.json', () => {
+    const r = parseDrivers(envelopeOf('drivers').data)
+    if (!r.ok) throw new Error(r.error)
+    const tests = parseTests(envelopeOf('tests').data)
+    if (!tests.ok) throw new Error(tests.error)
+    expect(r.data.models.length).toBeGreaterThan(1)
+    expect(r.data.models[0].model_id).toBe('crush_drivers')
+    expect(r.data.models.every((m) => m.terms.length > 0)).toBe(true)
+    expect(forestTerms(r.data.models[0]).length, 'the primary model must have a coefficient to plot').toBeGreaterThan(0)
+    expect(r.data.holm.family).toEqual(tests.data.holm.family)
+    expect(r.data.holm.left_family).toEqual(tests.data.holm.left_family)
+    expect(r.data.holm.left_family).toEqual([])
+    // the old binding family is now a descriptive sensitivity
+    expect(r.data.holm.post_gate).toEqual({ family: ['H1', 'H2', 'H3', 'H4'], p_holm: { H1: 2.32e-22, H2: 0.02344, H3: 1, H4: 1 }, season_cut: { H2: 0.04688 } })
+  })
+  it('drivers.json keeps H5 to H7 primary with their real p-values, binding Holm p, failed G1 size and a note (fix R1)', () => {
+    const r = parseDrivers(envelopeOf('drivers').data)
+    if (!r.ok) throw new Error(r.error)
+    const primaries = r.data.models.flatMap((m) => m.terms.filter((t) => t.role === 'primary'))
+    expect(primaries.map((t) => [t.hypothesis, t.statistic, t.p_holm, t.g1_size, t.g1_reps])).toEqual([
+      ['H5', 'twoway_date_t', 0.05108, 0.0955, 2000],
+      ['H6', 'twoway_date_t', 1, 0.081, 2000],
+      ['H7', 'twoway_date_wald', 1, 0.1615, 2000],
+    ])
+    for (const t of primaries) {
+      expect(t.p_value, t.term).not.toBeNull()
+      expect(t.note, t.term).toMatch(/^Size check failed: .* a rejection by it would not be trusted/)
+    }
+    expect(primaries[0].p_value).toBe(0.01022)
+    // none of them is rejected at 5%
+    expect(primaries.every((t) => (t.p_holm as number) > 0.05)).toBe(true)
+    // the caveat the page repeats next to the coefficient tables (fix R7): exactly one, and it gives the measured range
+    const nearTables = r.data.caveats.filter((c) => /exploratory/i.test(c))
+    expect(nearTables).toHaveLength(1)
+    expect(nearTables[0]).toContain('8.10% to 9.55%')
+  })
+  it('drivers.json gate G1 is the one of tests.json: same band and replications, and the same rejection rate for every primary statistic', () => {
+    const d = parseDrivers(envelopeOf('drivers').data)
+    const t = parseTests(envelopeOf('tests').data)
+    if (!d.ok) throw new Error(d.error)
+    if (!t.ok) throw new Error(t.error)
+    expect(d.data.g1.band).toEqual(t.data.g1.band)
+    expect(d.data.g1.reps).toBe(t.data.g1.reps)
+    const rates = new Map(t.data.g1.calibrated.map((c) => [`${c.hypothesis} ${c.statistic}`, c.rejection_rate]))
+    for (const c of d.data.g1.calibrated.filter((x) => x.primary)) expect(rates.get(`${c.hypothesis} ${c.statistic}`), `${c.hypothesis} ${c.statistic}`).toBe(c.rejection_rate)
+    // the hypotheses whose primary check failed are the ones the sensitivity leaves out, not ones that left the family
+    expect(failedHypotheses(d.data.g1.calibrated)).toEqual(['H5', 'H6', 'H7'])
+    expect(d.data.holm.family.filter((h) => !d.data.holm.post_gate.family.includes(h))).toEqual(['H5', 'H6', 'H7'])
+  })
+  it('implied_vs_realised.json exists, has kind "implied_vs_realised", passes its validator, and says the timing labels are provisional', () => {
+    const env = envelopeOf('implied_vs_realised')
+    expect(env.kind).toBe('implied_vs_realised')
+    const r = parseImpliedRealised(env.data)
+    if (!r.ok) throw new Error(r.error)
+    expectProvisionalAndConsistent('implied_vs_realised', r.data)
+    expect(r.data.caveats.join(' ')).toMatch(/provisional/i)
+  })
+  it('implied_vs_realised.json has one point per event of its summary, the counts of the summary, the 0.425 benchmark, and an H7 gate verdict equal to drivers.json', () => {
+    const r = parseImpliedRealised(envelopeOf('implied_vs_realised').data)
+    const d = parseDrivers(envelopeOf('drivers').data)
+    if (!r.ok) throw new Error(r.error)
+    if (!d.ok) throw new Error(d.error)
+    const { points, summary } = r.data
+    expect(points).toHaveLength(summary.n)
+    expect(points.filter((p) => p.implied_abs_move_total !== null)).toHaveLength(summary.n_with_implied_abs_move)
+    expect(points.filter((p) => p.implied_move_status === 'nonpositive_event_variance')).toHaveLength(summary.n_evar_nonpositive)
+    expect(summary.share_exceed_benchmark).toBe(0.425)
+    const h7 = d.data.g1.calibrated.find((c) => c.hypothesis === 'H7' && c.primary)
+    const h7OneWay = d.data.g1.calibrated.find((c) => c.hypothesis === 'H7' && c.statistic === 'cluster_date_wald')
+    const h7Term = d.data.models.flatMap((m) => m.terms).find((t) => t.hypothesis === 'H7' && t.role === 'primary')
+    const reg = summary.regression
+    expect(reg.g1_rate).toBe(h7?.rejection_rate)
+    expect(reg.g1_pass).toBe(h7?.pass)
+    // fix R1: H7 stays primary, with its binding Holm p and its failed size check
+    expect([reg.role, reg.wald_p, reg.p_holm, reg.g1_rate, reg.g1_pass, reg.g1_bar]).toEqual(['primary', 0.2751, 1, 0.1615, false, 0.063])
+    expect([reg.wald_p, reg.p_holm]).toEqual([h7Term?.p_value, h7Term?.p_holm])
+    expect(reg.g1_bar).toBe(d.data.g1.band[1])
+    // the one-way Wald failed its own check (the H7 cluster_date_wald entry of drivers.json), so its p-value is withheld
+    expect([reg.g1_rate_one_way, reg.g1_pass_one_way, reg.wald_p_one_way]).toEqual([0.17, false, null])
+    expect(reg.g1_rate_one_way).toBe(h7OneWay?.rejection_rate)
   })
 })

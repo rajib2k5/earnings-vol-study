@@ -1,5 +1,5 @@
 /**
- * Loads and checks `data/event_paths.json` (kind "event_paths", schema 0.4.0): the path of abnormal log
+ * Loads and checks `data/event_paths.json` (kind "event_paths", schema 0.5.0): the path of abnormal log
  * IV around the announcement, as a mean with a pointwise 95% band per series and as one path per
  * event. Written by the Python exporter; the app only draws it. `fetch` is injected so tests never
  * touch the network; nothing here throws or coerces.

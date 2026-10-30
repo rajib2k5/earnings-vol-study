@@ -2,7 +2,10 @@
 
 - **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review**, and again
   after the milestone-0 delta review (notes below); validated at milestone 2, and revised after the milestone-2 review
-  (note below: the forward tie, the quadratic fallback, AMC expiries, the E pair)
+  (note below: the forward tie, the quadratic fallback, AMC expiries, the E pair). *Milestone 4 (2026-10-29):* H7's
+  regressor is built as §c "Units" says, E + `sigma_d_m1`²/252 (`stats/drivers.py implied_variance`; the AAPL
+  example gives 0.0011195 in `tests/test_regression.py`, which fails without the /252), and E at day −2 is H7's
+  robustness variant (b 0.92 against 0.77 at day −1; [milestone 4 page](../milestones/04-drivers.md) §6.4).
 - **Date:** 2026-10-28
 - **Related:** [0002 day 0](0002-day-zero-convention.md), [0004 windows](0004-baseline-and-event-windows.md),
   [data model](../architecture/data-model.md) (`chain_expiry`, `iv_daily`)

@@ -6,6 +6,13 @@
   look-ups are done, and every other event keeps the calendar's label until SEC EDGAR runs (accepted 2026-10-28; it
   makes no request until the owner sets the contact string). Every result on this page, in `results.parquet` and in
   the app depends on those labels.
+- **Later (milestone 4, 2026-10-29, as fixed after its review):** H5–H7 failed gate G1's regression size check but
+  stay in Holm's declared family with their real p-values (ADR 0005 §5, dated note). H1–H4's p_holm are unchanged
+  (H1 4.06e−22, H2 0.0469), and H2's G = 7 counterfactual is **0.0781** (not 0.0938: H5's p 0.0102 now ranks before
+  the cut), still not rejected. The first build of milestone 4 dropped H5–H7 and printed H1 2.3e−22, H2 0.0234 and a
+  "rejected" G = 7 counterfactual of 0.0469; those are now a descriptive sensitivity. The ρ̂̄ = 0.30 item of §8 was
+  investigated: one common date component, linearly unrelated to Δln VIX ([milestone 4 page](04-drivers.md) §6.2,
+  §6.6).
 - **Date:** 2026-10-29
 - **Scope:** `event_window_obs` and `event_measures` (abnormal IV in logs, market-adjusted with VIX), the primary
   tests of H1–H4 with their robustness rows, **gate G1 on the real event structure, run before any result**, Holm over
@@ -354,7 +361,7 @@ p_holm is an upper bound.
 | | Measure | Statistic | n | G (time) | G (firm) | Estimate | se | t | df | p | p_holm | 95% CI |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | H1 | CRUSH | `twoway_date_t` | 347 | 172 dates | 50 | **−0.1994** | 0.0112 | −17.73 | 49 | 5.80e−23 | **4.06e−22** | [−0.2220, −0.1768] |
-| H2 | RUNUP | `rad_season_p` | 356 | 8 seasons | – | **+0.2319** | – | 16.51 (one-way) | – | 0.0078 | **0.0469** (G = 7: 0.0938) | – |
+| H2 | RUNUP | `rad_season_p` | 356 | 8 seasons | – | **+0.2319** | – | 16.51 (one-way) | – | 0.0078 | **0.0469** (G = 7: 0.0938; since milestone 4: 0.0781) | – |
 | H3 | PERSIST_10 | `twoway_season_t` | 329 | 7 seasons | 50 | +0.0080 | 0.0233 | 0.34 | 6 | 0.743 | 1.000 | [−0.0491, +0.0651] |
 | H4 | ΔSIGMA_D | `twoway_date_t` | 262 | 134 dates | 47 | +0.0031 | 0.0112 | 0.28 | 46 | 0.782 | 1.000 | [−0.0194, +0.0256] |
 
@@ -394,7 +401,7 @@ rate and replications are shown instead (§9 F6, second round D3).
 | H2 | `twoway_season_t` / `cluster_season_t` | +0.2319 | 13.43 / 16.51 | 3.0e−6 / 7.3e−7 | |
 | H2 | `sa_twoway_season_t` (precision-weighted) | +1.464 | 11.07 | 1.1e−5 | same sign as the primary |
 | H2 | mean-adjusted twin (`rad_season_p`) | +0.2333 | – | 0.0078 | |
-| H2 | season cut 2026Q4 into 2026Q3 (`rad_season_p`, G = 7) | +0.2319 | 13.74 (one-way) | 0.0156 | its Holm p would be 0.0938 |
+| H2 | season cut 2026Q4 into 2026Q3 (`rad_season_p`, G = 7) | +0.2319 | 13.74 (one-way) | 0.0156 | its Holm p would be 0.0938 (0.0781 since milestone 4) |
 | H3 | `cluster_season_t` / `rad_season_p` / `sa_twoway_season_t` | +0.0080 / – / +0.078 | 0.33 / – / 0.63 | 0.75 / 0.77 / 0.55 | |
 | H3 | mean-adjusted twin | +0.0030 | 0.09 | 0.93 | |
 | H4 | `cluster_date_t`, `bmp_t`, `kp_ow_t`, `kpp_t`, mean-adjusted twin | | | 0.78–0.93 | none rejects; the one-way t and BMP were re-measured on 10,000 (4.98% and 5.34%, inside 5.57%) |

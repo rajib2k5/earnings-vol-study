@@ -1,0 +1,30 @@
+ok   drivers committed: accepted
+ok   implied committed: accepted
+ok   tests committed: accepted
+ok   D withheld primary (g1_size on role primary): rejected (models[0].terms[1].g1_size withholds only a robustness row, but role is "primary")
+ok   D withheld robustness row keeps its CI: rejected (models[0].terms[0] is withheld (g1_size number 0.1845) but keeps its interval [number 0.00)
+MISS D silent withheld primary (role primary, p null, no g1_size): accepted
+ok   D p_value 1.5: rejected (models[0].terms[1].p_value must be a number from 0 to 1 or null, got number 1.5)
+ok   D coef as string: rejected (models[0].terms[0].coef must be a finite number or null, got "0.01")
+ok   D extra key in a term: rejected (models[0].terms[0] has unexpected key(s): extra (expected exactly: term, label, hypothesis)
+ok   D missing key in a term: rejected (models[0].terms[0] has missing key(s): se (expected exactly: term, label, hypothesis, role)
+ok   D ci_lo > ci_hi: rejected (models[0].terms[1].ci_lo (0.023191) must be at most ci_hi (0.00328))
+ok   D hypothesis H8: rejected (models[0].terms[0].hypothesis must be null or one of H1 .. H7, got "H8")
+ok   D all_declared 1.2: rejected (holm.all_declared.H5 must be a number from 0 to 1, got number 1.2)
+MISS D H5 both in family and left_family: accepted
+MISS D g1 calibrated pass true above the band: accepted
+MISS D exploratory row carries p_holm: accepted
+ok   D n negative: rejected (models[0].n must be a positive integer, got number -3)
+ok   D g1_size without g1_reps: rejected (models[0].terms[0].g1_reps is given exactly when g1_size is, but g1_size is number 0.1845 )
+MISS I regression role primary with g1_pass false: accepted
+ok   I wald_p 1.5: rejected (summary.regression.wald_p must be a number from 0 to 1, got number 1.5)
+ok   I b_ci reversed: rejected (summary.regression.b_ci must not decrease: the low end (1.07) is above the high end (0.46))
+MISS I benchmark 0.5: accepted
+ok   I event_var as string: rejected (points[0].event_var must be a finite number or null, got "x")
+ok   I extra key in a point: rejected (points[0] has unexpected key(s): vix (expected exactly: event_id, ticker, sector, day0, ti)
+MISS I withheld one-way Wald p given (p while G1 failed it): accepted
+MISS I duplicate event_id: accepted
+ok   T withheld primary (g1_size): rejected (rows[11].g1_size withholds only a robustness row, but role is "primary")
+ok   T withheld row keeps its CI: rejected (rows[4] is withheld (g1_size number 0.2755) but keeps its interval [number -0.1, number 0.)
+MISS T silent withheld primary (p null, no g1_size): accepted
+MISSES 9

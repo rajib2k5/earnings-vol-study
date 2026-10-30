@@ -141,6 +141,11 @@ def generate(rng: np.random.Generator, d: Design, p: dict, m: np.ndarray | None 
     nf, T = len(d.firms), d.T
     ns = int(d.firm_sector.max()) + 1
     sig = p.get("sig0", SIG0) * np.exp(rng.normal(0.0, p.get("sig_disp", 0.0), nf))
+    if p.get("sig_firm") is not None:
+        # Milestone 4 (H5/H6): each firm's scale pinned to its real one, sig0 exp(sig_firm[f]), so
+        # that the heteroskedasticity a regressor such as ln sigma_d(-1) carries is the data's. The
+        # draw above is still made, so the generator's stream is the same with or without it.
+        sig = p.get("sig0", SIG0) * np.exp(np.asarray(p["sig_firm"], float))
     rho_m, rho_s = p.get("rho_m", 0.0), p.get("rho_s", 0.0)
     c = rng.standard_normal(T + 1)
     phc = p.get("common_ar", 0.0)

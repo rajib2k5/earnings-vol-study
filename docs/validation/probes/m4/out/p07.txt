@@ -1,0 +1,6 @@
+own rho-bar 0.3006; dates with >= 2 events 489; positive share 0.759
+top 10 share of cross-product 0.392; without top 10 0.1920
+own LOO all-firm residual rho-bar -0.0282; sector LOO 0.0301
+mechanics: iid z (no dependence), real missingness: raw rho-bar ~0; after the all-firm LOO residualisation: 0.0027, 0.0049, -0.0015, 0.0033, 0.0013
+mechanics: iid z after the SECTOR LOO residualisation: 0.0014, -0.0037, -0.0013
+mechanics: pure common factor (rho 0.3) + noise: raw / after all-firm LOO / after sector LOO: 0.290 / -0.0323 / 0.0320; 0.284 / -0.0319 / 0.0377; 0.298 / -0.0318 / 0.0334

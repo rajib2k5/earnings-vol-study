@@ -1,0 +1,9 @@
+N, K (347, 21) G_date 172 G_firm 50
+firms per sector [1, 2, 3, 3, 3, 5, 7, 8, 18]
+skewness of the z-scored regressors: |SURP| 2.46, ln sigma_d 0.11
+H5 / H6 rejection % at 5%, y iid normal (|SURP| / ln sigma_d):
+  primary X (sector + season FE): two-way 7.60 / 6.50; date 5.95 / 5.00; firm 7.30 / 6.20; HC1 5.90 / 5.20
+  no fixed effects:               two-way 7.20 / 5.95; date 5.55 / 5.10; firm 6.80 / 6.25; HC1 5.35 / 5.20
+  season FE only:                 two-way 7.65 / 7.40; date 6.30 / 6.40; firm 7.45 / 7.40; HC1 6.05 / 6.05
+H7 Wald (a, b) = (0, 1) rejection % at 5%, normal moves with variance exactly x: two-way 11.80, date 10.95, firm 11.75, HC1 11.22
+x: n 336, skewness 1.72, max / median 7.60

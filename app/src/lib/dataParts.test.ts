@@ -12,6 +12,7 @@ import {
   parseCaveats,
   parseGrid,
   parseLookups,
+  parseRecords,
   parseRelDays,
 } from './dataParts'
 import { fail, isFiniteNumber, type Parsed } from './validate'
@@ -122,6 +123,23 @@ describe('parseGrid', () => {
   })
 })
 
+describe('parseRecords', () => {
+  const build = (o: Record<string, unknown>, at: string): Parsed<number> => (typeof o.v === 'number' ? { ok: true, data: o.v } : fail(`${at}.v must be a number, got ${String(o.v)}`))
+  it('builds every record that has exactly the keys, in file order', () => {
+    expect(parseRecords([{ v: 1 }, { v: 2 }], 'rs', ['v'], build)).toEqual({ ok: true, data: [1, 2] })
+    expect(parseRecords([], 'rs', ['v'], build)).toEqual({ ok: true, data: [] })
+  })
+  it('refuses a non-array, a record that is not an object, and a missing or extra key, naming the record', () => {
+    expect(errorOf(parseRecords({ v: 1 }, 'rs', ['v'], build))).toBe('rs must be an array, got an object')
+    expect(errorOf(parseRecords([{ v: 1 }, 5], 'rs', ['v'], build))).toBe('rs[1] must be an object, got number 5')
+    expect(errorOf(parseRecords([{}], 'rs', ['v'], build))).toBe('rs[0] has missing key(s): v (expected exactly: v)')
+    expect(errorOf(parseRecords([{ v: 1, w: 2 }], 'rs', ['v'], build))).toBe('rs[0] has unexpected key(s): w (expected exactly: v)')
+  })
+  it('passes the first failure of the builder through, with the place of the record', () => {
+    expect(errorOf(parseRecords([{ v: 1 }, { v: 'x' }], 'rs', ['v'], build))).toBe('rs[1].v must be a number, got x')
+  })
+})
+
 describe('cell predicates', () => {
   it('isNumberOrNull: finite numbers and null only', () => {
     for (const x of [0, -1.5, 1e-22, null]) expect(isNumberOrNull(x), String(x)).toBe(true)
@@ -177,7 +195,7 @@ describe('parseRelDays', () => {
 
 describe('loadKind', () => {
   const parse = (data: unknown): Parsed<number> => (typeof data === 'object' && data !== null && 'x' in data ? { ok: true, data: 1 } : fail('x is missing'))
-  const body = (patch: Record<string, unknown> = {}) => ({ schema_version: '0.4.0', kind: 'thing', generated_at: '2031-03-04T05:06:07Z', source_commit: 'c', data: { x: 1 }, ...patch })
+  const body = (patch: Record<string, unknown> = {}) => ({ schema_version: '0.5.0', kind: 'thing', generated_at: '2031-03-04T05:06:07Z', source_commit: 'c', data: { x: 1 }, ...patch })
 
   it('returns what parse returns for the data of a good envelope of the right kind', async () => {
     expect(await loadKind('u.json', 'thing', parse, serving(body()))).toEqual({ ok: true, data: 1 })

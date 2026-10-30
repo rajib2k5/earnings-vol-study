@@ -1,0 +1,19 @@
+worked example 0.00088284 + 0.2442^2/252 = 0.0011195
+benchmark 2(1 - Phi(sqrt(2/pi))) = 0.42494
+H1 set: 347
+implied_realised: n 336 G 167/50 E<=0 4 R2 0.1514 | a 0.000830 se 0.000804 t 1.032 | b 0.7670 se 0.1504 t(b-1) -1.550 p 0.1276 CI [0.4648, 1.0691] | Wald2 F(2,49) 1.3253 p 0.2751 (V PD True) | Wald1 F(2,166) 0.9449 p 0.3908
+   committed a=0,b=1    cluster_date_wald  est nan se nan stat 0.9448792528597418 df 166.0 df_num 2.0 p nan ci [nan, nan] role robustness
+   committed a=0,b=1    twoway_date_wald   est nan se nan stat 1.3252872440276642 df 49.0 df_num 2.0 p 0.2750822892151676 ci [nan, nan] role exploratory
+   committed exceed_share twoway_date_t      est 0.4006024096385542 se 0.02423687420201572 stat -1.0066310596857702 df 49.0 df_num nan p 0.31905736093136017 ci [0.35189658741676694, 0.44930823186034147] role exploratory
+   committed nan        r2                 est 0.15138608328269743 se nan stat nan df nan df_num nan p nan ci [nan, nan] role exploratory
+   committed a          twoway_date_t      est 0.0008297079692293954 se 0.0008037880900715563 stat 1.032247155037507 df 49.0 df_num nan p 0.3070244918556983 ci [-0.0007855646724778107, 0.0024449806109366015] role exploratory
+   committed b          twoway_date_t      est 0.7669530461013119 se 0.1503504248305915 stat -1.5500252437681874 df 49.0 df_num nan p 0.12757081631356387 ci [0.4648125554698941, 1.0690935367327297] role exploratory
+implied_realised_m2: n 331 G 164/50 E<=0 3 R2 0.1577 | a 0.000248 se 0.000683 t 0.364 | b 0.9220 se 0.1290 t(b-1) -0.605 p 0.5479 CI [0.6628, 1.1811] | Wald2 F(2,49) 0.1973 p 0.8216 (V PD True) | Wald1 F(2,163) 0.1130 p 0.8932
+   committed nan        r2                 est 0.15768700052923346 se nan stat nan df nan df_num nan p nan ci [nan, nan] role exploratory
+   committed a          twoway_date_t      est 0.0002484287492622271 se 0.0006827439049181919 stat 0.3638681319198221 df 49.0 df_num nan p 0.7175218582832446 ci [-0.0011235964953622913, 0.0016204539938867455] role exploratory
+   committed b          twoway_date_t      est 0.9219632199398362 se 0.12897185781447837 stat -0.605068279100213 df 49.0 df_num nan p 0.5479257324944412 ci [0.6627845681893073, 1.181141871690365] role exploratory
+   committed a=0,b=1    twoway_date_wald   est nan se nan stat 0.1972571252748586 df 49.0 df_num 2.0 p 0.821628220484441 ci [nan, nan] role exploratory
+exceed share: n 332 share 0.4006 se 0.0242 t -1.007 p 0.3191
+implied_abs_move_total_m1 / (sqrt(2/pi) sqrt(E + sd^2/252)): min 1.000000 max 1.000000
+   committed: [{'estimate': 0.4006024096385542, 'se': 0.02423687420201572, 'stat': -1.0066310596857702, 'p_value': 0.31905736093136017, 'n': 332}]
+median |r0| / implied |move| over E > 0: 0.8161

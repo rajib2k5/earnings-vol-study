@@ -1,0 +1,7 @@
+clean: no raw vendor file and no oversized data file
+rc=0
+docs/adr/0003-iv-measures.md:52
+docs/milestones/02-iv-measures.md:223
+docs/milestones/02-iv-measures.md:231
+3 line(s) flagged in 568 text file(s) of working tree against 55 raw file(s)
+rc=1
