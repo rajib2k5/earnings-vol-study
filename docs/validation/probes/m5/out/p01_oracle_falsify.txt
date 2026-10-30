@@ -1,0 +1,44 @@
+BAD report          h1.fall                got='0.199'        want='0.201'        | r   it (day 0), the 30-day implied volatility (IV) falls by ⟦0.199⟧ log points on average, net of
+BAD report          h1.pct_fall            got='18.1%'        want='18.2%'        |  points on average, net of the market's   volatility: about ⟦18.1%⟧. The market-adjusted change i
+BAD report          h1.p                   got='5.8e−23'      want='7.1e−23'      | ame date and for one company's events being alike gives p = ⟦5.8e−23⟧ (Holm 4.1e−22). - **The crush
+BAD report          h1.p_holm              got='4.1e−22'      want='4.9e−22'      | or one company's events being alike gives p = 5.8e−23 (Holm ⟦4.1e−22⟧). - **The crush is the event 
+BAD report          sample.day0_from       got='2024-12-05'   want='2024-12-10'   | sessions before day 0, so the primary sample has day 0 from ⟦2024-12-05⟧ to 2026-10-26. The older coar
+BAD report          sample.day0_to         got='2026-10-26'   want='2026-10-22'   | e day 0, so the primary sample has day 0 from 2024-12-05 to ⟦2026-10-26⟧. The older coarse snapshots f
+BAD report          sample.day0_from       got='2024-12-05'   want='2024-12-10'   | laceable | | Day 0 in the daily range | 366 | 954 | outside ⟦2024-12-05⟧ to 2026-10-26 | | Option snap
+BAD report          sample.day0_to         got='2026-10-26'   want='2026-10-22'   | ay 0 in the daily range | 366 | 954 | outside 2024-12-05 to ⟦2026-10-26⟧ | | Option snapshots on day −
+BAD report          h1.est                 got='−0.199'       want='−0.201'       |  H1 | Does the 30-day IV fall from day −1 to day 0? | 347 | ⟦−0.199⟧ | [−0.222, −0.177] | 5.8e−23 
+BAD report          h1.ci                  got='[−0.222, −0.177]' want='[−0.224, −0.178]' | s the 30-day IV fall from day −1 to day 0? | 347 | −0.199 | ⟦[−0.222, −0.177]⟧ | 5.8e−23 | 4.60% | **4.1e−22
+BAD report          h1.p                   got='5.8e−23'      want='7.1e−23'      | l from day −1 to day 0? | 347 | −0.199 | [−0.222, −0.177] | ⟦5.8e−23⟧ | 4.60% | **4.1e−22** | | H2 
+BAD report          h1.p_holm              got='4.1e−22'      want='4.9e−22'      |  0? | 347 | −0.199 | [−0.222, −0.177] | 5.8e−23 | 4.60% | **⟦4.1e−22⟧** | | H2 | Is IV abnormally h
+BAD report          postgate.h1            got='2.3e−22'      want='2.8e−22'      | es whose size check failed and corrects over H1–H4 only: H1 ⟦2.3e−22⟧, H2 0.0234, and H2 with 7 sea
+BAD report          h1.fall4               got='0.1994'       want='0.2009'       | ble row 24).  ### 4.2 H1: the crush  The 30-day IV falls by ⟦0.1994⟧ log points from day −1 to day
+BAD report          h1.se                  got='0.0112'       want='0.0114'       | -day IV falls by 0.1994 log points from day −1 to day 0 (se ⟦0.0112⟧, t = −17.73 on 49 df, 172 day
+BAD report          h1.t                   got='−17.73'       want='−17.65'       | s by 0.1994 log points from day −1 to day 0 (se 0.0112, t = ⟦−17.73⟧ on 49 df, 172 day-0 dates and
+BAD report          h1.fall                got='0.199'        want='0.201'        | -day IV    fell from day −1 to day 0 in 99.1% of events, by ⟦0.199⟧ log points on average. But th
+BAD report          sample.day0_from       got='2024-12-05'   want='2024-12-10'   | le.** 50 of today's largest S&P 500 companies, day 0 from   ⟦2024-12-05⟧ to 2026-10-26. Smaller, less 
+BAD report          sample.day0_to         got='2026-10-26'   want='2026-10-22'   | day's largest S&P 500 companies, day 0 from   2024-12-05 to ⟦2026-10-26⟧. Smaller, less liquid names a
+BAD readme-summary  sample.day0_from       got='2024-12-05'   want='2024-12-10'   |  347 announcements by 50 large US companies with day 0 from ⟦2024-12-05⟧ to 2026-10-26. A Python pipel
+BAD readme-summary  sample.day0_to         got='2026-10-26'   want='2026-10-22'   | ents by 50 large US companies with day 0 from 2024-12-05 to ⟦2026-10-26⟧. A Python pipeline recomputes
+BAD readme-summary  h1.fall                got='0.199'        want='0.201'        | he news to the first close after it, the 30-day IV falls by ⟦0.199⟧ log points (about 18.1%; p = 
+BAD readme-summary  h1.pct_fall            got='18.1%'        want='18.2%'        | se after it, the 30-day IV falls by 0.199 log points (about ⟦18.1%⟧; p = 5.8e−23, Holm 4.1e−22), 
+BAD readme-summary  h1.p                   got='5.8e−23'      want='7.1e−23'      | , the 30-day IV falls by 0.199 log points (about 18.1%; p = ⟦5.8e−23⟧, Holm 4.1e−22), ordinary vola
+BAD readme-summary  h1.p_holm              got='4.1e−22'      want='4.9e−22'      | V falls by 0.199 log points (about 18.1%; p = 5.8e−23, Holm ⟦4.1e−22⟧), ordinary volatility does no
+BAD readme-results  sample.day0_from       got='2024-12-05'   want='2024-12-10'   | Daily sample, market-adjusted (VIX, β per company), ⟦2024-12-05⟧ to 2026-10-26. **Timing label
+BAD readme-results  sample.day0_to         got='2026-10-26'   want='2026-10-22'   | sample, market-adjusted (VIX, β per company), 2024-12-05 to ⟦2026-10-26⟧. **Timing labels provisional:
+BAD readme-results  h1.est                 got='−0.199'       want='−0.201'       |  much does the 30-day IV fall from day −1 to day 0? | 347 | ⟦−0.199⟧ | 5.8e−23 | 4.60% | **4.1e−22
+BAD readme-results  h1.p                   got='5.8e−23'      want='7.1e−23'      | s the 30-day IV fall from day −1 to day 0? | 347 | −0.199 | ⟦5.8e−23⟧ | 4.60% | **4.1e−22** | | H2 
+BAD readme-results  h1.p_holm              got='4.1e−22'      want='4.9e−22'      |  from day −1 to day 0? | 347 | −0.199 | 5.8e−23 | 4.60% | **⟦4.1e−22⟧** | | H2 | Is IV abnormally h
+BAD readme-results  postgate.h1            got='2.3e−22'      want='2.8e−22'      | escriptive sensitivity, not binding) the Holm p would be H1 ⟦2.3e−22⟧, H2 0.0234   (7 seasons: 0.04
+BAD prfaq-headline  h1.fall                got='0.199'        want='0.201'        | nal timing labels: from day −1 to day 0, 30-day IV falls by ⟦0.199⟧ log points on average, about 
+BAD prfaq-headline  h1.pct_fall            got='18.1%'        want='18.2%'        | ay 0, 30-day IV falls by 0.199 log points on average, about ⟦18.1%⟧, net of the market's volatili
+BAD prfaq-headline  h1.p                   got='5.8e−23'      want='7.1e−23'      |  net of the market's volatility. That is significant at p = ⟦5.8e−23⟧ (Holm 4.1e−22 over the seven 
+BAD prfaq-headline  h1.p_holm              got='4.1e−22'      want='4.9e−22'      | rket's volatility. That is significant at p = 5.8e−23 (Holm ⟦4.1e−22⟧ over the seven declared hypot
+BAD prfaq-measured  sample.day0_from       got='2024-12-05'   want='2024-12-10'   | ing labels** (20 of 473 required look-ups done). Day 0 from ⟦2024-12-05⟧ to 2026-10-26; 347 primary ev
+BAD prfaq-measured  sample.day0_to         got='2026-10-26'   want='2026-10-22'   | 20 of 473 required look-ups done). Day 0 from 2024-12-05 to ⟦2026-10-26⟧; 347 primary events of 50 com
+BAD prfaq-measured  h1.fall                got='0.199'        want='0.201'        |  p (H1–H7) | |---|---|---:| | H1 crush | 30-day IV falls by ⟦0.199⟧ log points from day −1 to day
+BAD prfaq-measured  h1.ci                  got='[−0.222, −0.177]' want='[−0.224, −0.178]' | IV falls by 0.199 log points from day −1 to day 0 (interval ⟦[−0.222, −0.177]⟧) | 4.1e−22 | | H2 run-up | IV
+BAD prfaq-measured  h1.p_holm              got='4.1e−22'      want='4.9e−22'      | g points from day −1 to day 0 (interval [−0.222, −0.177]) | ⟦4.1e−22⟧ | | H2 run-up | IV sits +0.23
+BAD prfaq-measured  h1.t                   got='−17.73'       want='−17.65'       | s 330–360), and a crush large against day-to-day noise (t = ⟦−17.73⟧).
+placeholders checked: 412; distinct keys: 182; mismatches: 41
+keys without an oracle value: []
+rc=1

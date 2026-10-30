@@ -1,0 +1,3 @@
+clean: no raw vendor file and no oversized data file
+rc=0
+66

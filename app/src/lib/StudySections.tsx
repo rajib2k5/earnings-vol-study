@@ -21,6 +21,7 @@ export function StudySections() {
           <li key={m.id}>
             <span className="badge">{`M${m.id}`}</span>
             {m.title} — <strong>{m.status}</strong>
+            {m.pages.length > 0 && <span className="sub">{` · pages: ${m.pages.join(', ')}`}</span>}
           </li>
         ))}
       </ul>

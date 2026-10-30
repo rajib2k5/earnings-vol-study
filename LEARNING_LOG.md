@@ -16,7 +16,7 @@ Last updated: 2026-10-29 (milestone 2), after the milestone-2 review and its fix
 | 1 | Universe and events | done, pending owner review (timing labels provisional: 20 of 473 required press-release look-ups done) | [`docs/milestones/01-universe-and-events.md`](docs/milestones/01-universe-and-events.md) | queued, 0 of 14 answered | | | |
 | 2 | IV measures | done, pending owner review (timing labels still provisional) | [`docs/milestones/02-iv-measures.md`](docs/milestones/02-iv-measures.md) | queued, 0 of 14 answered | | | |
 | 3 | Event study | done, pending owner review (gate G1 passed for H1-H4; two adversarial reviews; timing labels still provisional) | [`docs/milestones/03-event-study.md`](docs/milestones/03-event-study.md) | queued, 0 of 14 answered | | | |
-| 4 | Drivers | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
+| 4 | Drivers | done, pending owner review (H5-H7 not rejected under the declared H1-H7 Holm family; regression statistics liberal per G1; timing labels still provisional) | [`docs/milestones/04-drivers.md`](docs/milestones/04-drivers.md) | queued, 0 of 14 answered | | | |
 | 5 | Report | planned | written when the milestone is done, in [`docs/milestones/`](docs/milestones/) | | | | |
 
 The milestone names come from the [PR/FAQ](docs/prfaq.md).
@@ -27,6 +27,7 @@ The milestone names come from the [PR/FAQ](docs/prfaq.md).
 - Milestone 01 (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 1" to resume it.
 - Milestone 02 (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 2" to resume it.
 - Milestone 03 (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 3" to resume it.
+- Milestone 04 (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 4" to resume it.
 
 ## Missed topics
 

@@ -1,0 +1,45 @@
+  captured 1280 x 2729 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-about.png (159,150 B)
+  captured 1280 x 2451 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-sample.png (99,342 B)
+  captured 1280 x 1698 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-iv.png (60,643 B)
+  captured 1280 x 5115 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-results.png (186,053 B)
+  captured 1280 x 12844 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-drivers.png (130,529 B)
+  captured 1280 x 2202 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-implied.png (115,125 B)
+  captured 1280 x 2206 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-paths.png (178,197 B)
+  captured 1280 x 3231 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-heatmap.png (63,152 B)
+  captured 1280 x 3867 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-architecture.png (71,331 B)
+  captured 1280 x 1264 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-3d.png (64,171 B)
+  captured 1280 x 1594 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-metrics.png (47,870 B)
+  captured 910 x 614 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/terrain-default.png (64,887 B)
+  captured 998 x 392 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/terrain-side.png (39,923 B)
+  captured 873 x 562 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/terrain-top.png (64,556 B)
+  captured 2168 x 988 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/fig-funnel.png (59,536 B)
+  captured 2168 x 854 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/fig-crush-histogram.png (30,757 B)
+  captured 2168 x 1000 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/fig-implied-move.png (38,748 B)
+  captured 2168 x 1348 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/fig-mean-path.png (32,976 B)
+  captured 2168 x 1642 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/fig-implied-realised.png (81,017 B)
+  captured 2168 x 2536 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/fig-heatmap.png (53,938 B)
+  captured 780 x 8082 px
+wrote /tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/shots/app-about-phone.png (246,743 B)
+21 images, 1,888,644 B in all
+real	1m12.358s
+rc=0

@@ -1,0 +1,11 @@
+(a) eligible daily crush events with crush_cboe: 347; below 0: 344; share 0.9914
+(b) day0_session range of those events: 2024-12-10 to 2026-10-22
+(c) eligible daily run-up events: 356; seasons: 9; sizes {'2024Q4': np.int64(4), '2025Q1': np.int64(46), '2025Q2': np.int64(46), '2025Q3': np.int64(49), '2025Q4': np.int64(50), '2026Q1': np.int64(48), '2026Q2': np.int64(45), '2026Q3': np.int64(49), '2026Q4': np.int64(19)}; seasons with a positive mean: 9 of 9
+(d) mean-adjusted crush below 0: 345 of 347
+rc=0
+--- falsify
+(a) eligible daily crush events with crush_cboe: 347; below -0.05: 321; share 0.9251
+(b) day0_session range of those events: 2024-12-10 to 2026-10-22
+(c) eligible daily run-up events: 356; seasons: 9; sizes {'2024Q4': np.int64(4), '2025Q1': np.int64(46), '2025Q2': np.int64(46), '2025Q3': np.int64(49), '2025Q4': np.int64(50), '2026Q1': np.int64(48), '2026Q2': np.int64(45), '2026Q3': np.int64(49), '2026Q4': np.int64(19)}; seasons with a positive mean: 9 of 9
+(d) mean-adjusted crush below 0: 345 of 347
+rc=0

@@ -1,0 +1,12 @@
+Using CPython 3.12.13
+Creating virtual environment at: .venv
+   Building earnings-vol-study @ file:///tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/repo
+      Built earnings-vol-study @ file:///tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/m5/repo
+Installed 126 packages in 204ms
+wrote docs/report/earnings-vol-report.docx (337,424 B)
+wrote docs/report/earnings-vol-report.pdf (700,120 B)
+
+real	0m4.278s
+user	0m3.194s
+sys	0m1.387s
+rc=0

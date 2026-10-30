@@ -23,6 +23,10 @@ describe('StudySections', () => {
     expect(milestones).toHaveLength(MILESTONES.length)
     expect(milestones[0]).toHaveTextContent('M0')
     expect(milestones[0]).toHaveTextContent(MILESTONES[0].status)
+    MILESTONES.forEach((m, i) => {
+      if (m.pages.length > 0) expect(milestones[i]).toHaveTextContent(`pages: ${m.pages.join(', ')}`)
+      else expect(milestones[i]).not.toHaveTextContent('pages:')
+    })
   })
   it('shows the attribution text from meta.json and the "Not financial advice" section', async () => {
     render(<StudySections />)

@@ -1,0 +1,2 @@
+aliv_path rows: 126 {('market', 'AMC', 'mean'): 21, ('market', 'BMO', 'mean'): 21, ('market', 'all', 'mean'): 21, ('mean', 'AMC', 'mean'): 21, ('mean', 'BMO', 'mean'): 21, ('mean', 'all', 'mean'): 21}
+compared 54; 3-dp strings that differ between the 4-dp JSON and full precision: 0

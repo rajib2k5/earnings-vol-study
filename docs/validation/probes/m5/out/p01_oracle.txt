@@ -1,0 +1,415 @@
+OK  report          sample.n_companies     got='50'           want='50'           | tion prices behaved around past earnings announcements of > ⟦50⟧ large US companies. It recomm
+OK  report          lookups.required       got='473'          want='473'          | ds on a before-open or after-close label. ADR 0002 requires ⟦473⟧ of these labels to be checked
+OK  report          lookups.done           got='20'           want='20'           | res 473 of these labels to be checked > against a document. ⟦20⟧ are checked. The other 453 wa
+OK  report          lookups.left           got='453'          want='453'          |  be checked > against a document. 20 are checked. The other ⟦453⟧ wait for SEC EDGAR filing tim
+OK  report          meta.dolt_earnings     got='fjrb6h5le9h1qiif2j4pl6cpaas7pnee' want='fjrb6h5le9h1qiif2j4pl6cpaas7pnee' | ong day 0.  Data: DoltHub `post-no-preference/earnings` at `⟦fjrb6h5le9h1qiif2j4pl6cpaas7pnee⟧` and `post-no-preference/opti
+OK  report          meta.dolt_options      got='msfqpodh24viv7prdqdan8517rkjp861' want='msfqpodh24viv7prdqdan8517rkjp861' | 1qiif2j4pl6cpaas7pnee` and `post-no-preference/options` at `⟦msfqpodh24viv7prdqdan8517rkjp861⟧`; parameters hash `74bed6f4b1
+OK  report          meta.params_hash       got='74bed6f4b1281810' want='74bed6f4b1281810' | ns` at `msfqpodh24viv7prdqdan8517rkjp861`; parameters hash `⟦74bed6f4b1281810⟧`; app data contract 0.5.0, ex
+OK  report          meta.schema_version    got='0.5.0'        want='0.5.0'        | 861`; parameters hash `74bed6f4b1281810`; app data contract ⟦0.5.0⟧, exported from commit `28e06b
+OK  report          meta.source_commit     got='28e06b3'      want='28e06b3'      | f4b1281810`; app data contract 0.5.0, exported from commit `⟦28e06b3⟧`. Every number in this report
+OK  report          h1.fall                got='0.199'        want='0.199'        | r   it (day 0), the 30-day implied volatility (IV) falls by ⟦0.199⟧ log points on average, net of
+OK  report          h1.pct_fall            got='18.1%'        want='18.1%'        |  points on average, net of the market's   volatility: about ⟦18.1%⟧. The market-adjusted change i
+OK  report          h1.share_below         got='99.1%'        want='99.1%'        | ity: about 18.1%. The market-adjusted change is negative in ⟦99.1%⟧ of the 347 events. The test t
+OK  report          h1.n                   got='347'          want='347'          | .1%. The market-adjusted change is negative in 99.1% of the ⟦347⟧ events. The test that allows 
+OK  report          h1.p                   got='5.8e−23'      want='5.8e−23'      | ame date and for one company's events being alike gives p = ⟦5.8e−23⟧ (Holm 4.1e−22). - **The crush
+OK  report          h1.p_holm              got='4.1e−22'      want='4.1e−22'      | or one company's events being alike gives p = 5.8e−23 (Holm ⟦4.1e−22⟧). - **The crush is the event 
+OK  report          h4.est                 got='+0.003'       want='+0.003'       | tility outside the event   day) does not change measurably (⟦+0.003⟧ log points, p = 0.782), and I
+OK  report          h4.p                   got='0.782'        want='0.782'        | t   day) does not change measurably (+0.003 log points, p = ⟦0.782⟧), and IV is back at its basel
+OK  report          h3.est                 got='+0.008'       want='+0.008'       | .782), and IV is back at its baseline ten sessions   later (⟦+0.008⟧, p = 0.743). - **IV is high b
+OK  report          h3.p                   got='0.743'        want='0.743'        | V is back at its baseline ten sessions   later (+0.008, p = ⟦0.743⟧). - **IV is high before the n
+OK  report          h2.est                 got='+0.232'       want='+0.232'       | *IV is high before the news.** At day −1 the 30-day IV sits ⟦+0.232⟧ log points above its own quie
+OK  report          h7.b                   got='0.77'         want='0.77'         | move about right on average.** The realised squared move is ⟦0.77⟧ times the   implied variance 
+OK  report          h7.b_ci                got='[0.46, 1.07]' want='[0.46, 1.07]' | red move is 0.77 times the   implied variance (95% interval ⟦[0.46, 1.07]⟧, so 1 is inside). 40.1% of th
+OK  report          ivr.share              got='40.1%'        want='40.1%'        | plied variance (95% interval [0.46, 1.07], so 1 is inside). ⟦40.1%⟧ of the moves were larger than
+OK  report          ivr.benchmark          got='42.5%'        want='42.5%'        | the moves were larger than the   expected move, against the ⟦42.5%⟧ that fair pricing of a normal
+OK  report          h5.g1                  got='9.55%'        want='9.55%'        |  these driver tests are liberal at this design (they reject ⟦9.55%⟧,   8.10% and 16.15% of the ti
+OK  report          h6.g1                  got='8.10%'        want='8.10%'        | iver tests are liberal at this design (they reject 9.55%,   ⟦8.10%⟧ and 16.15% of the time under 
+OK  report          h7.g1                  got='16.15%'       want='16.15%'       |  are liberal at this design (they reject 9.55%,   8.10% and ⟦16.15%⟧ of the time under a true null
+OK  report          holm.m                 got='7'            want='7'            | en. They are corrected together for multiple testing (Holm, ⟦7⟧ hypotheses). Everything else 
+OK  report          sample.n_companies     got='50'           want='50'           | /DATA.md) gives each source's terms.  **Universe.** Today's ⟦50⟧ largest S&P 500 members by ma
+BAD report          sample.day0_from       got='2024-12-05'   want='2024-12-10'   | sessions before day 0, so the primary sample has day 0 from ⟦2024-12-05⟧ to 2026-10-26. The older coar
+BAD report          sample.day0_to         got='2026-10-26'   want='2026-10-22'   | e day 0, so the primary sample has day 0 from 2024-12-05 to ⟦2026-10-26⟧. The older coarse snapshots f
+OK  report          sample.n_companies     got='50'           want='50'           | emoved | Why | |---|---:|---:|---| | Calendar events of the ⟦50⟧ companies | 1,353 | – | | | O
+OK  report          funnel.calendar_events got='1,353'        want='1,353'        | |---|---:|---:|---| | Calendar events of the 50 companies | ⟦1,353⟧ | – | | | One row per release
+OK  report          funnel.timing_known    got='1,320'        want='1,320'        | 53 | – | | | One row per release, and day 0 can be placed | ⟦1,320⟧ | 33 | duplicate rows, timing
+OK  report          funnel.timing_known.removed got='33'           want='33'           |  | | One row per release, and day 0 can be placed | 1,320 | ⟦33⟧ | duplicate rows, timing not 
+OK  report          funnel.daily_range     got='366'          want='366'          | e rows, timing not placeable | | Day 0 in the daily range | ⟦366⟧ | 954 | outside 2024-12-05 to
+OK  report          funnel.daily_range.removed got='954'          want='954'          | , timing not placeable | | Day 0 in the daily range | 366 | ⟦954⟧ | outside 2024-12-05 to 2026-
+BAD report          sample.day0_from       got='2024-12-05'   want='2024-12-10'   | laceable | | Day 0 in the daily range | 366 | 954 | outside ⟦2024-12-05⟧ to 2026-10-26 | | Option snap
+BAD report          sample.day0_to         got='2026-10-26'   want='2026-10-22'   | ay 0 in the daily range | 366 | 954 | outside 2024-12-05 to ⟦2026-10-26⟧ | | Option snapshots on day −
+OK  report          funnel.crush_observed  got='356'          want='356'          | 05 to 2026-10-26 | | Option snapshots on day −1 and day 0 | ⟦356⟧ | 10 | a missing snapshot | |
+OK  report          funnel.crush_observed.removed got='10'           want='10'           | 2026-10-26 | | Option snapshots on day −1 and day 0 | 356 | ⟦10⟧ | a missing snapshot | | A 30
+OK  report          funnel.iv_usable       got='353'          want='353'          |  | a missing snapshot | | A 30-day IV on day −1 and day 0 | ⟦353⟧ | 3 | no 30-day IV | | At lea
+OK  report          funnel.iv_usable.removed got='3'            want='3'            | issing snapshot | | A 30-day IV on day −1 and day 0 | 353 | ⟦3⟧ | no 30-day IV | | At least 2
+OK  report          funnel.baseline_minimum got='347'          want='347'          |  | | At least 20 clean baseline sessions and 15 changes | **⟦347⟧** | 6 | short baseline |  The
+OK  report          funnel.baseline_minimum.removed got='6'            want='6'            | least 20 clean baseline sessions and 15 changes | **347** | ⟦6⟧ | short baseline |  The 1,353
+OK  report          funnel.calendar_events got='1,353'        want='1,353'        | ssions and 15 changes | **347** | 6 | short baseline |  The ⟦1,353⟧ calendar events split into 36
+OK  report          events.daily           got='368'          want='368'          |  6 | short baseline |  The 1,353 calendar events split into ⟦368⟧ daily-era, 49 mixed-era, 868 
+OK  report          events.mixed           got='49'           want='49'           | line |  The 1,353 calendar events split into 368 daily-era, ⟦49⟧ mixed-era, 868 coarse-era and
+OK  report          events.coarse          got='868'          want='868'          | 353 calendar events split into 368 daily-era, 49 mixed-era, ⟦868⟧ coarse-era and 68 outside eve
+OK  report          events.none            got='68'           want='68'           |  split into 368 daily-era, 49 mixed-era, 868 coarse-era and ⟦68⟧ outside every sample's date r
+OK  report          funnel.baseline_minimum got='347'          want='347'          | ts event count (the `n` in section 4) differs a little from ⟦347⟧.  ![The sample funnel, as the
+OK  report          lookups.done           got='20'           want='20'           | _funnel.json](../images/fig-funnel.png)  **Timing labels.** ⟦20⟧ labels were checked against p
+OK  report          timing.confirmed       got='16'           want='16'           | ng labels.** 20 labels were checked against press releases (⟦16⟧ confirmed, 2 corrected, 1 wit
+OK  report          timing.corrected       got='2'            want='2'            | 0 labels were checked against press releases (16 confirmed, ⟦2⟧ corrected, 1 with a corrected
+OK  report          timing.date_corrected  got='1'            want='1'            |  checked against press releases (16 confirmed, 2 corrected, ⟦1⟧ with a corrected date and 1 i
+OK  report          timing.inferred        got='1'            want='1'            | ses (16 confirmed, 2 corrected, 1 with a corrected date and ⟦1⟧ inferred). 1,333 events keep 
+OK  report          timing.not_checked     got='1,333'        want='1,333'        | rmed, 2 corrected, 1 with a corrected date and 1 inferred). ⟦1,333⟧ events keep the calendar's la
+OK  report          params.cm30_sessions   got='21'           want='21'           | *The 30-day IV** (the primary series): constant maturity of ⟦21⟧ sessions, interpolated only  
+OK  report          iv.move_n              got='343'          want='343'          | the options price. E is read at day −1. Its median over the ⟦343⟧ events with E > 0 is a move o
+OK  report          iv.move_median         got='6.5%'         want='6.5%'         |  −1. Its median over the 343 events with E > 0 is a move of ⟦6.5%⟧ (10% of events below 3.3%, 10
+OK  report          iv.move_p10            got='3.3%'         want='3.3%'         | 43 events with E > 0 is a move of 6.5% (10% of events below ⟦3.3%⟧, 10% above 11.1%). 4 of the 3
+OK  report          iv.move_p90            got='11.1%'        want='11.1%'        |  > 0 is a move of 6.5% (10% of events below 3.3%, 10% above ⟦11.1%⟧). 4 of the 347 primary events
+OK  report          evar.nonpositive       got='4'            want='4'            | a move of 6.5% (10% of events below 3.3%, 10% above 11.1%). ⟦4⟧ of the 347 primary events hav
+OK  report          sample.n_events        got='347'          want='347'          |  6.5% (10% of events below 3.3%, 10% above 11.1%). 4 of the ⟦347⟧ primary events have E ≤ 0 and
+OK  report          params.baseline        got='[−60, −22]'   want='[−60, −22]'   | ine-and-event-windows.md)):  - The **baseline** is sessions ⟦[−60, −22]⟧ before day 0, minus every ses
+OK  report          params.window          got='[−10, +10]'   want='[−10, +10]'   | hange in ln σ_d   from day −1 to day 0. The event window is ⟦[−10, +10]⟧.  ### 3.5 The test suite  Eve
+OK  report          g1.reps                got='2,000'        want='2,000'        |  structure **before any result was computed**: it simulates ⟦2,000⟧ null data sets per design wit
+OK  report          g1.band_hi             got='6.30%'        want='6.30%'        | tistic rejects. A statistic passes when its rate is at most ⟦6.30%⟧, the top of the exact 99% bin
+OK  report          g1.band_lo             got='3.80%'        want='3.80%'        | e is at most 6.30%, the top of the exact 99% binomial band [⟦3.80%⟧, 6.30%] for 2,000 replication
+OK  report          g1.band_hi             got='6.30%'        want='6.30%'        |  most 6.30%, the top of the exact 99% binomial band [3.80%, ⟦6.30%⟧] for 2,000 replications.  | |
+OK  report          g1.reps                got='2,000'        want='2,000'        | , the top of the exact 99% binomial band [3.80%, 6.30%] for ⟦2,000⟧ replications.  | | H1 | H2 | 
+OK  report          h1.g1                  got='4.60%'        want='4.60%'        | :|---:|---:| | Primary rejects under the null (target 5%) | ⟦4.60%⟧ | 0.40% | 0.50% | 4.60% | 9.5
+OK  report          h2.g1                  got='0.40%'        want='0.40%'        | --:| | Primary rejects under the null (target 5%) | 4.60% | ⟦0.40%⟧ | 0.50% | 4.60% | 9.55% | 8.1
+OK  report          h3.g1                  got='0.50%'        want='0.50%'        | rimary rejects under the null (target 5%) | 4.60% | 0.40% | ⟦0.50%⟧ | 4.60% | 9.55% | 8.10% | 16.
+OK  report          h4.g1                  got='4.60%'        want='4.60%'        | ejects under the null (target 5%) | 4.60% | 0.40% | 0.50% | ⟦4.60%⟧ | 9.55% | 8.10% | 16.15% | | 
+OK  report          h5.g1                  got='9.55%'        want='9.55%'        | nder the null (target 5%) | 4.60% | 0.40% | 0.50% | 4.60% | ⟦9.55%⟧ | 8.10% | 16.15% | | Verdict 
+OK  report          h6.g1                  got='8.10%'        want='8.10%'        |  null (target 5%) | 4.60% | 0.40% | 0.50% | 4.60% | 9.55% | ⟦8.10%⟧ | 16.15% | | Verdict | pass |
+OK  report          h7.g1                  got='16.15%'       want='16.15%'       | arget 5%) | 4.60% | 0.40% | 0.50% | 4.60% | 9.55% | 8.10% | ⟦16.15%⟧ | | Verdict | pass | pass | p
+OK  report          h1.g1_verdict          got='pass'         want='pass'         | .40% | 0.50% | 4.60% | 9.55% | 8.10% | 16.15% | | Verdict | ⟦pass⟧ | pass | pass | pass | **fail
+OK  report          h2.g1_verdict          got='pass'         want='pass'         | 0.50% | 4.60% | 9.55% | 8.10% | 16.15% | | Verdict | pass | ⟦pass⟧ | pass | pass | **fail** | **
+OK  report          h3.g1_verdict          got='pass'         want='pass'         |  4.60% | 9.55% | 8.10% | 16.15% | | Verdict | pass | pass | ⟦pass⟧ | pass | **fail** | **fail** 
+OK  report          h4.g1_verdict          got='pass'         want='pass'         | | 9.55% | 8.10% | 16.15% | | Verdict | pass | pass | pass | ⟦pass⟧ | **fail** | **fail** | **fai
+OK  report          h5.g1_verdict          got='**fail**'     want='**fail**'     |  | 8.10% | 16.15% | | Verdict | pass | pass | pass | pass | ⟦**fail**⟧ | **fail** | **fail** |  H1–H
+OK  report          h6.g1_verdict          got='**fail**'     want='**fail**'     | 16.15% | | Verdict | pass | pass | pass | pass | **fail** | ⟦**fail**⟧ | **fail** |  H1–H4 pass (H2 
+OK  report          h7.g1_verdict          got='**fail**'     want='**fail**'     | Verdict | pass | pass | pass | pass | **fail** | **fail** | ⟦**fail**⟧ |  H1–H4 pass (H2 and H3 are 
+OK  report          withheld.n             got='14'           want='14'           | 1 finds oversized keeps its estimate and loses its p-value: ⟦14⟧ rows are withheld this way (H
+OK  report          withheld.list          got='H1: `bmp_t`, `cluster_date_t`, `gen_sign_z`, `kp_ow_t`, `kpp_t`, `patell_z`, `rank_t`; H4: `gen_sign_z`, `rank_t`; H5: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H6: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H7: `cluster_date_wald`' want='H1: `bmp_t`, `cluster_date_t`, `gen_sign_z`, `kp_ow_t`, `kpp_t`, `patell_z`, `rank_t`; H4: `gen_sign_z`, `rank_t`; H5: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H6: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H7: `cluster_date_wald`' | imate and loses its p-value: 14 rows are withheld this way (⟦H1: `bmp_t`, `cluster_date_t`, `gen_sign_z`, `kp_ow_t`, `kpp_t`, `patell_z`, `rank_t`; H4: `gen_sign_z`, `rank_t`; H5: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H6: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H7: `cluster_date_wald`⟧).  ## 4. Results  ### 4.1 The
+OK  report          h1.n                   got='347'          want='347'          | --:| | H1 | Does the 30-day IV fall from day −1 to day 0? | ⟦347⟧ | −0.199 | [−0.222, −0.177] |
+OK  report          h1.est                 got='−0.199'       want='−0.199'       |  H1 | Does the 30-day IV fall from day −1 to day 0? | 347 | ⟦−0.199⟧ | [−0.222, −0.177] | 5.8e−23 
+OK  report          h1.ci                  got='[−0.222, −0.177]' want='[−0.222, −0.177]' | s the 30-day IV fall from day −1 to day 0? | 347 | −0.199 | ⟦[−0.222, −0.177]⟧ | 5.8e−23 | 4.60% | **4.1e−22
+OK  report          h1.p                   got='5.8e−23'      want='5.8e−23'      | l from day −1 to day 0? | 347 | −0.199 | [−0.222, −0.177] | ⟦5.8e−23⟧ | 4.60% | **4.1e−22** | | H2 
+OK  report          h1.g1                  got='4.60%'        want='4.60%'        |  −1 to day 0? | 347 | −0.199 | [−0.222, −0.177] | 5.8e−23 | ⟦4.60%⟧ | **4.1e−22** | | H2 | Is IV 
+OK  report          h1.p_holm              got='4.1e−22'      want='4.1e−22'      |  0? | 347 | −0.199 | [−0.222, −0.177] | 5.8e−23 | 4.60% | **⟦4.1e−22⟧** | | H2 | Is IV abnormally h
+OK  report          h2.n                   got='356'          want='356'          | % | **4.1e−22** | | H2 | Is IV abnormally high at day −1? | ⟦356⟧ | +0.232 | – | 0.0078 | 0.40%
+OK  report          h2.est                 got='+0.232'       want='+0.232'       | 4.1e−22** | | H2 | Is IV abnormally high at day −1? | 356 | ⟦+0.232⟧ | – | 0.0078 | 0.40% | **0.04
+OK  report          h2.p                   got='0.0078'       want='0.0078'       |  H2 | Is IV abnormally high at day −1? | 356 | +0.232 | – | ⟦0.0078⟧ | 0.40% | **0.0469** (G = 7: 
+OK  report          h2.g1                  got='0.40%'        want='0.40%'        | IV abnormally high at day −1? | 356 | +0.232 | – | 0.0078 | ⟦0.40%⟧ | **0.0469** (G = 7: 0.0781) 
+OK  report          h2.p_holm              got='0.0469'       want='0.0469'       | lly high at day −1? | 356 | +0.232 | – | 0.0078 | 0.40% | **⟦0.0469⟧** (G = 7: 0.0781) | | H3 | Is
+OK  report          h2.cut_g               got='7'            want='7'            | y −1? | 356 | +0.232 | – | 0.0078 | 0.40% | **0.0469** (G = ⟦7⟧: 0.0781) | | H3 | Is IV back 
+OK  report          h2.cut_p_holm          got='0.0781'       want='0.0781'       | 1? | 356 | +0.232 | – | 0.0078 | 0.40% | **0.0469** (G = 7: ⟦0.0781⟧) | | H3 | Is IV back at its b
+OK  report          h3.n                   got='329'          want='329'          | : 0.0781) | | H3 | Is IV back at its baseline at day +10? | ⟦329⟧ | +0.008 | [−0.049, 0.065] | 
+OK  report          h3.est                 got='+0.008'       want='+0.008'       | 81) | | H3 | Is IV back at its baseline at day +10? | 329 | ⟦+0.008⟧ | [−0.049, 0.065] | 0.743 | 0
+OK  report          h3.ci                  got='[−0.049, 0.065]' want='[−0.049, 0.065]' | 3 | Is IV back at its baseline at day +10? | 329 | +0.008 | ⟦[−0.049, 0.065]⟧ | 0.743 | 0.50% | 1 | | H4 | 
+OK  report          h3.p                   got='0.743'        want='0.743'        | its baseline at day +10? | 329 | +0.008 | [−0.049, 0.065] | ⟦0.743⟧ | 0.50% | 1 | | H4 | Does ord
+OK  report          h3.g1                  got='0.50%'        want='0.50%'        | line at day +10? | 329 | +0.008 | [−0.049, 0.065] | 0.743 | ⟦0.50%⟧ | 1 | | H4 | Does ordinary vo
+OK  report          h3.p_holm              got='1'            want='1'            | day +10? | 329 | +0.008 | [−0.049, 0.065] | 0.743 | 0.50% | ⟦1⟧ | | H4 | Does ordinary volati
+OK  report          h4.n                   got='262'          want='262'          | 743 | 0.50% | 1 | | H4 | Does ordinary volatility change? | ⟦262⟧ | +0.003 | [−0.019, 0.026] | 
+OK  report          h4.est                 got='+0.003'       want='+0.003'       | 0.50% | 1 | | H4 | Does ordinary volatility change? | 262 | ⟦+0.003⟧ | [−0.019, 0.026] | 0.782 | 4
+OK  report          h4.ci                  got='[−0.019, 0.026]' want='[−0.019, 0.026]' |  | | H4 | Does ordinary volatility change? | 262 | +0.003 | ⟦[−0.019, 0.026]⟧ | 0.782 | 4.60% | 1 | | H5 | 
+OK  report          h4.p                   got='0.782'        want='0.782'        | inary volatility change? | 262 | +0.003 | [−0.019, 0.026] | ⟦0.782⟧ | 4.60% | 1 | | H5 | Does a b
+OK  report          h4.g1                  got='4.60%'        want='4.60%'        | latility change? | 262 | +0.003 | [−0.019, 0.026] | 0.782 | ⟦4.60%⟧ | 1 | | H5 | Does a bigger su
+OK  report          h4.p_holm              got='1'            want='1'            |  change? | 262 | +0.003 | [−0.019, 0.026] | 0.782 | 4.60% | ⟦1⟧ | | H5 | Does a bigger surpri
+OK  report          h5.n                   got='347'          want='347'          | 60% | 1 | | H5 | Does a bigger surprise change the crush? | ⟦347⟧ | +0.013 | [0.003, 0.023] | 0
+OK  report          h5.est                 got='+0.013'       want='+0.013'       | 1 | | H5 | Does a bigger surprise change the crush? | 347 | ⟦+0.013⟧ | [0.003, 0.023] | 0.0102 | *
+OK  report          h5.ci                  got='[0.003, 0.023]' want='[0.003, 0.023]' | | Does a bigger surprise change the crush? | 347 | +0.013 | ⟦[0.003, 0.023]⟧ | 0.0102 | **9.55%** | 0.0511
+OK  report          h5.p                   got='0.0102'       want='0.0102'       | urprise change the crush? | 347 | +0.013 | [0.003, 0.023] | ⟦0.0102⟧ | **9.55%** | 0.0511 | | H6 |
+OK  report          h5.g1                  got='9.55%'        want='9.55%'        | nge the crush? | 347 | +0.013 | [0.003, 0.023] | 0.0102 | **⟦9.55%⟧** | 0.0511 | | H6 | Does the 
+OK  report          h5.p_holm              got='0.0511'       want='0.0511'       | ush? | 347 | +0.013 | [0.003, 0.023] | 0.0102 | **9.55%** | ⟦0.0511⟧ | | H6 | Does the prior volat
+OK  report          h6.n                   got='347'          want='347'          | .0511 | | H6 | Does the prior volatility level change it? | ⟦347⟧ | −0.001 | [−0.023, 0.020] | 
+OK  report          h6.est                 got='−0.001'       want='−0.001'       | | | H6 | Does the prior volatility level change it? | 347 | ⟦−0.001⟧ | [−0.023, 0.020] | 0.895 | *
+OK  report          h6.ci                  got='[−0.023, 0.020]' want='[−0.023, 0.020]' | Does the prior volatility level change it? | 347 | −0.001 | ⟦[−0.023, 0.020]⟧ | 0.895 | **8.10%** | 1 | | H
+OK  report          h6.p                   got='0.895'        want='0.895'        | atility level change it? | 347 | −0.001 | [−0.023, 0.020] | ⟦0.895⟧ | **8.10%** | 1 | | H7 | Is t
+OK  report          h6.g1                  got='8.10%'        want='8.10%'        | vel change it? | 347 | −0.001 | [−0.023, 0.020] | 0.895 | **⟦8.10%⟧** | 1 | | H7 | Is the implied
+OK  report          h6.p_holm              got='1'            want='1'            |  it? | 347 | −0.001 | [−0.023, 0.020] | 0.895 | **8.10%** | ⟦1⟧ | | H7 | Is the implied varia
+OK  report          h7.n                   got='336'          want='336'          | | | H7 | Is the implied variance unbiased (a = 0, b = 1)? | ⟦336⟧ | b = 0.77 | [0.46, 1.07] (b)
+OK  report          h7.b                   got='0.77'         want='0.77'         | s the implied variance unbiased (a = 0, b = 1)? | 336 | b = ⟦0.77⟧ | [0.46, 1.07] (b) | 0.275 | 
+OK  report          h7.b_ci                got='[0.46, 1.07]' want='[0.46, 1.07]' | mplied variance unbiased (a = 0, b = 1)? | 336 | b = 0.77 | ⟦[0.46, 1.07]⟧ (b) | 0.275 | **16.15%** | 1 
+OK  report          h7.p                   got='0.275'        want='0.275'        | iased (a = 0, b = 1)? | 336 | b = 0.77 | [0.46, 1.07] (b) | ⟦0.275⟧ | **16.15%** | 1 |  **Rejecte
+OK  report          h7.g1                  got='16.15%'       want='16.15%'       |  0, b = 1)? | 336 | b = 0.77 | [0.46, 1.07] (b) | 0.275 | **⟦16.15%⟧** | 1 |  **Rejected at 5% aft
+OK  report          h7.p_holm              got='1'            want='1'            |  | 336 | b = 0.77 | [0.46, 1.07] (b) | 0.275 | **16.15%** | ⟦1⟧ |  **Rejected at 5% after Hol
+OK  report          holm.rejected          got='H1 and H2'    want='H1 and H2'    | b) | 0.275 | **16.15%** | 1 |  **Rejected at 5% after Holm: ⟦H1 and H2⟧.** H2's verdict depends on th
+OK  report          postgate.h1            got='2.3e−22'      want='2.3e−22'      | es whose size check failed and corrects over H1–H4 only: H1 ⟦2.3e−22⟧, H2 0.0234, and H2 with 7 sea
+OK  report          postgate.h2            got='0.0234'       want='0.0234'       | e check failed and corrects over H1–H4 only: H1 2.3e−22, H2 ⟦0.0234⟧, and H2 with 7 seasons 0.0469
+OK  report          h2.cut_g               got='7'            want='7'            | orrects over H1–H4 only: H1 2.3e−22, H2 0.0234, and H2 with ⟦7⟧ seasons 0.0469, which would b
+OK  report          postgate.h2_cut        got='0.0469'       want='0.0469'       | er H1–H4 only: H1 2.3e−22, H2 0.0234, and H2 with 7 seasons ⟦0.0469⟧, which would be rejected. Dro
+OK  report          h1.fall4               got='0.1994'       want='0.1994'       | ble row 24).  ### 4.2 H1: the crush  The 30-day IV falls by ⟦0.1994⟧ log points from day −1 to day
+OK  report          h1.se                  got='0.0112'       want='0.0112'       | -day IV falls by 0.1994 log points from day −1 to day 0 (se ⟦0.0112⟧, t = −17.73 on 49 df, 172 day
+OK  report          h1.t                   got='−17.73'       want='−17.73'       | s by 0.1994 log points from day −1 to day 0 (se 0.0112, t = ⟦−17.73⟧ on 49 df, 172 day-0 dates and
+OK  report          h1.df                  got='49'           want='49'           | 4 log points from day −1 to day 0 (se 0.0112, t = −17.73 on ⟦49⟧ df, 172 day-0 dates and 50 co
+OK  report          h1.g_time              got='172'          want='172'          | oints from day −1 to day 0 (se 0.0112, t = −17.73 on 49 df, ⟦172⟧ day-0 dates and 50 companies)
+OK  report          h1.g_firm              got='50'           want='50'           |  day 0 (se 0.0112, t = −17.73 on 49 df, 172 day-0 dates and ⟦50⟧ companies). The mean-adjusted
+OK  report          h1.twin                got='−0.201'       want='−0.201'       | panies). The mean-adjusted twin, with no VIX adjustment, is ⟦−0.201⟧. The median log change, befor
+OK  report          iv.crush_median        got='−0.189'       want='−0.189'       | 01. The median log change, before the market adjustment, is ⟦−0.189⟧; 10% of events are below −0.3
+OK  report          iv.crush_p10           got='−0.343'       want='−0.343'       | e the market adjustment, is −0.189; 10% of events are below ⟦−0.343⟧ and 10% above −0.063.  ![The 
+OK  report          iv.crush_p90           got='−0.063'       want='−0.063'       | nt, is −0.189; 10% of events are below −0.343 and 10% above ⟦−0.063⟧.  ![The distribution of the c
+OK  report          crush.amc              got='−0.230'       want='−0.230'       | togram.png)  The crush is larger for after-close reporters (⟦−0.230⟧, n = 182) than for before-ope
+OK  report          crush.amc_n            got='182'          want='182'          |  The crush is larger for after-close reporters (−0.230, n = ⟦182⟧) than for before-open ones (−
+OK  report          crush.bmo              got='−0.165'       want='−0.165'       | lose reporters (−0.230, n = 182) than for before-open ones (⟦−0.165⟧, n = 165); this split is expl
+OK  report          crush.bmo_n            got='165'          want='165'          | rs (−0.230, n = 182) than for before-open ones (−0.165, n = ⟦165⟧); this split is exploratory. 
+OK  report          crush.front_fall       got='0.299'        want='0.299'        |  IV, which holds a larger share of event variance, falls by ⟦0.299⟧ (mean-adjusted, n = 264). The
+OK  report          crush.front_n          got='264'          want='264'          | share of event variance, falls by 0.299 (mean-adjusted, n = ⟦264⟧). The older samples agree in 
+OK  report          crush.mixed            got='−0.250'       want='−0.250'       | justed, n = 264). The older samples agree in sign and size: ⟦−0.250⟧ in the mixed era (n = 33) and
+OK  report          crush.mixed_n          got='33'           want='33'           | amples agree in sign and size: −0.250 in the mixed era (n = ⟦33⟧) and −0.190 in the coarse era
+OK  report          crush.coarse           got='−0.190'       want='−0.190'       | gree in sign and size: −0.250 in the mixed era (n = 33) and ⟦−0.190⟧ in the coarse era (n = 110, w
+OK  report          crush.coarse_n         got='110'          want='110'          | in the mixed era (n = 33) and −0.190 in the coarse era (n = ⟦110⟧, where the crush can span two
+OK  report          h2.est4                got='+0.2319'      want='+0.2319'      | eason-count dependence  At day −1 the abnormal 30-day IV is ⟦+0.2319⟧ log points. The primary stati
+OK  report          h2.floor_g             got='8'            want='8'            | atistic is the randomisation p-value by season, because the ⟦8⟧ seasons are unbalanced. With 
+OK  report          h2.floor_g             got='8'            want='8'            | value by season, because the 8 seasons are unbalanced. With ⟦8⟧ seasons and every season mean
+OK  report          h2.floor_g             got='8'            want='8'            | on mean on the same side, the p-value sits on its floor 2/2^⟦8⟧ = 0.0078, and Holm's multipli
+OK  report          h2.p                   got='0.0078'       want='0.0078'       | ean on the same side, the p-value sits on its floor 2/2^8 = ⟦0.0078⟧, and Holm's multiplier for th
+OK  report          h2.p_holm              got='0.0469'       want='0.0469'       | 78, and Holm's multiplier for the second-smallest p gives **⟦0.0469⟧**: rejected.  **This verdict 
+OK  report          h2.cut_g               got='7'            want='7'            | d the October 2026 tail to be merged into July, which gives ⟦7⟧ seasons. Then the floor is 0.
+OK  report          h2.cut_p               got='0.0156'       want='0.0156'       |  merged into July, which gives 7 seasons. Then the floor is ⟦0.0156⟧ and the Holm p is **0.0781: n
+OK  report          h2.cut_p_holm          got='0.0781'       want='0.0781'       | ves 7 seasons. Then the floor is 0.0156 and the Holm p is **⟦0.0781⟧: not rejected**. The directio
+OK  report          h2.twoway_t            got='13.43'        want='13.43'        | doubt: the two-way season × company t, a robustness row, is ⟦13.43⟧ (p 3.0e−6), and every season 
+OK  report          h2.twoway_p            got='3.0e−6'       want='3.0e−6'       | e two-way season × company t, a robustness row, is 13.43 (p ⟦3.0e−6⟧), and every season mean is po
+OK  report          path.m10               got='+0.239'       want='+0.239'       | ath shows where the run-up sits. The abnormal IV is already ⟦+0.239⟧ [0.197, 0.280] at day −10 and
+OK  report          path.m10_ci            got='[0.197, 0.280]' want='[0.197, 0.280]' | ws where the run-up sits. The abnormal IV is already +0.239 ⟦[0.197, 0.280]⟧ at day −10 and +0.232 [0.191,
+OK  report          path.m1                got='+0.232'       want='+0.232'       | abnormal IV is already +0.239 [0.197, 0.280] at day −10 and ⟦+0.232⟧ [0.191, 0.274] at day −1: the
+OK  report          path.m1_ci             got='[0.191, 0.274]' want='[0.191, 0.274]' | l IV is already +0.239 [0.197, 0.280] at day −10 and +0.232 ⟦[0.191, 0.274]⟧ at day −1: the 30-day IV hold
+OK  report          path.amc_m1            got='+0.270'       want='+0.270'       | ing on average. After-close reporters run higher at day −1 (⟦+0.270⟧) than before-open ones (+0.19
+OK  report          path.bmo_m1            got='+0.191'       want='+0.191'       | orters run higher at day −1 (+0.270) than before-open ones (⟦+0.191⟧).  ![The mean abnormal path w
+OK  report          h3.est4                got='+0.0080'      want='+0.0080'      | what is left after the event  At day +10 the abnormal IV is ⟦+0.0080⟧ (interval [−0.049, 0.065], 7 
+OK  report          h3.ci                  got='[−0.049, 0.065]' want='[−0.049, 0.065]' |  the event  At day +10 the abnormal IV is +0.0080 (interval ⟦[−0.049, 0.065]⟧, 7 seasons, 6 df). The path i
+OK  report          h3.g_time              got='7'            want='7'            | y +10 the abnormal IV is +0.0080 (interval [−0.049, 0.065], ⟦7⟧ seasons, 6 df). The path is +
+OK  report          h3.df                  got='6'            want='6'            | bnormal IV is +0.0080 (interval [−0.049, 0.065], 7 seasons, ⟦6⟧ df). The path is +0.033 at da
+OK  report          path.d0                got='+0.033'       want='+0.033'       | 80 (interval [−0.049, 0.065], 7 seasons, 6 df). The path is ⟦+0.033⟧ at day 0, +0.012 at day +1, +
+OK  report          path.p1                got='+0.012'       want='+0.012'       | 049, 0.065], 7 seasons, 6 df). The path is +0.033 at day 0, ⟦+0.012⟧ at day +1, +0.002 at day +5 a
+OK  report          path.p5                got='+0.002'       want='+0.002'       | sons, 6 df). The path is +0.033 at day 0, +0.012 at day +1, ⟦+0.002⟧ at day +5 and +0.007 at day +
+OK  report          path.p10               got='+0.007'       want='+0.007'       |  is +0.033 at day 0, +0.012 at day +1, +0.002 at day +5 and ⟦+0.007⟧ at day +10. Under the calibra
+OK  report          h3.power80             got='0.121'        want='0.121'        | der the calibrated design the test detects a persistence of ⟦0.121⟧ log points 80% of the time, s
+OK  report          h4.est4                got='+0.0031'      want='+0.0031'      | effect could go undetected.  Ordinary volatility changes by ⟦+0.0031⟧ log points (interval [−0.019,
+OK  report          h4.ci                  got='[−0.019, 0.026]' want='[−0.019, 0.026]' | Ordinary volatility changes by +0.0031 log points (interval ⟦[−0.019, 0.026]⟧, n = 262); the test has 80% p
+OK  report          h4.n                   got='262'          want='262'          | hanges by +0.0031 log points (interval [−0.019, 0.026], n = ⟦262⟧); the test has 80% power at 0
+OK  report          h4.power80             got='0.036'        want='0.036'        | terval [−0.019, 0.026], n = 262); the test has 80% power at ⟦0.036⟧ log points. So the crush is t
+OK  report          drivers.r2             got='0.427'        want='0.427'        | ivers, with liberal statistics  The crush regression has R² ⟦0.427⟧ on 347 events. A positive coe
+OK  report          h5.n                   got='347'          want='347'          | th liberal statistics  The crush regression has R² 0.427 on ⟦347⟧ events. A positive coefficien
+OK  report          h5.est4                got='+0.0132'      want='+0.0132'      |  coefficient means a smaller fall.  - **H5, the surprise:** ⟦+0.0132⟧ per sd (interval [0.003, 0.02
+OK  report          h5.ci                  got='[0.003, 0.023]' want='[0.003, 0.023]' | ler fall.  - **H5, the surprise:** +0.0132 per sd (interval ⟦[0.003, 0.023]⟧, p 0.0102, Holm 0.0511): a bi
+OK  report          h5.p                   got='0.0102'       want='0.0102'       |  the surprise:** +0.0132 per sd (interval [0.003, 0.023], p ⟦0.0102⟧, Holm 0.0511): a bigger surpr
+OK  report          h5.p_holm              got='0.0511'       want='0.0511'       | :** +0.0132 per sd (interval [0.003, 0.023], p 0.0102, Holm ⟦0.0511⟧): a bigger surprise   goes wi
+OK  report          h5.g1                  got='9.55%'        want='9.55%'        |   goes with a slightly smaller crush. The statistic rejects ⟦9.55%⟧ of the time under the null, s
+OK  report          surprise.sue           got='+0.002'       want='+0.002'       | asures: with the surprise   scaled by its own history it is ⟦+0.002⟧ (q 0.75), with analyst disper
+OK  report          surprise.sue_q         got='0.75'         want='0.75'         | th the surprise   scaled by its own history it is +0.002 (q ⟦0.75⟧), with analyst dispersion +0.
+OK  report          surprise.disp          got='+0.003'       want='+0.003'       |  own history it is +0.002 (q 0.75), with analyst dispersion ⟦+0.003⟧   (q 0.773), and with company
+OK  report          surprise.disp_q        got='0.773'        want='0.773'        |  it is +0.002 (q 0.75), with analyst dispersion +0.003   (q ⟦0.773⟧), and with company fixed effe
+OK  report          surprise.firmfe        got='+0.008'       want='+0.008'       | spersion +0.003   (q 0.773), and with company fixed effects ⟦+0.008⟧ (q 0.587). - **H6, the prior 
+OK  report          surprise.firmfe_q      got='0.587'        want='0.587'        | 0.003   (q 0.773), and with company fixed effects +0.008 (q ⟦0.587⟧). - **H6, the prior volatilit
+OK  report          h6.est4                got='−0.0014'      want='−0.0014'      | cts +0.008 (q 0.587). - **H6, the prior volatility level:** ⟦−0.0014⟧ per sd (interval [−0.023, 0.0
+OK  report          h6.ci                  got='[−0.023, 0.020]' want='[−0.023, 0.020]' | *H6, the prior volatility level:** −0.0014 per sd (interval ⟦[−0.023, 0.020]⟧, p 0.895): no measurable effe
+OK  report          h6.p                   got='0.895'        want='0.895'        | tility level:** −0.0014 per sd (interval [−0.023, 0.020], p ⟦0.895⟧): no measurable effect. - **T
+OK  report          slope.est              got='−0.032'       want='−0.032'       |  steeper term structure at day −1 goes with a larger crush, ⟦−0.032⟧ per sd   (p 3.9e−5, q 0.0006)
+OK  report          slope.p                got='3.9e−5'       want='3.9e−5'       | ture at day −1 goes with a larger crush, −0.032 per sd   (p ⟦3.9e−5⟧, q 0.0006). That is expected 
+OK  report          slope.q                got='0.0006'       want='0.0006'       | y −1 goes with a larger crush, −0.032 per sd   (p 3.9e−5, q ⟦0.0006⟧). That is expected and partly
+OK  report          size.est               got='+0.013'       want='+0.013'       |  an indication, not a test at 5%. - **Size (exploratory):** ⟦+0.013⟧ per sd (q 0.177).  Power, fro
+OK  report          size.q                 got='0.177'        want='0.177'        | ot a test at 5%. - **Size (exploratory):** +0.013 per sd (q ⟦0.177⟧).  Power, from G1's calibrate
+OK  report          h5.power80             got='0.026'        want='0.026'        | 77).  Power, from G1's calibrated design: H5's test detects ⟦0.026⟧ log points per sd 80% of the 
+OK  report          h6.power80             got='0.042'        want='0.042'        |  test detects 0.026 log points per sd 80% of the time, H6's ⟦0.042⟧. These powers belong to overs
+OK  report          ivr.benchmark          got='42.5%'        want='42.5%'        | size is √(2/π)·√(E + σ_d²/252), and fair pricing exceeds it ⟦42.5%⟧ of the time, not 50%. The rea
+OK  report          ivr.n                  got='336'          want='336'          | | Value | |---|---:| | Events (E, σ_d and r₀ all present) | ⟦336⟧ | | Events with E > 0, so wit
+OK  report          ivr.n_pos              got='332'          want='332'          | nt) | 336 | | Events with E > 0, so with an expected move | ⟦332⟧ | | Median expected \|move\| 
+OK  report          ivr.median_implied     got='5.4%'         want='5.4%'         |  with an expected move | 332 | | Median expected \|move\| | ⟦5.4%⟧ | | Median realised \|move\| 
+OK  report          ivr.median_realised    got='4.4%'         want='4.4%'         | ian expected \|move\| | 5.4% | | Median realised \|move\| | ⟦4.4%⟧ | | Median ratio realised / e
+OK  report          ivr.median_ratio       got='0.82'         want='0.82'         | ised \|move\| | 4.4% | | Median ratio realised / expected | ⟦0.82⟧ | | Share of moves beyond the
+OK  report          ivr.benchmark          got='42.5%'        want='42.5%'        | 0.82 | | Share of moves beyond the expected \|move\| (fair: ⟦42.5%⟧) | 40.1% (p 0.319) | | Mean r
+OK  report          ivr.share              got='40.1%'        want='40.1%'        | Share of moves beyond the expected \|move\| (fair: 42.5%) | ⟦40.1%⟧ (p 0.319) | | Mean r₀² over m
+OK  report          ivr.share_p            got='0.319'        want='0.319'        | moves beyond the expected \|move\| (fair: 42.5%) | 40.1% (p ⟦0.319⟧) | | Mean r₀² over mean impli
+OK  report          ivr.var_ratio          got='0.90'         want='0.90'         | | 40.1% (p 0.319) | | Mean r₀² over mean implied variance | ⟦0.90⟧ | | H7 regression r₀² = a + b
+OK  report          h7.b3                  got='0.767'        want='0.767'        | nce | 0.90 | | H7 regression r₀² = a + b(E + σ_d²/252): b | ⟦0.767⟧, interval [0.46, 1.07] | | H7
+OK  report          h7.b_ci                got='[0.46, 1.07]' want='[0.46, 1.07]' | 7 regression r₀² = a + b(E + σ_d²/252): b | 0.767, interval ⟦[0.46, 1.07]⟧ | | H7 joint test a = 0, b = 
+OK  report          h7.df_num              got='2'            want='2'            | 7, interval [0.46, 1.07] | | H7 joint test a = 0, b = 1 | F(⟦2⟧, 49) = 1.33, p 0.275, Holm 1 
+OK  report          h7.df                  got='49'           want='49'           | interval [0.46, 1.07] | | H7 joint test a = 0, b = 1 | F(2, ⟦49⟧) = 1.33, p 0.275, Holm 1 | | 
+OK  report          h7.f                   got='1.33'         want='1.33'         | al [0.46, 1.07] | | H7 joint test a = 0, b = 1 | F(2, 49) = ⟦1.33⟧, p 0.275, Holm 1 | | The same
+OK  report          h7.p                   got='0.275'        want='0.275'        | , 1.07] | | H7 joint test a = 0, b = 1 | F(2, 49) = 1.33, p ⟦0.275⟧, Holm 1 | | The same with E r
+OK  report          h7.p_holm              got='1'            want='1'            | H7 joint test a = 0, b = 1 | F(2, 49) = 1.33, p 0.275, Holm ⟦1⟧ | | The same with E read at d
+OK  report          h7.m2_n                got='331'          want='331'          | 33, p 0.275, Holm 1 | | The same with E read at day −2 (n = ⟦331⟧): b; joint p | 0.92; 0.822 | 
+OK  report          h7.m2_b                got='0.92'         want='0.92'         |  | | The same with E read at day −2 (n = 331): b; joint p | ⟦0.92⟧; 0.822 |  The typical realise
+OK  report          h7.m2_p                got='0.822'        want='0.822'        | he same with E read at day −2 (n = 331): b; joint p | 0.92; ⟦0.822⟧ |  The typical realised move 
+OK  report          ivr.median_ratio       got='0.82'         want='0.82'         | ealised move is smaller than the expected one (median ratio ⟦0.82⟧), but the mean squared move i
+OK  report          ivr.var_ratio          got='0.90'         want='0.90'         | ected one (median ratio 0.82), but the mean squared move is ⟦0.90⟧ of the mean implied variance,
+OK  report          h7.b                   got='0.77'         want='0.77'         | average. On variance the options are close to unbiased: b = ⟦0.77⟧ with 1 inside its interval, a
+OK  report          ivr.share              got='40.1%'        want='40.1%'        |  interval, and the share of moves beyond the expected size (⟦40.1%⟧) is close to the fair 42.5%. 
+OK  report          ivr.benchmark          got='42.5%'        want='42.5%'        | moves beyond the expected size (40.1%) is close to the fair ⟦42.5%⟧. With E read one session earl
+OK  report          h7.m2_b                got='0.92'         want='0.92'         | se to the fair 42.5%. With E read one session earlier, b is ⟦0.92⟧: day −1 quotes are often wide
+OK  report          h7.g1                  got='16.15%'       want='16.15%'       | , which may inflate E a little. The joint test's G1 size is ⟦16.15%⟧, so even a rejection would no
+OK  report          h1.share_below         got='99.1%'        want='99.1%'        | e market-adjusted 30-day IV    fell from day −1 to day 0 in ⟦99.1%⟧ of events, by 0.199 log point
+OK  report          h1.fall                got='0.199'        want='0.199'        | -day IV    fell from day −1 to day 0 in 99.1% of events, by ⟦0.199⟧ log points on average. But th
+OK  report          h7.b                   got='0.77'         want='0.77'         | **On average the options priced the move about right.** b = ⟦0.77⟧ [0.46, 1.07], 40.1% of moves 
+OK  report          h7.b_ci                got='[0.46, 1.07]' want='[0.46, 1.07]' | average the options priced the move about right.** b = 0.77 ⟦[0.46, 1.07]⟧, 40.1% of moves beyond the   
+OK  report          ivr.share              got='40.1%'        want='40.1%'        | tions priced the move about right.** b = 0.77 [0.46, 1.07], ⟦40.1%⟧ of moves beyond the    expect
+OK  report          ivr.benchmark          got='42.5%'        want='42.5%'        | , 1.07], 40.1% of moves beyond the    expected size against ⟦42.5%⟧ for fair pricing. The data sh
+OK  report          ivr.median_ratio       got='0.82'         want='0.82'         | The typical move was smaller than expected    (median ratio ⟦0.82⟧), while the mean squared move
+OK  report          ivr.var_ratio          got='0.90'         want='0.90'         | ted    (median ratio 0.82), while the mean squared move was ⟦0.90⟧ of the mean implied variance.
+OK  report          path.m10               got='+0.239'       want='+0.239'       | 21 sessions before    day 0; the abnormal level at day −10 (⟦+0.239⟧) and at day −1 (+0.232) are a
+OK  report          path.m1                got='+0.232'       want='+0.232'       | ay 0; the abnormal level at day −10 (+0.239) and at day −1 (⟦+0.232⟧) are about the same on averag
+OK  report          slope.est              got='−0.032'       want='−0.032'       | . 4. **A steeper term structure went with a larger crush** (⟦−0.032⟧ per sd). This is exploratory,
+OK  report          sample.n_companies     got='50'           want='50'           |  stock   moves on the way. - **A narrow, survivor sample.** ⟦50⟧ of today's largest S&P 500 co
+BAD report          sample.day0_from       got='2024-12-05'   want='2024-12-10'   | le.** 50 of today's largest S&P 500 companies, day 0 from   ⟦2024-12-05⟧ to 2026-10-26. Smaller, less 
+BAD report          sample.day0_to         got='2026-10-26'   want='2026-10-22'   | day's largest S&P 500 companies, day 0 from   2024-12-05 to ⟦2026-10-26⟧. Smaller, less liquid names a
+OK  report          lookups.left           got='453'          want='453'          | ds may behave differently. - **Provisional timing labels.** ⟦453⟧ of 473 required look-ups are 
+OK  report          lookups.required       got='473'          want='473'          | behave differently. - **Provisional timing labels.** 453 of ⟦473⟧ required look-ups are not don
+OK  report          h5.g1                  got='9.55%'        want='9.55%'        | done. - **Liberal driver statistics.** H5–H7's tests reject ⟦9.55%⟧, 8.10% and 16.15% of the time
+OK  report          h6.g1                  got='8.10%'        want='8.10%'        |  **Liberal driver statistics.** H5–H7's tests reject 9.55%, ⟦8.10%⟧ and 16.15% of the time under 
+OK  report          h7.g1                  got='16.15%'       want='16.15%'       |  driver statistics.** H5–H7's tests reject 9.55%, 8.10% and ⟦16.15%⟧ of the time under a true   nu
+OK  report          lookups.done           got='20'           want='20'           | 7. Caveats, in one place  1. **Provisional timing labels:** ⟦20⟧ of 473 required look-ups are 
+OK  report          lookups.required       got='473'          want='473'          | eats, in one place  1. **Provisional timing labels:** 20 of ⟦473⟧ required look-ups are done; 4
+OK  report          lookups.left           got='453'          want='453'          | onal timing labels:** 20 of 473 required look-ups are done; ⟦453⟧    wait for SEC EDGAR (accept
+OK  report          h2.floor_g             got='8'            want='8'            | ring). 2. **H2 depends on the season count:** rejected with ⟦8⟧ seasons (Holm 0.0469), not re
+OK  report          h2.p_holm              got='0.0469'       want='0.0469'       | epends on the season count:** rejected with 8 seasons (Holm ⟦0.0469⟧), not rejected with the    7 
+OK  report          h2.cut_g               got='7'            want='7'            | cted with 8 seasons (Holm 0.0469), not rejected with the    ⟦7⟧ that ADR 0005 expected (Holm 
+OK  report          h2.cut_p_holm          got='0.0781'       want='0.0781'       | 9), not rejected with the    7 that ADR 0005 expected (Holm ⟦0.0781⟧). 3. **H5–H7's statistics are
+OK  report          h5.g1                  got='9.55%'        want='9.55%'        | lm 0.0781). 3. **H5–H7's statistics are liberal:** G1 sizes ⟦9.55%⟧, 8.10% and 16.15% at 5% (one-
+OK  report          h6.g1                  got='8.10%'        want='8.10%'        | 81). 3. **H5–H7's statistics are liberal:** G1 sizes 9.55%, ⟦8.10%⟧ and 16.15% at 5% (one-way ver
+OK  report          h7.g1                  got='16.15%'       want='16.15%'       | H5–H7's statistics are liberal:** G1 sizes 9.55%, 8.10% and ⟦16.15%⟧ at 5% (one-way versions    18
+OK  report          h5.g1_oneway           got='18.45%'       want='18.45%'       | G1 sizes 9.55%, 8.10% and 16.15% at 5% (one-way versions    ⟦18.45%⟧, 20.10%, 17.00%). Every explo
+OK  report          h6.g1_oneway           got='20.10%'       want='20.10%'       |  9.55%, 8.10% and 16.15% at 5% (one-way versions    18.45%, ⟦20.10%⟧, 17.00%). Every exploratory r
+OK  report          h7.g1_oneway           got='17.00%'       want='17.00%'       | 8.10% and 16.15% at 5% (one-way versions    18.45%, 20.10%, ⟦17.00%⟧). Every exploratory regressio
+OK  report          withheld.n             got='14'           want='14'           | rom the same    two-way t. 4. **Withheld robustness rows:** ⟦14⟧ rows keep their estimates but
+OK  report          rhobar                 got='0.30'         want='0.30'         | justment the crush's average same-date correlation ρ̄ is    ⟦0.30⟧ (above ADR 0005's warning lin
+OK  report          rhobar.no_top10        got='0.19'         want='0.19'         | s warning line of about 0.2). It is spread over most dates (⟦0.19⟧ without    the ten largest), 
+OK  report          rhobar.loo             got='−0.028'       want='−0.028'       | snapshot, and a leave-one-company-out IV factor removes it (⟦−0.028⟧). It is    linearly unrelated
+OK  report          lookups.required       got='473'          want='473'          | writes this file. One number is pinned instead of read: the ⟦473⟧ required look-ups, which need
+OK  report          h2.floor_g             got='8'            want='8'            | p the declared family H1–H7 as binding (H2 rejected    with ⟦8⟧ seasons, not with 7), or adop
+OK  report          h2.cut_g               got='7'            want='7'            | y H1–H7 as binding (H2 rejected    with 8 seasons, not with ⟦7⟧), or adopt the post-gate fami
+OK  report          lookups.done           got='20'           want='20'           | ` for a cost-aware test? 6. **Timing labels.** Publish with ⟦20⟧ of 473 labels checked, or wai
+OK  report          lookups.required       got='473'          want='473'          | a cost-aware test? 6. **Timing labels.** Publish with 20 of ⟦473⟧ labels checked, or wait until
+OK  readme-summary  sample.n_events        got='347'          want='347'          | nings announcements move option implied volatility (IV), on ⟦347⟧ announcements by 50 large US 
+OK  readme-summary  sample.n_companies     got='50'           want='50'           | ove option implied volatility (IV), on 347 announcements by ⟦50⟧ large US companies with day 0
+BAD readme-summary  sample.day0_from       got='2024-12-05'   want='2024-12-10'   |  347 announcements by 50 large US companies with day 0 from ⟦2024-12-05⟧ to 2026-10-26. A Python pipel
+BAD readme-summary  sample.day0_to         got='2026-10-26'   want='2026-10-22'   | ents by 50 large US companies with day 0 from 2024-12-05 to ⟦2026-10-26⟧. A Python pipeline recomputes
+OK  readme-summary  h1.fall                got='0.199'        want='0.199'        | he news to the first close after it, the 30-day IV falls by ⟦0.199⟧ log points (about 18.1%; p = 
+OK  readme-summary  h1.pct_fall            got='18.1%'        want='18.1%'        | se after it, the 30-day IV falls by 0.199 log points (about ⟦18.1%⟧; p = 5.8e−23, Holm 4.1e−22), 
+OK  readme-summary  h1.p                   got='5.8e−23'      want='5.8e−23'      | , the 30-day IV falls by 0.199 log points (about 18.1%; p = ⟦5.8e−23⟧, Holm 4.1e−22), ordinary vola
+OK  readme-summary  h1.p_holm              got='4.1e−22'      want='4.1e−22'      | V falls by 0.199 log points (about 18.1%; p = 5.8e−23, Holm ⟦4.1e−22⟧), ordinary volatility does no
+OK  readme-summary  h4.est                 got='+0.003'       want='+0.003'       | .8e−23, Holm 4.1e−22), ordinary volatility does not change (⟦+0.003⟧, p = 0.782), IV is back at it
+OK  readme-summary  h4.p                   got='0.782'        want='0.782'        |  4.1e−22), ordinary volatility does not change (+0.003, p = ⟦0.782⟧), IV is back at its baseline 
+OK  readme-summary  h7.b                   got='0.77'         want='0.77'         | ings-day move about right on average (realised squared move ⟦0.77⟧ × the implied variance, inter
+OK  readme-summary  h7.b_ci                got='[0.46, 1.07]' want='[0.46, 1.07]' | realised squared move 0.77 × the implied variance, interval ⟦[0.46, 1.07]⟧). **Provisional:** only 20 of
+OK  readme-summary  lookups.done           got='20'           want='20'           | ied variance, interval [0.46, 1.07]). **Provisional:** only ⟦20⟧ of the 473 required before-op
+OK  readme-summary  lookups.required       got='473'          want='473'          | ce, interval [0.46, 1.07]). **Provisional:** only 20 of the ⟦473⟧ required before-open/after-cl
+BAD readme-results  sample.day0_from       got='2024-12-05'   want='2024-12-10'   | Daily sample, market-adjusted (VIX, β per company), ⟦2024-12-05⟧ to 2026-10-26. **Timing label
+BAD readme-results  sample.day0_to         got='2026-10-26'   want='2026-10-22'   | sample, market-adjusted (VIX, β per company), 2024-12-05 to ⟦2026-10-26⟧. **Timing labels provisional:
+OK  readme-results  lookups.done           got='20'           want='20'           | ny), 2024-12-05 to 2026-10-26. **Timing labels provisional: ⟦20⟧ of 473 required look-ups done
+OK  readme-results  lookups.required       got='473'          want='473'          | 024-12-05 to 2026-10-26. **Timing labels provisional: 20 of ⟦473⟧ required look-ups done.** H1–
+OK  readme-results  g1.reps                got='2,000'        want='2,000'        | jects a true null at 5% in gate G1's calibrated simulation (⟦2,000⟧ replications; pass at most 6.
+OK  readme-results  g1.band_hi             got='6.30%'        want='6.30%'        | 1's calibrated simulation (2,000 replications; pass at most ⟦6.30%⟧). Holm runs over the declared
+OK  readme-results  h1.n                   got='347'          want='347'          |  | How much does the 30-day IV fall from day −1 to day 0? | ⟦347⟧ | −0.199 | 5.8e−23 | 4.60% | 
+OK  readme-results  h1.est                 got='−0.199'       want='−0.199'       |  much does the 30-day IV fall from day −1 to day 0? | 347 | ⟦−0.199⟧ | 5.8e−23 | 4.60% | **4.1e−22
+OK  readme-results  h1.p                   got='5.8e−23'      want='5.8e−23'      | s the 30-day IV fall from day −1 to day 0? | 347 | −0.199 | ⟦5.8e−23⟧ | 4.60% | **4.1e−22** | | H2 
+OK  readme-results  h1.g1                  got='4.60%'        want='4.60%'        | ay IV fall from day −1 to day 0? | 347 | −0.199 | 5.8e−23 | ⟦4.60%⟧ | **4.1e−22** | | H2 | Is IV 
+OK  readme-results  h1.p_holm              got='4.1e−22'      want='4.1e−22'      |  from day −1 to day 0? | 347 | −0.199 | 5.8e−23 | 4.60% | **⟦4.1e−22⟧** | | H2 | Is IV abnormally h
+OK  readme-results  h2.n                   got='356'          want='356'          | % | **4.1e−22** | | H2 | Is IV abnormally high at day −1? | ⟦356⟧ | +0.232 | 0.0078 | 0.40% | *
+OK  readme-results  h2.est                 got='+0.232'       want='+0.232'       | 4.1e−22** | | H2 | Is IV abnormally high at day −1? | 356 | ⟦+0.232⟧ | 0.0078 | 0.40% | **0.0469**
+OK  readme-results  h2.p                   got='0.0078'       want='0.0078'       |  | | H2 | Is IV abnormally high at day −1? | 356 | +0.232 | ⟦0.0078⟧ | 0.40% | **0.0469**; with 7 
+OK  readme-results  h2.g1                  got='0.40%'        want='0.40%'        |  Is IV abnormally high at day −1? | 356 | +0.232 | 0.0078 | ⟦0.40%⟧ | **0.0469**; with 7 seasons 
+OK  readme-results  h2.p_holm              got='0.0469'       want='0.0469'       | ormally high at day −1? | 356 | +0.232 | 0.0078 | 0.40% | **⟦0.0469⟧**; with 7 seasons 0.0781 | | 
+OK  readme-results  h2.cut_g               got='7'            want='7'            |  day −1? | 356 | +0.232 | 0.0078 | 0.40% | **0.0469**; with ⟦7⟧ seasons 0.0781 | | H3 | Is IV
+OK  readme-results  h2.cut_p_holm          got='0.0781'       want='0.0781'       |  356 | +0.232 | 0.0078 | 0.40% | **0.0469**; with 7 seasons ⟦0.0781⟧ | | H3 | Is IV back at its ba
+OK  readme-results  h3.n                   got='329'          want='329'          | ns 0.0781 | | H3 | Is IV back at its baseline at day +10? | ⟦329⟧ | +0.008 | 0.743 | 0.50% | 1 
+OK  readme-results  h3.est                 got='+0.008'       want='+0.008'       | 781 | | H3 | Is IV back at its baseline at day +10? | 329 | ⟦+0.008⟧ | 0.743 | 0.50% | 1 | | H4 | 
+OK  readme-results  h3.p                   got='0.743'        want='0.743'        | 3 | Is IV back at its baseline at day +10? | 329 | +0.008 | ⟦0.743⟧ | 0.50% | 1 | | H4 | Does ord
+OK  readme-results  h3.g1                  got='0.50%'        want='0.50%'        | V back at its baseline at day +10? | 329 | +0.008 | 0.743 | ⟦0.50%⟧ | 1 | | H4 | Does ordinary vo
+OK  readme-results  h3.p_holm              got='1'            want='1'            | t its baseline at day +10? | 329 | +0.008 | 0.743 | 0.50% | ⟦1⟧ | | H4 | Does ordinary volati
+OK  readme-results  h4.n                   got='262'          want='262'          | 0.50% | 1 | | H4 | Does ordinary volatility (σ_d) change? | ⟦262⟧ | +0.003 | 0.782 | 4.60% | 1 
+OK  readme-results  h4.est                 got='+0.003'       want='+0.003'       | | 1 | | H4 | Does ordinary volatility (σ_d) change? | 262 | ⟦+0.003⟧ | 0.782 | 4.60% | 1 | | H5 | 
+OK  readme-results  h4.p                   got='0.782'        want='0.782'        | 4 | Does ordinary volatility (σ_d) change? | 262 | +0.003 | ⟦0.782⟧ | 4.60% | 1 | | H5 | Does a b
+OK  readme-results  h4.g1                  got='4.60%'        want='4.60%'        |  ordinary volatility (σ_d) change? | 262 | +0.003 | 0.782 | ⟦4.60%⟧ | 1 | | H5 | Does a bigger ea
+OK  readme-results  h4.p_holm              got='1'            want='1'            | y volatility (σ_d) change? | 262 | +0.003 | 0.782 | 4.60% | ⟦1⟧ | | H5 | Does a bigger earnin
+OK  readme-results  h5.n                   got='347'          want='347'          |  | H5 | Does a bigger earnings surprise change the crush? | ⟦347⟧ | +0.013 per sd | 0.0102 | **
+OK  readme-results  h5.est                 got='+0.013'       want='+0.013'       | | Does a bigger earnings surprise change the crush? | 347 | ⟦+0.013⟧ per sd | 0.0102 | **9.55%** (
+OK  readme-results  h5.p                   got='0.0102'       want='0.0102'       | earnings surprise change the crush? | 347 | +0.013 per sd | ⟦0.0102⟧ | **9.55%** (fail) | 0.0511 |
+OK  readme-results  h5.g1                  got='9.55%'        want='9.55%'        | rprise change the crush? | 347 | +0.013 per sd | 0.0102 | **⟦9.55%⟧** (fail) | 0.0511 | | H6 | Do
+OK  readme-results  h5.p_holm              got='0.0511'       want='0.0511'       |  crush? | 347 | +0.013 per sd | 0.0102 | **9.55%** (fail) | ⟦0.0511⟧ | | H6 | Does the prior volat
+OK  readme-results  h6.n                   got='347'          want='347'          | .0511 | | H6 | Does the prior volatility level change it? | ⟦347⟧ | −0.001 per sd | 0.895 | **8
+OK  readme-results  h6.est                 got='−0.001'       want='−0.001'       | | | H6 | Does the prior volatility level change it? | 347 | ⟦−0.001⟧ per sd | 0.895 | **8.10%** (f
+OK  readme-results  h6.p                   got='0.895'        want='0.895'        | e prior volatility level change it? | 347 | −0.001 per sd | ⟦0.895⟧ | **8.10%** (fail) | 1 | | H7
+OK  readme-results  h6.g1                  got='8.10%'        want='8.10%'        | latility level change it? | 347 | −0.001 per sd | 0.895 | **⟦8.10%⟧** (fail) | 1 | | H7 | Is the 
+OK  readme-results  h6.p_holm              got='1'            want='1'            | ange it? | 347 | −0.001 per sd | 0.895 | **8.10%** (fail) | ⟦1⟧ | | H7 | Is the implied varia
+OK  readme-results  h7.n                   got='336'          want='336'          | | | H7 | Is the implied variance unbiased (a = 0, b = 1)? | ⟦336⟧ | b = 0.77 [0.46, 1.07] | 0.2
+OK  readme-results  h7.b                   got='0.77'         want='0.77'         | s the implied variance unbiased (a = 0, b = 1)? | 336 | b = ⟦0.77⟧ [0.46, 1.07] | 0.275 | **16.1
+OK  readme-results  h7.b_ci                got='[0.46, 1.07]' want='[0.46, 1.07]' |  implied variance unbiased (a = 0, b = 1)? | 336 | b = 0.77 ⟦[0.46, 1.07]⟧ | 0.275 | **16.15%** (fail) |
+OK  readme-results  h7.p                   got='0.275'        want='0.275'        | ce unbiased (a = 0, b = 1)? | 336 | b = 0.77 [0.46, 1.07] | ⟦0.275⟧ | **16.15%** (fail) | 1 |  - 
+OK  readme-results  h7.g1                  got='16.15%'       want='16.15%'       | d (a = 0, b = 1)? | 336 | b = 0.77 [0.46, 1.07] | 0.275 | **⟦16.15%⟧** (fail) | 1 |  - **H1 and H2
+OK  readme-results  h7.p_holm              got='1'            want='1'            | | 336 | b = 0.77 [0.46, 1.07] | 0.275 | **16.15%** (fail) | ⟦1⟧ |  - **H1 and H2 are rejected
+OK  readme-results  h2.floor_g             got='8'            want='8'            | are not.** H2's p is the floor of a randomisation test over ⟦8⟧ season   clusters, so its Hol
+OK  readme-results  h2.cut_g               got='7'            want='7'            |  that count: with the October 2026 tail merged into July   (⟦7⟧ seasons, as ADR 0005 expected
+OK  readme-results  h2.cut_p_holm          got='0.0781'       want='0.0781'       |  merged into July   (7 seasons, as ADR 0005 expected) it is ⟦0.0781⟧, not rejected. Its direction 
+OK  readme-results  h2.twoway_t            got='13.43'        want='13.43'        | 1, not rejected. Its direction is not in doubt   (two-way t ⟦13.43⟧). - **H5–H7 failed gate G1**:
+OK  readme-results  h5.g1                  got='9.55%'        want='9.55%'        | 13.43). - **H5–H7 failed gate G1**: their statistics reject ⟦9.55%⟧, 8.10% and 16.15% of the time
+OK  readme-results  h6.g1                  got='8.10%'        want='8.10%'        |  - **H5–H7 failed gate G1**: their statistics reject 9.55%, ⟦8.10%⟧ and 16.15% of the time under 
+OK  readme-results  h7.g1                  got='16.15%'       want='16.15%'       |  failed gate G1**: their statistics reject 9.55%, 8.10% and ⟦16.15%⟧ of the time under a true null
+OK  readme-results  postgate.h1            got='2.3e−22'      want='2.3e−22'      | escriptive sensitivity, not binding) the Holm p would be H1 ⟦2.3e−22⟧, H2 0.0234   (7 seasons: 0.04
+OK  readme-results  postgate.h2            got='0.0234'       want='0.0234'       | ensitivity, not binding) the Holm p would be H1 2.3e−22, H2 ⟦0.0234⟧   (7 seasons: 0.0469). Which 
+OK  readme-results  h2.cut_g               got='7'            want='7'            | , not binding) the Holm p would be H1 2.3e−22, H2 0.0234   (⟦7⟧ seasons: 0.0469). Which famil
+OK  readme-results  postgate.h2_cut        got='0.0469'       want='0.0469'       | ng) the Holm p would be H1 2.3e−22, H2 0.0234   (7 seasons: ⟦0.0469⟧). Which family binds is the o
+OK  readme-results  ivr.share              got='40.1%'        want='40.1%'        | ons: 0.0469). Which family binds is the owner's decision. - ⟦40.1%⟧ of day-0 moves exceeded the i
+OK  readme-results  ivr.benchmark          got='42.5%'        want='42.5%'        | - 40.1% of day-0 moves exceeded the implied |move|, against ⟦42.5%⟧ under fair pricing of a norma
+OK  readme-results  ivr.share_p            got='0.319'        want='0.319'        | ve|, against 42.5% under fair pricing of a normal   move (p ⟦0.319⟧). Exploratory: a steeper term
+OK  readme-results  slope.est              got='−0.032'       want='−0.032'       | teeper term structure at day −1 goes with a larger crush   (⟦−0.032⟧ per sd, q 0.0006, from the sa
+OK  readme-results  slope.q                got='0.0006'       want='0.0006'       | ture at day −1 goes with a larger crush   (−0.032 per sd, q ⟦0.0006⟧, from the same liberal two-wa
+OK  readme-results  withheld.n             got='14'           want='14'           | 0.032 per sd, q 0.0006, from the same liberal two-way t). - ⟦14⟧ robustness rows keep their es
+OK  readme-results  rhobar                 got='0.30'         want='0.30'         | sh's same-date correlation after the VIX adjustment is ρ̄ = ⟦0.30⟧: one common date component, w
+OK  prfaq-headline  h1.fall                got='0.199'        want='0.199'        | nal timing labels: from day −1 to day 0, 30-day IV falls by ⟦0.199⟧ log points on average, about 
+OK  prfaq-headline  h1.pct_fall            got='18.1%'        want='18.1%'        | ay 0, 30-day IV falls by 0.199 log points on average, about ⟦18.1%⟧, net of the market's volatili
+OK  prfaq-headline  h1.p                   got='5.8e−23'      want='5.8e−23'      |  net of the market's volatility. That is significant at p = ⟦5.8e−23⟧ (Holm 4.1e−22 over the seven 
+OK  prfaq-headline  h1.p_holm              got='4.1e−22'      want='4.1e−22'      | rket's volatility. That is significant at p = 5.8e−23 (Holm ⟦4.1e−22⟧ over the seven declared hypot
+OK  prfaq-headline  h1.g1                  got='4.60%'        want='4.60%'        |  its size was checked first on the real event set (gate G1: ⟦4.60%⟧ at 5%). The fall is not repor
+OK  prfaq-headline  h3.est                 got='+0.008'       want='+0.008'       | tudy also reports: - IV is back at its baseline by day +10 (⟦+0.008⟧ log points, p = 0.743); - the
+OK  prfaq-headline  h3.p                   got='0.743'        want='0.743'        |  is back at its baseline by day +10 (+0.008 log points, p = ⟦0.743⟧); - the size of the crush doe
+OK  prfaq-headline  h5.est                 got='+0.013'       want='+0.013'       | of the crush does not reliably track the earnings surprise (⟦+0.013⟧ per sd, Holm 0.0511) or how  
+OK  prfaq-headline  h5.p_holm              got='0.0511'       want='0.0511'       | t reliably track the earnings surprise (+0.013 per sd, Holm ⟦0.0511⟧) or how   high ordinary volat
+OK  prfaq-headline  h6.est                 got='−0.001'       want='−0.001'       | m 0.0511) or how   high ordinary volatility was beforehand (⟦−0.001⟧, p = 0.895), and both tests t
+OK  prfaq-headline  h6.p                   got='0.895'        want='0.895'        |  how   high ordinary volatility was beforehand (−0.001, p = ⟦0.895⟧), and both tests turned out l
+OK  prfaq-headline  ivr.share              got='40.1%'        want='40.1%'        | he stock's day-0 move exceeded the move the options implied ⟦40.1%⟧ of the time, against 42.5%   
+OK  prfaq-headline  ivr.benchmark          got='42.5%'        want='42.5%'        | ded the move the options implied 40.1% of the time, against ⟦42.5%⟧   under fair pricing of a nor
+OK  prfaq-measured  lookups.done           got='20'           want='20'           | ed here at milestone 5, with **provisional timing labels** (⟦20⟧ of 473 required look-ups done
+OK  prfaq-measured  lookups.required       got='473'          want='473'          | e at milestone 5, with **provisional timing labels** (20 of ⟦473⟧ required look-ups done). Day 
+BAD prfaq-measured  sample.day0_from       got='2024-12-05'   want='2024-12-10'   | ing labels** (20 of 473 required look-ups done). Day 0 from ⟦2024-12-05⟧ to 2026-10-26; 347 primary ev
+BAD prfaq-measured  sample.day0_to         got='2026-10-26'   want='2026-10-22'   | 20 of 473 required look-ups done). Day 0 from 2024-12-05 to ⟦2026-10-26⟧; 347 primary events of 50 com
+OK  prfaq-measured  sample.n_events        got='347'          want='347'          | quired look-ups done). Day 0 from 2024-12-05 to 2026-10-26; ⟦347⟧ primary events of 50 companie
+OK  prfaq-measured  sample.n_companies     got='50'           want='50'           |  Day 0 from 2024-12-05 to 2026-10-26; 347 primary events of ⟦50⟧ companies. The full account i
+OK  prfaq-measured  h1.fall                got='0.199'        want='0.199'        |  p (H1–H7) | |---|---|---:| | H1 crush | 30-day IV falls by ⟦0.199⟧ log points from day −1 to day
+OK  prfaq-measured  h1.ci                  got='[−0.222, −0.177]' want='[−0.222, −0.177]' | IV falls by 0.199 log points from day −1 to day 0 (interval ⟦[−0.222, −0.177]⟧) | 4.1e−22 | | H2 run-up | IV
+OK  prfaq-measured  h1.p_holm              got='4.1e−22'      want='4.1e−22'      | g points from day −1 to day 0 (interval [−0.222, −0.177]) | ⟦4.1e−22⟧ | | H2 run-up | IV sits +0.23
+OK  prfaq-measured  h2.est                 got='+0.232'       want='+0.232'       | nterval [−0.222, −0.177]) | 4.1e−22 | | H2 run-up | IV sits ⟦+0.232⟧ log points above its baseline
+OK  prfaq-measured  h2.p_holm              got='0.0469'       want='0.0469'       |  | IV sits +0.232 log points above its baseline at day −1 | ⟦0.0469⟧ (7 seasons: 0.0781) | | H3 pe
+OK  prfaq-measured  h2.cut_g               got='7'            want='7'            | ts +0.232 log points above its baseline at day −1 | 0.0469 (⟦7⟧ seasons: 0.0781) | | H3 persi
+OK  prfaq-measured  h2.cut_p_holm          got='0.0781'       want='0.0781'       | og points above its baseline at day −1 | 0.0469 (7 seasons: ⟦0.0781⟧) | | H3 persistence | +0.008 
+OK  prfaq-measured  h3.est                 got='+0.008'       want='+0.008'       | at day −1 | 0.0469 (7 seasons: 0.0781) | | H3 persistence | ⟦+0.008⟧ at day +10 (interval [−0.049,
+OK  prfaq-measured  h3.ci                  got='[−0.049, 0.065]' want='[−0.049, 0.065]' | s: 0.0781) | | H3 persistence | +0.008 at day +10 (interval ⟦[−0.049, 0.065]⟧) | 1 | | H4 ordinary volatili
+OK  prfaq-measured  h3.p_holm              got='1'            want='1'            | ersistence | +0.008 at day +10 (interval [−0.049, 0.065]) | ⟦1⟧ | | H4 ordinary volatility | 
+OK  prfaq-measured  h4.est                 got='+0.003'       want='+0.003'       | (interval [−0.049, 0.065]) | 1 | | H4 ordinary volatility | ⟦+0.003⟧ (interval [−0.019, 0.026]) | 
+OK  prfaq-measured  h4.ci                  got='[−0.019, 0.026]' want='[−0.019, 0.026]' | , 0.065]) | 1 | | H4 ordinary volatility | +0.003 (interval ⟦[−0.019, 0.026]⟧) | 1 | | H5 surprise | +0.013
+OK  prfaq-measured  h4.p_holm              got='1'            want='1'            | 4 ordinary volatility | +0.003 (interval [−0.019, 0.026]) | ⟦1⟧ | | H5 surprise | +0.013 per 
+OK  prfaq-measured  h5.est                 got='+0.013'       want='+0.013'       | y | +0.003 (interval [−0.019, 0.026]) | 1 | | H5 surprise | ⟦+0.013⟧ per sd (interval [0.003, 0.02
+OK  prfaq-measured  h5.ci                  got='[0.003, 0.023]' want='[0.003, 0.023]' | .019, 0.026]) | 1 | | H5 surprise | +0.013 per sd (interval ⟦[0.003, 0.023]⟧); the test's size is 9.55% | 
+OK  prfaq-measured  h5.g1                  got='9.55%'        want='9.55%'        | +0.013 per sd (interval [0.003, 0.023]); the test's size is ⟦9.55%⟧ | 0.0511 | | H6 prior volatil
+OK  prfaq-measured  h5.p_holm              got='0.0511'       want='0.0511'       | er sd (interval [0.003, 0.023]); the test's size is 9.55% | ⟦0.0511⟧ | | H6 prior volatility | −0.
+OK  prfaq-measured  h6.est                 got='−0.001'       want='−0.001'       | the test's size is 9.55% | 0.0511 | | H6 prior volatility | ⟦−0.001⟧ per sd (interval [−0.023, 0.0
+OK  prfaq-measured  h6.ci                  got='[−0.023, 0.020]' want='[−0.023, 0.020]' |  | 0.0511 | | H6 prior volatility | −0.001 per sd (interval ⟦[−0.023, 0.020]⟧); size 8.10% | 1 | | H7 impli
+OK  prfaq-measured  h6.g1                  got='8.10%'        want='8.10%'        | volatility | −0.001 per sd (interval [−0.023, 0.020]); size ⟦8.10%⟧ | 1 | | H7 implied vs realise
+OK  prfaq-measured  h6.p_holm              got='1'            want='1'            | ty | −0.001 per sd (interval [−0.023, 0.020]); size 8.10% | ⟦1⟧ | | H7 implied vs realised | 
+OK  prfaq-measured  h7.b                   got='0.77'         want='0.77'         | 3, 0.020]); size 8.10% | 1 | | H7 implied vs realised | b = ⟦0.77⟧ (interval [0.46, 1.07]); 40.1
+OK  prfaq-measured  h7.b_ci                got='[0.46, 1.07]' want='[0.46, 1.07]' | e 8.10% | 1 | | H7 implied vs realised | b = 0.77 (interval ⟦[0.46, 1.07]⟧); 40.1% of moves beyond the i
+OK  prfaq-measured  ivr.share              got='40.1%'        want='40.1%'        |  H7 implied vs realised | b = 0.77 (interval [0.46, 1.07]); ⟦40.1%⟧ of moves beyond the implied \
+OK  prfaq-measured  ivr.benchmark          got='42.5%'        want='42.5%'        | ; 40.1% of moves beyond the implied \|move\| against a fair ⟦42.5%⟧; size 16.15% | 1 |  **Where t
+OK  prfaq-measured  h7.g1                  got='16.15%'       want='16.15%'       | oves beyond the implied \|move\| against a fair 42.5%; size ⟦16.15%⟧ | 1 |  **Where the milestone-
+OK  prfaq-measured  h7.p_holm              got='1'            want='1'            | nd the implied \|move\| against a fair 42.5%; size 16.15% | ⟦1⟧ |  **Where the milestone-0 dr
+OK  prfaq-measured  lookups.done           got='20'           want='20'           | daily option data began would be looked up by hand. Only    ⟦20⟧ of the 473 required look-ups 
+OK  prfaq-measured  lookups.required       got='473'          want='473'          | on data began would be looked up by hand. Only    20 of the ⟦473⟧ required look-ups are done. T
+OK  prfaq-measured  h5.g1                  got='9.55%'        want='9.55%'        |  4 before their results, found their statistics liberal:    ⟦9.55%⟧ (H5), 8.10% (H6) and 16.15% (
+OK  prfaq-measured  h6.g1                  got='8.10%'        want='8.10%'        | eir results, found their statistics liberal:    9.55% (H5), ⟦8.10%⟧ (H6) and 16.15% (H7) under a 
+OK  prfaq-measured  h7.g1                  got='16.15%'       want='16.15%'       | und their statistics liberal:    9.55% (H5), 8.10% (H6) and ⟦16.15%⟧ (H7) under a true null at 5%.
+OK  prfaq-measured  h2.floor_g             got='8'            want='8'            | ed the run-up's events to fall into 7 seasons. There are    ⟦8⟧, unbalanced, so the randomisa
+OK  prfaq-measured  h2.p_holm              got='0.0469'       want='0.0469'       | H2's primary and its Holm verdict depends on that count    (⟦0.0469⟧ with 8; 0.0781 with 7). 4. **
+OK  prfaq-measured  h2.floor_g             got='8'            want='8'            |  and its Holm verdict depends on that count    (0.0469 with ⟦8⟧; 0.0781 with 7). 4. **The sur
+OK  prfaq-measured  h2.cut_p_holm          got='0.0781'       want='0.0781'       | d its Holm verdict depends on that count    (0.0469 with 8; ⟦0.0781⟧ with 7). 4. **The surprise qu
+OK  prfaq-measured  h2.cut_g               got='7'            want='7'            | erdict depends on that count    (0.0469 with 8; 0.0781 with ⟦7⟧). 4. **The surprise question.
+OK  prfaq-measured  h5.est                 got='+0.013'       want='+0.013'       |  coefficient points the other way, a slightly smaller fall (⟦+0.013⟧ per sd), and it is not reject
+OK  prfaq-measured  rhobar                 got='0.30'         want='0.30'         | failed VIX adjustment or a    data error. The crush's ρ̄ is ⟦0.30⟧. No data error and no single 
+OK  prfaq-measured  sample.n_events        got='347'          want='347'          |  `.docx`, `.md`).  Confirmed as predicted: the sample size (⟦347⟧ events, inside the draft's 33
+OK  prfaq-measured  h1.t                   got='−17.73'       want='−17.73'       | s 330–360), and a crush large against day-to-day noise (t = ⟦−17.73⟧).
+placeholders checked: 412; distinct keys: 182; mismatches: 12
+keys without an oracle value: []
+rc=1

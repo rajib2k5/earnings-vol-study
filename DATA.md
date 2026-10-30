@@ -4,7 +4,9 @@ This repository is a public portfolio. It holds the real data that the app and t
 app JSON in `app/public/data/`, small derived tables in `data/derived/`, the hand look-ups in `data/manual/`, and
 real values quoted in the docs. It holds no bulk raw files. Vendor downloads, the Dolt clones and their private
 copies, and the local cache stay in git-ignored folders under `$VOL_DATA_DIR`. `tools/licensing/check_data_files.py`
-checks this on every test run (ADR 0001 §7, owner decision of 2026-10-29).
+checks this on every test run (ADR 0001 §7, owner decision of 2026-10-29). Since milestone 5 the screenshots and
+figures in `docs/images/` and the report in `docs/report/` show only values that are already in the committed app
+JSON and tables, drawn by the app or quoted from `results.parquet`: no VIX value and no per-event VIX-adjusted value.
 
 **The data is not covered by this repository's MIT licence.** Each source keeps its own terms:
 
