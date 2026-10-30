@@ -137,7 +137,7 @@ report's §4 has the table and §7 every caveat.
 | File | Size | How |
 |---|---:|---|
 | `docs/report/earnings-vol-report.md` | rendered by `tools/report_numbers.py` | 224 numbers, 4 files (report, README, PR/FAQ, this page) |
-| `docs/report/earnings-vol-report.pdf` | 768,626 B, 13 pages (`pdfinfo`) | Chromium print-to-PDF, A4 |
+| `docs/report/earnings-vol-report.pdf` | 768,625 B, 13 pages (`pdfinfo`) | Chromium print-to-PDF, A4 |
 | `docs/report/earnings-vol-report.docx` | 372,082 B | python-docx |
 
 Both are under the 10 MB limit, which `build_report.py` enforces. The review checked that all headings, table rows,
