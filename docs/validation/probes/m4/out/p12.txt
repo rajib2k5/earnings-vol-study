@@ -1,0 +1,59 @@
+ok   H5 estimate: printed +0.0132, data 0.0132357
+ok   H5 se: printed 0.0050, data 0.00495392
+ok   H5 t: printed 2.67, data 2.67175
+ok   H5 p: printed 0.0102, data 0.0102151
+ok   H5 CI lo: printed 0.0033, data 0.00328038
+ok   H5 CI hi: printed 0.0232, data 0.0231909
+ok   H5 one-way se: printed 0.0040, data 0.00398459
+ok   H5 one-way t: printed 3.32, data 3.32171
+ok   H5 twin estimate: printed +0.0121, data 0.0121462
+ok   H6 estimate: printed -0.0014, data -0.00142782
+ok   H6 se: printed 0.0108, data 0.0107539
+ok   H6 p: printed 0.895, data 0.894917
+ok   H6 twin t: printed -0.39, data -0.386995
+ok   SLOPE estimate (README -0.032): printed -0.032, data -0.0317405
+ok   SLOPE estimate (§6.3 -0.0317): printed -0.0317, data -0.0317405
+ok   SLOPE t: printed -4.52, data -4.51893
+ok   SLOPE p: printed 3.9e-5, data 3.93675e-05
+ok   SLOPE BH q: printed 0.0007, data 0.000690549
+ok   SIZE estimate: printed +0.0129, data 0.0129423
+ok   SIZE q: printed 0.18, data 0.178603
+ok   R2 primary: printed 0.427, data 0.426586
+ok   cm30 variant surprise: printed +0.0139, data 0.0139059
+ok   cm30 variant surprise q: printed 0.034, data 0.0343166
+ok   cm30 variant ln cm30: printed -0.0077, data -0.00765351
+ok   SUE variant: printed +0.0021, data 0.00208801
+ok   SUE variant q: printed 0.76, data 0.756759
+ok   SUE n: printed 339, data 339
+ok   disp variant: printed +0.0029, data 0.00293483
+ok   disp n: printed 344, data 344
+ok   firm FE surprise: printed +0.0076, data 0.00764387
+ok   firm FE ln sigma_d q: printed 0.071, data 0.0709349
+ok   firm FE size: printed +0.0507, data 0.0507257
+ok   VIX x mid: printed +0.0029, data 0.00294404
+ok   VIX x high: printed -0.0010, data -0.00103613
+ok   VIX size q: printed 0.019, data 0.0189121
+ok   DSIGMA_D slope: printed +0.0813, data 0.0812853
+ok   DSIGMA_D slope t: printed 8.15, data 8.14607
+ok   DSIGMA_D slope q: printed 7.6e-9, data 7.57238e-09
+ok   DSIGMA_D n: printed 262, data 262
+ok   coarse slope: printed -0.0848, data -0.0847965
+ok   coarse slope q: printed 2.6e-6, data 2.55364e-06
+ok   coarse n: printed 110, data 110
+ok   coarse dates: printed 81, data 81
+ok   H7 b CI hi: printed 1.069, data 1.06909
+ok   H7 a: printed 0.00083, data 0.000829708
+ok   H7 m2 b: printed 0.922, data 0.921963
+ok   H7 m2 F: printed 0.20, data 0.197257
+ok   H7 m2 p: printed 0.822, data 0.821628
+ok   H7 calibration kurtosis: printed 5.62, data 5.62157
+ok   H7 calibration nu: printed 6.29, data 6.2887
+ok   H7 calibration same-date raw: printed -0.056, data -0.0558417
+ok   H6 power at 0.05: printed 94.0, data 0.9395
+ok   H5 80% power at: printed 0.026, data 0.0261686
+ok   H6 80% power at: printed 0.042, data 0.0416592
+ok   D4 H6 rate: printed 6.30, data 0.063
+ok   H7 one-way rate: printed 17.00, data 0.17
+rows 929 {'validation': 689, 'descriptive': 133, 'regression': 62, 'event_test': 45} (printed: 929; event_test 45, regression 62, descriptive 133, validation 689)
+exploratory regression tests with a p: {'daily': 42, 'coarse': 4} (printed: 42 daily, 4 coarse)
+MATCH 58 of 58

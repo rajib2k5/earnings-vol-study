@@ -178,3 +178,25 @@ stats:
   g1_reps: 2000
   g1_seed: 20261029
   g1_power_shifts: [0.01, 0.02, 0.03, 0.05, 0.08, 0.12, 0.16]
+
+drivers:
+  # Milestone 4: the regressor columns of event_measures (data model §3.11)
+  # and the driver regressions (ADR 0005 §3). |SURP| = |eps.surprise| /
+  # price_ref is winsorised at these quantiles within each events.sample.
+  surprise_winsor: [0.01, 0.99]
+  # SUE_hist: the price-scaled surprise minus the mean of the security's
+  # previous sue_prev price-scaled surprises (ordered by day 0), over their
+  # sd (ddof 1); null with fewer than sue_min_prev of them.
+  sue_prev: 8
+  sue_min_prev: 4
+  # Gate G1 for H5-H7 (ADR 0005 §5): the seed block of the driver designs
+  # (fresh: the H1-H4 run uses blocks 1 .. 33 and its re-measure block 1000),
+  # the shifts at which the calibrated design's power is measured (H5/H6: a
+  # coefficient in log points of crush per sd of the regressor; H7: the slope
+  # b of realised on implied variance), and the floor of H7's regressor in
+  # the simulated null (an event with E + sigma_d^2/252 <= 0 cannot have that
+  # variance; the regression then uses the floored value, so the null holds).
+  g1_seed_block: 2000
+  g1_power_beta: [0.01, 0.02, 0.03, 0.05]
+  g1_power_b: [0.6, 0.8, 1.2, 1.4]
+  h7_floor: 1.0e-6

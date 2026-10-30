@@ -46,6 +46,13 @@
 #   - estimate() ignoring a given beta [fix2]
 #   - results.oversized() returning every verdict, not only the oversized ones [fix2]
 #   - data: H4 gen_sign_z's re-measured rate set inside the bar in results.parquet [fix2]
+# Milestone 4 (the two committed-results tests now read H5-H7 and the family after the gate; each data
+# mutant written to a scratch copy's results.parquet, the test seen to fail, the file restored and its
+# SHA-256 checked; [m4] = that round's script, milestone-4 page appendix):
+#   - data: H5's two-way row marked exploratory in results.parquet (fix R1: it stays primary) [r1]
+#   - data: the season-cut row's p_holm set to the post-gate family's 0.046875 (fix R1: binding is
+#     H1-H7) [r1]
+#   - data: the post-gate season-cut row's estimate set to the binding 0.078125 [r1]
 
 import dataclasses
 from datetime import date, timedelta
@@ -174,18 +181,24 @@ def committed_results():
 
 
 def test_the_committed_gate_decides_the_roles(committed_results):
-    # The calibrated design is binding: a primary at most the band's top (6.30% at 2,000) stays
-    # primary; one above it leaves the family and its row is exploratory (ADR 0005 §5).
+    # The calibrated design is binding for H1-H4: a primary at most the band's top (6.30% at 2,000)
+    # stays primary; one above it leaves the family and its row is exploratory (ADR 0005 §5).
+    # H5-H7 (regressions; H7's adjustment is "none"): their size check is reported, not binding, so
+    # their declared statistic stays primary with a Holm p whatever its rate (fix R1 after the
+    # milestone-4 review: results.SIZE_GATED is H1-H4).
     r = committed_results
     cal = r[(r["family"] == "validation") & (r["measure"] == "g1:calibrated") & (r["role"] == "primary")]
-    assert sorted(cal["hypothesis"]) == ["H1", "H2", "H3", "H4"] and (cal["n"] == 2000).all()
+    assert sorted(cal["hypothesis"]) == ["H1", "H2", "H3", "H4", "H5", "H6", "H7"] and (cal["n"] == 2000).all()
     _, hi = g1.binom_band(2000)
     for row in cal.itertuples(index=False):
-        tested = r[(r["family"] == "event_test") & (r["hypothesis"] == row.hypothesis) & (r["adjustment"] == "market")
-                   & (r["statistic"] == row.statistic) & (r["subgroup_value"] == "all")]
-        assert len(tested) == 1
-        assert tested["role"].iloc[0] == ("primary" if row.estimate <= hi else "exploratory"), row.hypothesis
-        assert (tested["p_holm"].notna().iloc[0]) == (row.estimate <= hi)
+        tested = r[r["family"].isin(["event_test", "regression"]) & (r["hypothesis"] == row.hypothesis)
+                   & (r["adjustment"] != "mean") & (r["statistic"] == row.statistic) & (r["subgroup_value"] == "all")
+                   & r["role"].isin(["primary", "exploratory"])]
+        assert len(tested) == 1, row.hypothesis
+        stays = row.estimate <= hi or row.hypothesis not in results.SIZE_GATED
+        assert tested["role"].iloc[0] == ("primary" if stays else "exploratory"), row.hypothesis
+        assert (tested["p_holm"].notna().iloc[0]) == stays
+    assert sorted(results.SIZE_GATED) == ["H1", "H2", "H3", "H4"]
 
 
 def test_estimate_re_estimates_beta_from_the_simulated_data():
@@ -309,19 +322,33 @@ def test_the_committed_rows_withhold_exactly_the_oversized_statistics(committed_
 
 def test_the_committed_season_cut_row_is_the_holm_counterfactual(committed_results):
     # H2's primary sits on the rad_season_p floor 2/2^G; the season-cut row merges the last season
-    # into the one before (G - 1) and its p_holm is Holm over the declared family with that p.
+    # into the one before (G - 1) and its p_holm is Holm over the binding family with that p (fix R1
+    # after the milestone-4 review: H1-H4 that passed G1 and H5-H7 whatever their size check, with
+    # their regression rows' real p-values); the descriptive holm_post_gate row gives the same cut
+    # over the family without the failed primaries.
     r = committed_results
     ev = r[(r["family"] == "event_test") & (r["adjustment"] == "market")]
-    prim = ev[(ev["role"] == "primary")].set_index("hypothesis")
+    prim = r[r["family"].isin(["event_test", "regression"]) & (r["role"] == "primary")].set_index("hypothesis")
+    cal = r[(r["family"] == "validation") & (r["measure"] == "g1:calibrated") & (r["role"] == "primary")]
+    passed = set(cal.loc[cal["estimate"] <= g1.binom_band(2000)[1], "hypothesis"])
     cut = ev[ev["subgroup_key"] == "season_cut"]
     assert len(cut) == 1 and cut["hypothesis"].iloc[0] == "H2"
     c = cut.iloc[0]
     g = int(prim.loc["H2", "n_clusters"])
     assert prim.loc["H2", "p_value"] == 2 / 2 ** g and int(c["n_clusters"]) == g - 1
     assert c["statistic"] == "rad_season_p" and c["p_value"] >= 2 / 2 ** (g - 1)
-    pv = {h: (prim.loc[h, "p_value"] if h in prim.index else None) for h in params.load()["stats"]["holm_family"]}
+    declared = params.load()["stats"]["holm_family"]
+    family = [h for h in declared if h in passed or h not in results.SIZE_GATED]
+    assert family == list(declared)
+    pv = {h: (prim.loc[h, "p_value"] if h in prim.index else None) for h in family}
     pv["H2"] = c["p_value"]
     assert c["p_holm"] == pytest.approx(multiple.holm(pv)["H2"], abs=1e-15)
+    post = [h for h in declared if h in passed]
+    pg = r[(r["measure"] == "holm_post_gate") & (r["subgroup_key"] == "season_cut")]
+    assert len(pg) == 1 and pg["subgroup_value"].iloc[0] == c["subgroup_value"]
+    pv = {h: prim.loc[h, "p_value"] for h in post}
+    pv["H2"] = c["p_value"]
+    assert pg["estimate"].iloc[0] == pytest.approx(multiple.holm(pv)["H2"], abs=1e-15)
 
 
 def test_generate_uses_the_calibrated_scale():

@@ -1,0 +1,10 @@
+price_ref 1200
+surprise_scaled 1198
+abs_surprise_scaled_w 1198
+sue_hist 998
+vix_regime 1259
+ln_mcap_yf 1307
+realized_ret_0_yf 1170
+primary 347 sue_hist 339
+Yahoo vs forward return on 336 primary events: median |diff| 16.9 bp, p95 216.1 bp, corr 0.9924
+daily vix_regime split: {'low': 127, 'high': 121, 'mid': 118}

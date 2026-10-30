@@ -1,0 +1,2 @@
+M25: events whose |SURP|_w changes 29 of 1198; on the primary set 8 of 347
+M09: real H7 calibration firm_sd (tau) 0.0 rho_d_raw -0.0558 rho_d 0.0 -> exp(+-tau^2/4) = 1 and rho clamped at 0: the mutant is equivalent on the real data

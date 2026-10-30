@@ -1,0 +1,21 @@
+primary rows: ['H1', 'H2', 'H3', 'H4']
+H1 twoway_date_t    role=primary     p=5.80048e-23 p_holm(committed)=2.3201903565656066e-22
+H2 rad_season_p     role=primary     p=0.0078125 p_holm(committed)=0.0234375
+H3 twoway_season_t  role=primary     p=0.742819 p_holm(committed)=1.0
+H4 twoway_date_t    role=primary     p=0.782133 p_holm(committed)=1.0
+H5 twoway_date_t    role=exploratory p=0.0102151 p_holm(committed)=nan
+H6 twoway_date_t    role=exploratory p=0.894917 p_holm(committed)=nan
+H7 twoway_date_wald role=exploratory p=0.275082 p_holm(committed)=nan
+H1: own Holm m=4 2.32019e-22  committed 2.32019e-22  ok
+H2: own Holm m=4 0.0234375  committed 0.0234375  ok
+H3: own Holm m=4 1  committed 1  ok
+H4: own Holm m=4 1  committed 1  ok
+all-declared H1: committed 4.06033e-22 own m=7 4.06033e-22 family=descriptive role=exploratory p_value=nan p_holm=nan ok
+all-declared H2: committed 0.046875 own m=7 0.046875 family=descriptive role=exploratory p_value=nan p_holm=nan ok
+all-declared H3: committed 1 own m=7 1 family=descriptive role=exploratory p_value=nan p_holm=nan ok
+all-declared H4: committed 1 own m=7 1 family=descriptive role=exploratory p_value=nan p_holm=nan ok
+all-declared H5: committed 0.0510754 own m=7 0.0510754 family=descriptive role=exploratory p_value=nan p_holm=nan ok
+all-declared H6: committed 1 own m=7 1 family=descriptive role=exploratory p_value=nan p_holm=nan ok
+all-declared H7: committed 1 own m=7 1 family=descriptive role=exploratory p_value=nan p_holm=nan ok
+season cut 2026Q4_into_2026Q3: p 0.015625 committed p_holm 0.046875; own m=4 0.046875; own m=7 with real H5-H7 0.078125; m=7 with H5-H7 at p=1 0.09375
+mismatches: 0

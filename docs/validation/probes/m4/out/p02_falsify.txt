@@ -1,0 +1,6 @@
+H5/H6 design: N 347 K 21 G_date 172 G_firm 50
+H5: two-way 8.21% (se 0.31), one-way date 5.64% over 8000
+H6: two-way 6.81% (se 0.28), one-way date 5.34% over 8000
+H7 design: n 336, min x 7.41e-06, G_date 167 G_firm 50
+H7 Wald: two-way 13.43% (se 0.38), one-way date 11.86% over 8000
+builder: H5 7.60, H6 6.50, H7 11.80 (2,000 / 2,000 / 4,000 reps); bar 6.30% at 2,000, exact 99.5% bar at 8000: 5.64%

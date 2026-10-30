@@ -1,0 +1,24 @@
+data/derived/LICENSE: CHANGED
+data/derived/README.md: CHANGED
+data/derived/earnings_calendar_30_large_caps.json: byte-identical
+data/derived/eps.parquet: byte-identical
+data/derived/event_iv.parquet: byte-identical
+data/derived/event_measures.parquet: CHANGED
+data/derived/event_window_obs.parquet: byte-identical
+data/derived/events.parquet: byte-identical
+data/derived/iv_daily.parquet: byte-identical
+data/derived/results.parquet: CHANGED
+data/derived/security.parquet: byte-identical
+data/derived/session.parquet: byte-identical
+data/derived/session_snapshot.parquet: byte-identical
+data/derived/ticker_alias.parquet: byte-identical
+data/derived/timing_check.parquet: byte-identical
+event_measures rows 1353 1353 same ids/order: True
+columns added: [] removed: []
+columns whose values changed (name, rows differing, non-null before, after): [('price_ref', 1353, 0, 1200), ('surprise_scaled', 1353, 0, 1198), ('abs_surprise_scaled_w', 1353, 0, 1198), ('sue_hist', 1353, 0, 998), ('sue_hist_n', 1353, 0, 998), ('vix_regime', 1353, 0, 1259)]
+class-R columns committed: []
+results rows: 8c3221b 786 now 929
+8c3221b rows missing now: 0 []
+value p_holm differs in 3 rows, e.g. ['event_test|H1|primary|crush_cm30|twoway_date_t||daily|all|all|market||', 'event_test|H2|primary|runup|rad_season_p||daily|all|all|market||', 'event_test|H2|robustness|runup|rad_season_p||daily|season_cut|2026Q4_into_2026Q3']
+G1 validation rows of H1-H4: 527, estimate identical in 527
+G1 calibration rows (cm30, sigma_d): 88, identical 88

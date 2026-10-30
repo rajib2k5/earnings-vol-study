@@ -1,10 +1,11 @@
 # Data model
 
-- **Status:** milestone 3. `security`, `ticker_alias`, `session`, `market_daily`, `events`, `eps`, `timing_check`,
+- **Status:** milestone 4. `security`, `ticker_alias`, `session`, `market_daily`, `events`, `eps`, `timing_check`,
   `session_snapshot`, since milestone 2 `chain_expiry`, `iv_daily` and `event_iv`, and since milestone 3
-  `event_window_obs`, `event_measures` and `results` are built (schema registry: `src/earnings_vol/schema.py`);
+  `event_window_obs`, `event_measures` and `results` are built (schema registry: `src/earnings_vol/schema.py`); since
+  milestone 4 `event_measures`' regressor columns are filled and `results` holds the regressions;
   `event_measures_vx` is designed, not yet built. Revised 2026-10-28 after the milestone-0 reviews, and on 2026-10-29
-  at milestones 1, 2 and 3 (notes below).
+  at milestones 1, 2, 3 and 4 (notes below).
 - **Date:** 2026-10-28
 - **Decisions behind it:** [ADR 0001](../adr/0001-overall-architecture.md) (layers, cache, licensing),
   [0002](../adr/0002-day-zero-convention.md) (day 0, timing), [0003](../adr/0003-iv-measures.md) (IV measures),
@@ -128,6 +129,25 @@ If code and this file disagree, one of them is a bug.
 >   one-session baseline changes of all of a company's non-excluded events, in every sample, as ADR 0004 §2 says.
 > - **Contract 0.4.0** (§4): `tests.json`, `event_paths.json`, `terrain.json` and `heatmap.json` are new; each carries
 >   `lookups` and `caveats` (the timing labels are provisional).
+
+> **Milestone 4, 2026-10-29: the drivers and implied against realised moves.**
+>
+> - **Filled:** the regressor columns of `event_measures` (§3.11): `price_ref`, `surprise_scaled`,
+>   `abs_surprise_scaled_w`, `sue_hist`, `sue_hist_n`, `vix_regime` (committed) and `realized_ret_0_yf`, `ln_mcap_yf`
+>   (class R, local). The rules the table left open are in §3.11 and the milestone-4 page's decisions table. Every
+>   other committed table is byte-identical to milestone 3's.
+> - **`results` (§3.13):** `family = regression` rows (62), with the statistics `twoway_date_t` / `cluster_date_t`
+>   for a coefficient and `twoway_date_wald` / `cluster_date_wald` for H7's joint test; a new `adjustment` value
+>   `none` (H7's moves are not market-adjusted); `family = descriptive` rows `holm_post_gate` (the Holm p over the
+>   family without the hypotheses whose G1 primary failed, H1–H4, and H2's season cut over it: a sensitivity);
+>   `validation` rows `g1_calibration_h7:*` and gate G1's H5–H7 rates. The invariant checks a Wald row's df from its
+>   cluster counts too.
+> - **Gate G1 failed H5–H7** (milestone-4 page §6.1): their statistics are liberal. *Fixed after the milestone-4
+>   review (R1):* they stay in Holm's declared family H1–H7 as role `primary` with their real p-values and `p_holm`;
+>   the first build made them exploratory and ran Holm over H1–H4 (ADR 0005 §5, dated note).
+> - **Contract 0.5.0** (§4): `drivers.json` and `implied_vs_realised.json` are built, with the shapes below (they
+>   differ from the milestone-0 sketch: `n_clusters_season` is dropped, each term carries its role, test and G1
+>   note).
 
 ---
 
@@ -783,6 +803,24 @@ Mean-adjusted run-up and persistence per event are `aliv_mean_adj` at rel_day �
 Committed: yes, without the `_yf` and `_cboe` columns (§2.1). Every event has a row (1:1), and an excluded event has
 all `eligible_*` false.
 
+*Milestone 4 (built): the regressor columns* (`src/earnings_vol/panel/regressors.py`, run by `panel/run.py`):
+
+- `price_ref` is read at **`event_iv.pre_session`** (day −1 in `daily`, the session of E, σ_d and SLOPE): forward × df
+  of that session's `iv_daily.front_expiry` (an `ok` `chain_expiry` row with a forward). 1,200 events.
+- `surprise_scaled` = `eps.surprise` / `price_ref` over the linked `eps` row (R13); 1,198 events.
+- `abs_surprise_scaled_w`: winsorised at numpy's linear 1% / 99% quantiles over **every event of the same
+  `events.sample` with a `surprise_scaled`** (excluded events included); params `drivers.surprise_winsor`.
+- `sue_hist`: the previous quarters are the security's earlier events **with a `surprise_scaled`**, ordered by the
+  effective day 0; the last `drivers.sue_prev` (8) of them, at least `sue_min_prev` (4); sd with ddof 1; an sd of 0
+  gives null. `sue_hist_n` is the count used, null exactly when `sue_hist` is. 998 events.
+- `vix_regime`: terciles (numpy's 1/3 and 2/3 quantiles) of `market_daily.vix_close_cboe` at `day_m1_session` within
+  each `events.sample`, over its events with a VIX there; a value on a cut point goes to the lower bin; `none`: null.
+  1,259 events (daily: 127 low, 118 mid, 121 high).
+- `realized_ret_0_yf` = ln((close_post + dividend_post) / close_pre) from the local Yahoo file, pre and post as
+  `event_iv`'s. A cross-check: on the 336 primary events with `realized_ret_0` the median absolute difference is 16.9 bp.
+- `ln_mcap_yf` = ln(market cap on `universe.rank_date`) + ln(close(day −1) / last close in the file), split-adjusted
+  closes: the share count of the rank date is assumed (no share-count history is held).
+
 *Milestone 3 (built).* The rules of `src/earnings_vol/panel/window.py`:
 
 - **pre / post** are `event_iv`'s. In `daily` and `mixed` the crush needs exactly day −1 and day 0 (each usable); in
@@ -864,13 +902,13 @@ machine (§2.1 export rules).
 | `hypothesis` | enum {`H1`…`H7`}, null | | primary family (ADR 0005 §4) |
 | `role` | enum {`primary`,`robustness`,`exploratory`} | | |
 | `measure` | string | | e.g. `crush_cm30`, `runup`, `persist_10`, `dsigma_d`, `evar`, `aliv_path`, `crush_two_session` |
-| `statistic` | string | | `twoway_date_t`, `twoway_season_t`, `cluster_date_t`, `cluster_season_t`, `rad_season_p`, `sa_twoway_season_t`, `bmp_t`, `kp_ow_t`, `kpp_t`, `patell_z`, `gen_sign_z`, `rank_t`, `ols_coef`, `wald`, `corr`, `mean` (ADR 0005 §2, §4). **Primary:** `twoway_date_t` (two-way day-0 date × firm, CR1 components, $t_{\min(G)-1}$) for H1 and H4; `twoway_season_t` (two-way merged season × firm) for H2 and H3. If seasons are unbalanced (more than 1.5×), the H2/H3 p-value comes from `rad_season_p` (ADR 0005 §2b). `cluster_date_t` and `cluster_season_t` are the one-way forms, kept as robustness. `rad_season_p` is a full-enumeration Rademacher randomisation p by season; it cannot be below $2/2^G$. **`kpp_t`** = Kolari, Pape & Pynnönen (2018)'s average-overlap adjustment of BMP. It replaces `kp_t` (KP 2010, r̄ over all pairs), which was deleted after the review. **`kp_ow_t`** = the per-pair form of the same adjustment (Pynnönen 2022, eq. 25), a refinement, not a new procedure. Both are reported for one-session measures only. `cs_t` is no longer reported as a test. The Webb bootstrap (`wcr_season_p` in a first draft) was deleted after the second review, because it was more liberal than CR1. |
+| `statistic` | string | | *Milestone 4:* a regression coefficient row has `twoway_date_t` (two-way day-0 date × firm) or `cluster_date_t` (one-way date), with `model_id` and `term`; H7's joint test has `twoway_date_wald` or `cluster_date_wald`; a model's R² is a row with `r2`; the Holm sensitivity rows have `holm`. Before milestone 4: `twoway_date_t`, `twoway_season_t`, `cluster_date_t`, `cluster_season_t`, `rad_season_p`, `sa_twoway_season_t`, `bmp_t`, `kp_ow_t`, `kpp_t`, `patell_z`, `gen_sign_z`, `rank_t`, `ols_coef`, `wald`, `corr`, `mean` (ADR 0005 §2, §4). **Primary:** `twoway_date_t` (two-way day-0 date × firm, CR1 components, $t_{\min(G)-1}$) for H1 and H4; `twoway_season_t` (two-way merged season × firm) for H2 and H3. If seasons are unbalanced (more than 1.5×), the H2/H3 p-value comes from `rad_season_p` (ADR 0005 §2b). `cluster_date_t` and `cluster_season_t` are the one-way forms, kept as robustness. `rad_season_p` is a full-enumeration Rademacher randomisation p by season; it cannot be below $2/2^G$. **`kpp_t`** = Kolari, Pape & Pynnönen (2018)'s average-overlap adjustment of BMP. It replaces `kp_t` (KP 2010, r̄ over all pairs), which was deleted after the review. **`kp_ow_t`** = the per-pair form of the same adjustment (Pynnönen 2022, eq. 25), a refinement, not a new procedure. Both are reported for one-session measures only. `cs_t` is no longer reported as a test. The Webb bootstrap (`wcr_season_p` in a first draft) was deleted after the second review, because it was more liberal than CR1. |
 | `estimand` | enum {`equal_weighted`,`precision_weighted`}, null | | What the row's estimate and test are about. `precision_weighted` for `bmp_t`, `kp_ow_t`, `kpp_t`, `sa_twoway_season_t` and `patell_z` (the mean of standardised values, ADR 0005 §2d). `equal_weighted` for the primary rows, `cluster_*_t` and `rad_season_p`. Null for `gen_sign_z` and `rank_t`, which test a sign share and a mean rank rather than a mean, and for regressions and validation. Added after the review (ledger 7b). |
 | `rel_day` | int16, null | | for path or point results |
 | `sample` | enum {`daily`,`mixed`,`coarse`,`cboe5`} | | The analysis sample. `daily`, `mixed` and `coarse` are the values of `events.sample` other than `none`; `none` never appears here, because those events are not tested. `cboe5` is **not** a value of `events.sample`, because it is not a partition by date. It is an overlay: the events with an `event_measures_vx` row, drawn from all three date samples, measured on VX\* instead of `cm30_iv`. An event can count in both `daily` and `cboe5`. |
 | `subgroup_key` | string | | `all`, `timing`, `sector`, `vix_regime`, `season`, `security`. (`iv_tercile` was listed here and in §2.1 but never defined by any table; it was removed after the review.) Rows with class-R inputs (`adjustment = market`, and every `cboe5` row) are exported only under the §2.1 export rules: market-adjusted for `all` and `timing` only, `cboe5` for `all` only, with minimum cells, secondary suppression and the disclosure test. Every other subgroup is exported mean-adjusted. |
 | `subgroup_value` | string | | e.g. `AMC`, `Information Technology` |
-| `adjustment` | enum {`market`,`mean`} | | |
+| `adjustment` | enum {`market`,`mean`,`none`} | | `none` (milestone 4): H7's rows, whose realised and implied moves are not adjusted for the market |
 | `model_id`, `term` | string, null | | regressions only |
 | `n` | int32 | | events (or observations) |
 | `n_clusters` | int32, null | | G of the row's time clustering: distinct day-0 dates, or season clusters after merging seasons with fewer than 10 events (ADR 0005 §2b) |
@@ -912,9 +950,26 @@ The rows:
   median company β) are Cboe-derived aggregates, committed under the owner's decision of 2026-10-29. The invariant
   skips validation rows.
 
+*Milestone 4 (built).* `family = regression`: the crush regression of H5 and H6 (`model_id = crush_drivers`, daily,
+market-adjusted; every named term's two-way t, H5's and H6's one-way date t, the mean-adjusted twin's two-way t of
+those two terms), H7's model (`implied_realised`: the two Wald rows, the coefficient rows `a` (tested against 0) and
+`b` (tested against 1: `stat` = (b − 1)/se), and `exceed_share` (`measure = abs_r0_over_implied`, the share against
+0.425)), eight exploratory models (ADR 0005 §3's variants) and each model's `r2` row. H5–H7's primaries have role
+`primary` and a `p_holm` over the declared family H1–H7 whatever G1's regression size check says (fix R1 after the
+milestone-4 review; only an H1–H4 primary that fails its gate becomes `exploratory`, with its p-value and no
+`p_holm`); a robustness row G1 finds mis-sized is withheld as at milestone 3, the twin by G1's key
+`twoway_date_t:mean_adj`. BH q-values run within each (family, sample) over the exploratory rows only.
+`family = descriptive`, `measure = holm_post_gate`: one row per hypothesis of the post-gate family (the declared one
+without every hypothesis whose G1 primary failed), `estimate` = its Holm p over that family, `n` = the family's size,
+and one row per season-cut counterfactual (`subgroup_key = season_cut`) with the cut's Holm p over it (a
+sensitivity; the binding `p_holm` is the primary rows'). `family = validation`: G1's H5–H7 rates under
+the same design names (H5/H6's stress designs share g1's names, own replications), `power_beta:<β>` and `power_b:<b>`
+designs, and `g1_calibration_h7:params` / `:measured` (an infinite ν would be a null estimate).
+
 **Invariant on the reference distribution** (added after the delta review, ledger N2; ADR 0005 §5, gate G1). For
 every row whose `statistic` is a cluster-robust t (`twoway_*`, `cluster_*`, `sa_twoway_season_t`, and regression
-`ols_coef` rows) or a cluster-robust `wald`:
+`ols_coef` rows) or a cluster-robust Wald (`wald`, and since milestone 4 `twoway_date_wald` and `cluster_date_wald`,
+whose df the first rule checks too):
 
 - `df` = min(`n_clusters`, `n_clusters_firm`) − 1 for a two-way row, and `n_clusters` − 1 for a one-way row;
 - `p_value` equals, to 1e-10, the two-sided $t_{df}$ tail of `stat`, or for `wald` the $F$ tail with `df` as the
@@ -928,7 +983,7 @@ A fit left at statsmodels' default `use_t=False` breaks it, because its p-values
 
 Every file is `app/public/data/<kind>.json` and uses the fixed envelope (`schema_version`, `kind`, `generated_at`,
 `source_commit`, `data`). The per-view files below arrive with **schema_version 0.2.0** (milestone 1), were at
-**0.3.0** at milestone 2 and are at **0.4.0** since milestone 3; each bump is coordinated with `app/src/lib/contract.ts`. Every `data` object carries:
+**0.3.0** at milestone 2 and **0.4.0** at milestone 3, and are at **0.5.0** since milestone 4; each bump is coordinated with `app/src/lib/contract.ts`. Every `data` object carries:
 
 ```
 provenance: { params_hash: string, code_commit: string, sample_label: string,
@@ -944,11 +999,11 @@ values are `null`, never NaN. Arrays indexed by `rel_days` have the same length 
 | `sample_funnel` | `steps[] {step, label, n_events, n_removed, reason}`, `timing_status_counts {confirmed, corrected, inferred, date_corrected, no_document, not_checked, ambiguous}`, `timing_status_by_sample[] {sample, timing_status_counts}`, `by_move_tercile[] {sample, tercile, n_events, timing_status_counts, share_gap_contradicts, n_gap_check_changed, mean_crush_mean_adj}` or null, `by_move_tercile_status`, `evar_nonpositive {n, share}` or null, `evar_nonpositive_status`, `by_sample[] {sample, n_events}`, `lookups {n_done, complete}`, `caveats[]`, `provenance`. *Milestone 1 (0.2.0):* the steps are `calendar_events`, `timing_known` (which also removes `duplicate_row` rows, *since the milestone-1 delta review*), `daily_range`, `crush_observed`, `baseline_minimum` (`export/funnel.py`); `by_move_tercile` and `evar_nonpositive` are null, with a status string, until milestone 2 computes their inputs; the app accepts only null for them at 0.2.0. | `events` (`exclusion_reason`, `sample`, `timing_status`, `gap_check_changed`), `event_measures` (`eligible_*`, `ineligible_reason`, `abs_move_cand_max` for the terciles, `crush_mean_adj`), and `timing_check.gap_verdict_yf` for `share_gap_contradicts`. That share is an aggregate of a class-R input, so it falls under the §2.1 export rules. `by_move_tercile` is ADR 0002 §3's outcome-dependence check, per date sample, because `coarse` has a different look-up rule. *Revised after the delta review:* `unverified` is split into `no_document` and `not_checked`; the terciles are of `abs_move_cand_max`, not \|`realized_ret_0`\| (ledger N7); `sample` and `n_gap_check_changed` are new. *Milestone 2 (0.3.0):* a step `iv_usable` (a `cm30_iv` on day −1 and day 0) comes before `baseline_minimum`, whose clean sessions now need a `cm30_iv` (ADR 0004 §1 rule 2); `by_move_tercile` rows add `mean_abs_move` and `n_crush`, and their `share_gap_contradicts` is among the events with a gap verdict; `evar_nonpositive` is `{n_events, n_identified, n, share}` over the events of the last step (E at day −1, `n` of them ≤ 0); the inputs are `iv_daily`, `event_iv` (in place of `event_measures` until milestone 3) and the committed `timing_check.gap_verdict_yf`. |
 | `iv_measures` (0.3.0, milestone 2) | `sample {label, n_events}`, `implied_move {units, n_identified, n_nonpositive, n, sqrt_mean_evar, quantiles {p10, p25, p50, p75, p90} or null, bin_edges[], counts[]}` (√E at day −1 of the primary events with E > 0; `sqrt_mean_evar` = √(mean E) over all events with an E, signed), `crush {units, n, mean, quantiles, bin_edges[], counts[]}` (`crush_mean_adj`), `caveats[]`, `provenance`. `len(bin_edges) = len(counts) + 1`, `sum(counts) = n`. | `event_iv` for the events of the funnel's last step (`export/iv_view.py`) |
 | `event_paths` (0.4.0, milestone 3) | `rel_days[]` (−10…10), `series[] {measure, adjustment, units, subgroup_key, subgroup_value, n[], mean[], ci_lo[], ci_hi[]}`, `per_event[] {event_id, ticker, sector, day0, timing_used, values[]}` (`aliv_mean_adj` of cm30, for animated paths; the primary sample), `lookups {n_done, complete}`, `caveats[]`, `provenance` | `event_window_obs`, `results` (`aliv_path`). Market-adjusted `series[]` exist only for `all` and `timing` (§2.1 export rules); other subgroups' series are mean-adjusted. A suppressed rel_day is `null`, and its `n` is not shown. |
-| `heatmap` (0.4.0, milestone 3) | `grids[] {id, title, measure, units, row_labels[], row_keys[], col_labels[], values[][], n[][], q[][] or null}`, `lookups`, `caveats[]`, `provenance`. *Milestone 3:* grid `company_by_event_day`: rows = companies (sector order), cols = rel_day −10…10, value = the company's mean `aliv_mean_adj` over its primary events, `n` = events in the cell. Grid `company_by_season`: cols = seasons, value = `crush_mean_adj` of the company's one primary event in that season (null and `n` shown when there is not exactly one). `q` is null (no cell is tested). The planned grid `sector_by_regime` waits for `vix_regime` (milestone 4). | `event_window_obs`, `event_measures` |
+| `heatmap` (0.4.0, milestone 3) | `grids[] {id, title, measure, units, row_labels[], row_keys[], col_labels[], values[][], n[][], q[][] or null}`, `lookups`, `caveats[]`, `provenance`. *Milestone 3:* grid `company_by_event_day`: rows = companies (sector order), cols = rel_day −10…10, value = the company's mean `aliv_mean_adj` over its primary events, `n` = events in the cell. Grid `company_by_season`: cols = seasons, value = `crush_mean_adj` of the company's one primary event in that season (null and `n` shown when there is not exactly one). `q` is null (no cell is tested). The planned grid `sector_by_regime` could use `vix_regime` (filled since milestone 4); it is not built. | `event_window_obs`, `event_measures` |
 | `terrain` (0.4.0, milestone 3) | `measure`, `units`, `rel_days[]`, `rows[] {security_id, ticker, sector, n_events}`, `values[][]` (rows × rel_days, mean `aliv_mean_adj`, null where missing), `row_order` (text), `lookups`, `caveats[]`, `provenance` | `event_window_obs` aggregated per security. A per-security mean covers ≈ 7 dates, so it is treated as per-event data and uses mean-adjusted values (§2.1). Matches `app/src/lib/terrain.ts` `values[company][eventDay]`. |
-| `implied_vs_realised` | `points[] {event_id, ticker, sector, day0, timing_used, event_var, implied_move, implied_abs_move_total, realized_ret_0, abs_realized, implied_move_status, surprise_scaled}`, `summary {n, n_evar_nonpositive, share_exceed, share_exceed_benchmark (= 0.425), mean_log_ratio, median_ratio, regression {a, a_se, b, b_se, wald_p, n_clusters}}` | `event_measures` (including `surprise_scaled`), `results` (H7) |
+| `implied_vs_realised` (0.5.0, milestone 4) | `points[] {event_id, ticker, sector, day0, timing_used, event_var, implied_var_total, implied_move, implied_abs_move_total, realized_ret_0, abs_realized, implied_move_status, surprise_scaled}` (the primary events with a `realized_ret_0`; `implied_var_total` = E + σ_d²/252, H7's regressor), `summary {n, n_evar_nonpositive, n_with_implied_abs_move, share_exceed, share_exceed_se, share_exceed_p, share_exceed_benchmark (= 0.425), mean_log_ratio, median_ratio, regression {n, a, a_se, b, b_se, b_ci, wald_f, wald_df_num, wald_df, wald_p, role, p_holm, n_clusters_date, n_clusters_firm, wald_p_one_way, g1_rate, g1_pass, g1_bar, g1_rate_one_way, g1_pass_one_way}}`, `lookups`, `caveats[]`, `provenance` | `event_measures` (class F columns), `events`, `security`, `results` (H7's rows and G1's) (`export/driver_views.py`). `g1_bar` is the band's upper edge; `wald_p_one_way` is null exactly when `g1_pass_one_way` is false (withheld). `role` is `primary` with a `p_holm` while H7 is in the binding family (fix R1). `realized_ret_0` is the option-forward return (DoltHub), not Yahoo's |
 | `tests` (0.4.0, milestone 3) | `rows[] {hypothesis, role, measure, statistic, estimand, sample, subgroup_key, subgroup_value, adjustment, rel_day, units, n, n_clusters, n_clusters_firm, estimate, se, stat, df, p_value, p_holm, q_bh, ci_lo, ci_hi, rbar, g1_size, g1_reps, note}`, `g1 {reps, band [lo, hi], calibrated[] {hypothesis, statistic, rejection_rate, pass}, designs[] {design, hypothesis, statistic, primary, rejection_rate}, power[] {hypothesis, shifts[], power[], detectable_80}, calibration {parameter: value}}`, `holm {family[], tested[], untested[], left_family[]}`, `lookups`, `caveats[]`, `provenance` | `results` where `family = event_test` (rows) and `family = validation` (g1) |
-| `drivers` | `models[] {model_id, dep_var, label, cov_type, fixed_effects[], n, n_clusters_date, n_clusters_season, n_clusters_firm, r2, terms[] {term, label, coef, se, t, p_value, ci_lo, ci_hi, p_holm}}` | `results` where `family = regression`. `terms[]` holds named regressors only; fixed-effect coefficients are never exported (`fixed_effects[]` lists their names only, §2.1). |
+| `drivers` (0.5.0, milestone 4) | `models[] {model_id, adjustment, sample, label, dep_var, fixed_effects[], n, n_clusters_date, n_clusters_firm, r2, terms[] {term, label, hypothesis, role, statistic, cov_type, n, n_clusters_date, n_clusters_firm, coef, se, t, df, df_num, p_value, ci_lo, ci_hi, p_holm, q_bh, g1_size, g1_reps, note}}`, `g1 {reps, band, calibrated[] {hypothesis, statistic, primary, rejection_rate, reps, pass}, designs[] {design, hypothesis, statistic, primary, rejection_rate}, power[] {hypothesis, kind (beta or b), shifts[], power[], detectable_80}, calibration_h7}`, `holm {family[], left_family[], post_gate {family[], p_holm {hypothesis: p}, season_cut {hypothesis: p}}}`, `lookups`, `caveats[]`, `provenance` | `results` where `family = regression`, G1's H5–H7 validation rows and the `holm_post_gate` rows (`export/driver_views.py`). `terms[]` holds named regressors only; fixed-effect coefficients are never exported (`fixed_effects[]` lists their names only, §2.1). A withheld robustness term has `p_value`, `ci_lo` and `ci_hi` null and `g1_size`, `g1_reps` set; a primary term whose G1 size check failed keeps its p-value and `p_holm` and carries `g1_size`, `g1_reps` and a note (fix R1). `family` is the binding (declared) family; `post_gate` is a sensitivity. |
 | `validation` | `vx[] {security_id, vx_index, n_days, corr_dlog, slope_dlog, slope_ci_lo, slope_ci_hi, mean_level_spread, crush_ratio_mean, crush_ratio_ci_lo, crush_ratio_ci_hi}`, `vendor_vs_ours {n, median_abs_diff, p95_abs_diff}`, `vol_history_maturity {best_tau_sessions, r2_by_tau[] {tau, r2}}`, `leak {mean_cm30_minus_blind_baseline, p95}`, `realised_vs_yahoo {n, median_abs_diff_bp}` | `results` where `family = validation`. **Statistics only, never a VX\* or Yahoo series.** |
 
 ---

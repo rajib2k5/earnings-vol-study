@@ -16,6 +16,10 @@
 # The press-release look-ups are recorded in the committed file data/manual/press_release_checks.csv.
 # There is no iv_daily -> events edge any more: eligible_* moved to event_measures, and
 # events.sample / orphan_nearby need no IV data (ADR 0001 section 1).
+# Milestone 4: event_measures' regressor columns are filled (price_ref and surprise_scaled from the
+# option forward and eps, vix_regime from VIX, the local Yahoo close and rank-date market cap for
+# ln_mcap_yf); results gains the regression rows (H5-H7 and the exploratory models), and drivers.json
+# and implied_vs_realised.json are written.
 # No lanes: with lanes the layout stacks sources and JSON files into tall bands and
 # the diagram doubles in size; the top-to-bottom order already shows the stages.
 kind: flow
@@ -58,11 +62,11 @@ nodes:
 
   # --- Panel layer ---------------------------------------------------------
   - {id: t_ewo,      label: event_window_obs, sublabel: "rel_day, aliv_mean_adj, in_baseline", type: store}
-  - {id: t_em,       label: event_measures,   sublabel: "crush, runup, persist, price_ref, eligible_*", type: store}
+  - {id: t_em,       label: event_measures,   sublabel: "crush, runup, persist, surprise_scaled, vix_regime", type: store}
   - {id: t_vx,       label: event_measures_vx, sublabel: "cboe5 members, local only", type: store}
 
   # --- Results (stats layer) -----------------------------------------------
-  - {id: t_results,  label: results,      sublabel: "statistic, estimand, n_clusters_firm, p_holm", type: store}
+  - {id: t_results,  label: results,      sublabel: "statistic, model_id, term, n_clusters_firm, p_holm", type: store}
 
   # --- JSON view files -----------------------------------------------------
   - {id: j_meta,     label: meta.json,                type: output}
@@ -142,13 +146,13 @@ edges:
   - {from: t_events, to: t_em,  label: "exclusion_reason (eligible_*)"}
   - {from: t_eps,    to: t_em,  label: "surprise (surprise_scaled, SUE)"}
   - {from: t_market, to: t_em,  label: vix_regime, style: dashed}
-  - {from: s_yf,     to: t_em,  label: "close, shares (local)", style: dashed}
+  - {from: s_yf,     to: t_em,  label: "close, rank-date cap (local)", style: dashed}
   - {from: t_ewo,    to: t_vx,  label: "ln_vx_cboe, e_abn_vx_cboe", style: dashed}
   - {from: t_security, to: t_vx, label: cboe_vx_index, style: dashed}
   - {from: t_events, to: t_vx,  label: exclusion_reason, style: dashed}
 
   # -> results
-  - {from: t_em,  to: t_results, label: "crush, runup, persist, E"}
+  - {from: t_em,  to: t_results, label: "crush, runup, persist, E, regressors"}
   - {from: t_ewo, to: t_results, label: aliv path}
   - {from: t_vx,  to: t_results, label: "cboe5 rows (all only)", style: dashed}
   - {from: t_eps, to: t_results, label: "dispersion, signed surprise"}
@@ -174,5 +178,5 @@ edges:
   - {from: t_em,      to: j_ivr,    label: "event_var, realized_ret_0, surprise_scaled"}
   - {from: t_results, to: j_ivr,    label: H7 regression}
   - {from: t_results, to: j_tests,  label: "event_test rows, G1 sizes (family validation)"}
-  - {from: t_results, to: j_drivers, label: "regression: n_clusters_season"}
+  - {from: t_results, to: j_drivers, label: "regression rows, G1 for H5-H7"}
   - {from: t_results, to: j_valid,  label: family validation}

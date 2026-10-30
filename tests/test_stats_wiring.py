@@ -8,7 +8,10 @@
 # (random walk, quote noise 0.5, sigma 0.03 for cm30 and 0.06 for sigma_d, beta 0.4, one ln VIX
 # path), sigma_d missing in 4% of the cells and on day 0 of three events. Every per-event value is
 # computed from those matrices with the package's own panel/abnormal.py functions, as
-# panel/window.py computes them. No real data is read.
+# panel/window.py computes them. No real data is read. Milestone 4 adds made-up regressor columns
+# (|SURP|, sigma_d(-1), SLOPE, SIZE, ...; drawn independently of the simulated crush), a realised
+# move r0 with variance E + sigma_d^2/252, and a VIX tercile, so result_rows can build the H5-H7
+# regression rows.
 #
 # Mutations this module must catch (each seen to fail on a scratch copy, file restored and its
 # SHA-256 checked; [d02 Wn] = docs/validation/probes/m3-delta/d02_wiring_mutants.py, [fix2] = this
@@ -37,6 +40,7 @@ from earnings_vol.panel import abnormal, window
 from earnings_vol.stats import g1, inputs, results, run
 
 ST = dict(params.load()["stats"])
+DP = dict(params.load()["drivers"])
 COMMON = {"params_hash": "h", "code_commit": "c"}
 SIG0_CM30, SIG0_SD = 0.03, 0.06
 
@@ -97,6 +101,18 @@ def synthetic_frame(seed: int = 5, n_firms: int = 24, n_last: int = 12):
         **{inputs.SA[k]: v / (s_sd if k == "dsigma_d" else s) for k, v in vals.items()},
         "crush_mean_adj": X[:, c0] - X[:, cm1], "dsigma_d_mean_adj": ds_raw, "crush_front_fixed": 1.2 * (X[:, c0] - X[:, cm1]),
         "s_abn_cboe": s, "beta_vix_cboe": beta})
+    sd_m1 = np.exp(rng.normal(np.log(0.3), 0.3, n))
+    evar = np.exp(rng.normal(np.log(0.004), 0.6, n))
+    evar[:2] = -0.0001                                     # two events with E <= 0 (H7 keeps them)
+    x7 = evar + sd_m1 ** 2 / 252
+    surp = rng.normal(0.0005, 0.001, n)
+    ev = ev.assign(abs_surprise_scaled_w=np.abs(surp), surprise_scaled=surp, sigma_d_m1=sd_m1,
+                   ts_slope_m1=rng.normal(0.13, 0.05, n), ln_mcap_yf=rng.normal(27.0, 0.9, n)[firm] + rng.normal(0.0, 0.1, n),
+                   cm30_m1=sd_m1 * 1.2, sue_hist=rng.normal(0, 1.5, n), surprise_disp=rng.normal(0.5, 1.0, n),
+                   vix_regime=np.array(["low", "mid", "high"])[rng.integers(0, 3, n)], evar_m1=evar,
+                   evar_m2=evar * np.exp(rng.normal(0, 0.1, n)),
+                   realized_ret_0=np.sqrt(np.abs(x7)) * rng.standard_t(6, n) * np.sqrt(4 / 6),
+                   implied_abs_move_total_m1=np.where(evar > 0, np.sqrt(2 / np.pi) * np.sqrt(np.abs(x7)), np.nan))
     f = inputs.Frame(ev, sess, np.ones(sess.shape, bool), inb, e, al, al0, np.exp(lsd), M, calendar.Sessions(days))
     return f
 
@@ -139,15 +155,22 @@ def test_event_test_rows_withholds_exactly_the_mis_sized_rows(frame):
 
 
 def synthetic_report(n_events: int) -> dict:
-    """A gate-G1 report as run_g1 writes it, with made-up rates. H1 cluster_date_t (30% on 2,000)
-    is oversized; H4 gen_sign_z (6.80%) and bmp_t (5.80%) are within one point of the 6.30% bar and
-    re-measured on 10,000: 5.60% > 5.57% (withheld) and 5.50% (kept); H4 rank_t 4% is far below."""
+    """A gate-G1 report as run_g1 writes it (H1-H4 and, since milestone 4, H5-H7: g1_drivers.merge),
+    with made-up rates. H1 cluster_date_t (30% on 2,000) is oversized; H4 gen_sign_z (6.80%) and
+    bmp_t (5.80%) are within one point of the 6.30% bar and re-measured on 10,000: 5.60% > 5.57%
+    (withheld) and 5.50% (kept); H4 rank_t 4% is far below. H5-H7 pass at 5% with every statistic."""
     cal = {"H1": {"_primary": "twoway_date_t", "twoway_date_t": 0.045, "cluster_date_t": 0.30, "bmp_t": 0.02},
            "H2": {"_primary": "rad_season_p", "rad_season_p": 0.004, "twoway_season_t": 0.01, "date_cluster_t": 0.2},
            "H3": {"_primary": "rad_season_p", "rad_season_p": 0.005, "twoway_season_t": 0.01},
            "H4": {"_primary": "twoway_date_t", "twoway_date_t": 0.05, "gen_sign_z": 0.068, "bmp_t": 0.058,
-                  "rank_t": 0.04}}
-    return {"reps": 2000, "gate": {h: True for h in g1.TESTS}, "n_events_union": n_events,
+                  "rank_t": 0.04},
+           "H5": {"_primary": "twoway_date_t", "twoway_date_t": 0.05, "cluster_date_t": 0.05,
+                  "twoway_date_t:mean_adj": 0.05},
+           "H6": {"_primary": "twoway_date_t", "twoway_date_t": 0.05, "cluster_date_t": 0.05,
+                  "twoway_date_t:mean_adj": 0.05},
+           "H7": {"_primary": "twoway_date_wald", "twoway_date_wald": 0.05, "cluster_date_wald": 0.05}}
+    return {"reps": 2000, "gate": {h: True for h in cal}, "n_events_union": n_events,
+            "primary": {h: r["_primary"] for h, r in cal.items()},
             "rates": {"calibrated": cal, "D0": {h: dict(r) for h, r in cal.items()}},
             "remeasured": {"reps": 10000, "seed_block": g1.REMEASURE_BLOCK,
                            "rates": {"H4": {"gen_sign_z": 0.056, "bmp_t": 0.055}}},
@@ -159,7 +182,7 @@ def test_result_rows_withholds_by_the_report_and_adds_the_season_cut(frame):
     # gen_sign_z (re-measured on 10,000, 5.60% > 5.57%) lose their p-values; H4 bmp_t (5.50% on
     # 10,000) keeps its. H2's primary is rad_season_p here (seasons of 24 and 12 events: 2 > 1.5),
     # so the run adds its season-cut row: S8 merged into S7, G - 1 = 7 clusters, with its Holm p.
-    rows, summary = run.result_rows(frame, ST, synthetic_report(frame.ev.shape[0]), COMMON)
+    rows, summary = run.result_rows(frame, ST, synthetic_report(frame.ev.shape[0]), COMMON, DP)
     ev = [r for r in rows if r["family"] == "event_test"]
     held = sorted((r["hypothesis"], r["statistic"]) for r in ev if r["role"] == "robustness" and r["p_value"] is None)
     assert held == [("H1", "cluster_date_t"), ("H4", "gen_sign_z")]
@@ -180,7 +203,7 @@ def test_result_rows_moves_a_failed_primary_out_of_the_family(frame):
     # A gate that fails H3 makes its primary exploratory and drops H3 from Holm's family.
     rep = synthetic_report(frame.ev.shape[0])
     rep["gate"]["H3"] = False
-    rows, summary = run.result_rows(frame, ST, rep, COMMON)
+    rows, summary = run.result_rows(frame, ST, rep, COMMON, DP)
     assert "H3" not in summary["holm_family"] and "H3" not in summary["holm"]
     h3 = [r for r in rows if r["family"] == "event_test" and r["hypothesis"] == "H3" and r["subgroup_key"] == "all"
           and r["adjustment"] == "market" and r["statistic"] == "rad_season_p"]

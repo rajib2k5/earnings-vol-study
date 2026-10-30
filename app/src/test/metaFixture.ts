@@ -7,13 +7,13 @@ export const PROVENANCE_FIXTURE = {
 }
 
 /**
- * Hand-built `data/meta.json` body for tests, in the shape the Python exporter writes (schema 0.4.0).
+ * Hand-built `data/meta.json` body for tests, in the shape the Python exporter writes (schema 0.5.0).
  * The names, URLs, licences and numbers are invented on purpose ("Fixture ..."): a page that still
  * showed a hard-coded copy of the real values would not match them.
  */
 export const META_DATA_FIXTURE = {
   project: 'fixture-project',
-  milestone: 0,
+  milestone: 4,
   title: 'Fixture title',
   data_sources: [
     { name: 'Fixture open source', uses: 'table_a, table_b', url: 'https://example.com/open', licence: 'FIX-OPEN 1.0', committed: true },
@@ -33,12 +33,12 @@ export const META_DATA_FIXTURE = {
     cm30_horizon_sessions: 17,
     clock: 'Fixture clock (fixture calendar)',
   },
-  files: ['meta', 'fixture_kind'],
+  files: ['meta', 'fixture_kind', 'drivers', 'implied_vs_realised'],
   provenance: PROVENANCE_FIXTURE,
 }
 
 export const META_FIXTURE = {
-  schema_version: '0.4.0',
+  schema_version: '0.5.0',
   kind: 'meta',
   generated_at: '2026-10-27T12:00:00Z',
   source_commit: 'abc1234',

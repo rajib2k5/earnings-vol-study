@@ -107,6 +107,12 @@ def test_tests_view_g1_verdicts_power_and_rounding():
                     subgroup_value="all", adjustment="market", n=347, n_clusters=150, n_clusters_firm=50, df=49.0,
                     estimate=-0.21234567, se=0.01, stat=-21.234567, p_value=1.23456789e-26, p_holm=8.6419e-26,
                     ci_lo=-0.23, ci_hi=-0.19, params_hash="h", code_commit="c"),
+        # H3 failed its gate, so the run wrote its primary statistic as an exploratory row (ADR 0005 §5).
+        results.row(family="event_test", hypothesis="H3", role="exploratory", measure="persist_10",
+                    statistic="twoway_season_t", estimand="equal_weighted", sample="daily", subgroup_key="all",
+                    subgroup_value="all", adjustment="market", n=329, n_clusters=8, n_clusters_firm=50, df=7.0,
+                    estimate=0.01, se=0.02, stat=0.5, p_value=0.63, ci_lo=-0.04, ci_hi=0.06, params_hash="h",
+                    code_commit="c"),
     ]
     out = event_views.tests_data(results.frame(rows), ev, P, {})
     cal = {c["hypothesis"]: c for c in out["g1"]["calibrated"]}
@@ -115,7 +121,10 @@ def test_tests_view_g1_verdicts_power_and_rounding():
     assert out["g1"]["power"] == [{"hypothesis": "H1", "shifts": [0.02, 0.03], "power": [0.6, 0.9],
                                    "detectable_80": pytest.approx(0.0267, abs=1e-4)}]
     assert out["holm"]["left_family"] == ["H3"] and "H3" not in out["holm"]["family"]
-    r = out["rows"][0]
+    assert out["holm"]["tested"] == ["H1"] and "H3" not in out["holm"]["untested"]
+    assert any("H3 (6.35%) failed gate G1's calibrated design" in c and "left the binding family" in c
+               for c in out["caveats"])
+    r = [x for x in out["rows"] if x["hypothesis"] == "H1"][0]
     # 4 decimals for log quantities, 4 significant figures for p-values.
     assert r["estimate"] == -0.2123 and r["p_value"] == 1.235e-26 and r["n_clusters_firm"] == 50
     assert r["units"] == "log change of the 30-day IV"

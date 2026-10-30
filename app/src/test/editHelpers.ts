@@ -75,9 +75,9 @@ export function describeLoader<T>(spec: {
       expect(r.ok).toBe(false)
       if (!r.ok) expect(r.error).toContain('is not valid JSON')
     })
-    it('passes envelope violations through (here: the previous schema version 0.3.0)', async () => {
-      const r = await load(defaultUrl, serving({ ...body, schema_version: '0.3.0' }))
-      expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.3.0": this app only understands "0.4.0"' })
+    it('passes envelope violations through (here: the previous schema version 0.4.0)', async () => {
+      const r = await load(defaultUrl, serving({ ...body, schema_version: '0.4.0' }))
+      expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.4.0": this app only understands "0.5.0"' })
     })
     it('refuses a valid envelope of another kind, naming both kinds, before it looks at the data', async () => {
       const r = await load(defaultUrl, serving({ ...body, kind: 'meta' }))

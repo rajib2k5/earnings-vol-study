@@ -45,6 +45,29 @@
       series and on the same ln VIX path, not with a β re-estimated on σ_d (`g1.second_series`). H4's calibrated rate
       4.75 → 4.60%.
     - **Near-bar robustness rows are re-measured** (§4, dated note of the second fix round).
+  - *Milestone 4 (2026-10-29): H5–H7, gate G1 first* ([milestone 4 page](../milestones/04-drivers.md) §6.1).
+    - **G1 for H5–H7 ran before any H5–H7 result, and all three primaries failed the calibrated design:** H5's
+      two-way t 9.55%, H6's 8.10%, H7's two-way Wald 16.15% (bar 6.30% at 2,000): these statistics are liberal at
+      this design. *Corrected after the milestone-4 review (fix R1; dated note in §5 below):* the first build read §5
+      as moving them out of the confirmatory family and ran Holm on H1–H4. §5's size designs were declared for H1–H4
+      only, so H5–H7 stay in the declared family H1–H7 with their real p-values, each row shows its G1 size, and none
+      is rejected. No substitute statistic was promoted. The cause is the statistic at this design, not the simulation: with iid normal outcomes on the real
+      design matrix the two-way t rejects 7.60% (|SURP|, skewed and persistent within a company) and the Wald test
+      of r² on the implied variance 11.80% (HC1 11.22%) (`research/prototypes/g1_regression_size.py`). §3's
+      "**not separately simulated**" for regressions was the gap.
+    - **How G1 sizes a regression** (code `stats/g1_drivers.py`): the calibrated cm30 DGP with each company's
+      scale pinned to its real one, the simulated crush regressed on the real regressors; for H7, moves
+      r = √(x m_f) w with Student-t w (ν, a same-date share and a company multiplier calibrated scale-free), so
+      E[r² | x] = x exactly. The one-way date rows (18.45 / 20.10 / 17.00%) and H5/H6's mean-adjusted twins
+      (9.65 / 8.35%) are oversized and withheld (§4). H1–H4's rates did not move (own seed blocks).
+    - **Names.** Regression coefficient rows use `twoway_date_t` / `cluster_date_t`, H7's Wald rows
+      `twoway_date_wald` / `cluster_date_wald` (the data model's `ols_coef` and `wald` remain valid names); H7's
+      rows have `adjustment = none`. The reference-distribution invariant checks the Wald rows' df from the
+      cluster counts too.
+    - **§6.5's ρ̂̄ > 0.2 check** is traced: one common date component, linearly unrelated to Δln VIX (a
+      leave-one-firm-out factor takes ρ̂̄ from 0.30 to −0.03, as one pure common factor would), not one bad date or a
+      stale snapshot. Whether VIX alone is too narrow a market factor is open (concept note 15; softened after the
+      milestone-4 review, fix R6).
 - **Date:** 2026-10-28
 - **Related:** [0004](0004-baseline-and-event-windows.md) (what is tested), [0003](0003-iv-measures.md) (E, σ_d),
   [data model](../architecture/data-model.md) (`event_measures`, `results`)
@@ -768,7 +791,8 @@ happens.
 > p_holm 0.0469 (H1 the only smaller p). With the tail merged as §2b expected (G = 7, still unbalanced at 68 against
 > 45) the floor is 0.0156 and p_holm would be 0.0938: not rejected. Every season sum has the same sign, so the p is on
 > its floor and the verdict is a property of the cluster count. The report therefore prints the G = 7 counterfactual
-> next to H2's Holm p everywhere it appears (`results` row `season_cut = 2026Q4_into_2026Q3`, README, milestone page
+> next to H2's Holm p everywhere it appears (since milestone 4, with H5–H7's real p-values: 0.0781, still not
+> rejected; `results` row `season_cut = 2026Q4_into_2026Q3`, README, milestone page
 > §6.2, the `note` of H2's row in `tests.json`, the app's Results page); the direction of the run-up rests on the
 > two-way t (13.4) and on all 8 season means being positive, not on the Holm verdict.
 
@@ -883,6 +907,20 @@ happens.
      remaining hypotheses.
    - No substitute statistic is promoted after seeing the gate's result, because that would be a forking path.
    - For unbalanced seasons, the pre-declared rule of §2b (`rad_season_p`) applies whatever G1 says.
+   - *Dated note, 2026-10-29, after the milestone-4 review (fix R1, [ledger](../validation/m4-ledger.md) claim 3):
+     the regressions.* The size designs above cover the intercept-only H1–H4, and for a regression a failed
+     reference-distribution check is "a code bug … not a reason to drop a hypothesis". This section declared no size
+     gate for H5–H7. Milestone 4 added one (G1 for H5–H7, `stats/g1_drivers.py`); all three primaries failed it, and
+     the first build then dropped them from Holm's family. That was a choice made after milestone 0, and a failed
+     gate can only remove hypotheses, so it could only lower H1–H4's Holm p: it moved H2's G = 7 counterfactual from
+     0.0781 to 0.0469, "rejected". **The declared family binds.** Holm runs over H1–H7 with H5–H7's real p-values:
+     H1 4.06e−22, H2 0.0469, H5 0.0511, H6 and H7 1; H2's G = 7 counterfactual 0.0781, not rejected. The regression
+     size check stays and is reported: each H5–H7 row shows its G1 size (9.55 / 8.10 / 16.15%) and says the statistic
+     is liberal on this design, so a rejection by it would not be trusted. None of H5–H7 is rejected. The family after
+     dropping every failed primary (H1–H4: H1 2.32e−22, H2 0.0234, G = 7 0.0469) is a descriptive sensitivity
+     (`results` rows `holm_post_gate`). The owner may choose that family instead (milestone-4 page, decisions table
+     row 24; code `results.SIZE_GATED`). `stats/run.py result_rows` refuses a G1 report that lacks a verdict for any
+     hypothesis it writes rows for (fix R2: a missing verdict used to count as a pass).
 5. **Mutations to try at review, and what must catch each:**
 
    | Mutation | Caught by |

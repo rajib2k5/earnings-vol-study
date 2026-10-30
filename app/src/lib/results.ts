@@ -1,5 +1,5 @@
 /**
- * Loads and checks `data/tests.json` (kind "tests", schema 0.4.0): the test results of the study, written
+ * Loads and checks `data/tests.json` (kind "tests", schema 0.5.0): the test results of the study, written
  * by the Python exporter. The app only draws these numbers; it never recomputes a statistic, a
  * p-value or a Holm adjustment. `fetch` is injected so tests never touch the network; nothing here
  * throws or coerces.
@@ -24,6 +24,14 @@
  * primary, or a withheld row that keeps its interval, is refused). `g1.calibrated[].pass` is the exporter's verdict and
  * is shown as written: it is not checked against `band` here, because the gate compares a rate with
  * the upper edge of the band, not with the whole band.
+ *
+ * Cross-field rules (fix R4 of the milestone-4 review; each message names the inconsistency):
+ *   T1  a primary row has a p_value and a p_holm (a failed G1 check never withholds a primary)
+ *   T2  only a primary row or a season-cut counterfactual (subgroup_key "season_cut") has a p_holm
+ *   T3  holm.family and holm.left_family are disjoint; holm.tested and holm.untested are disjoint, and together they
+ *       are holm.family (as sets: the order is the exporter's)
+ * Since fix R1 the declared family H1 to H7 binds: H5 to H7 stay in `family` (and in `tested`) with a failed G1 check
+ * in `g1.calibrated`; their rows are in drivers.json.
  */
 import {
   isInteger,
@@ -37,6 +45,7 @@ import {
   parseArrayOf,
   parseCaveats,
   parseLookups,
+  parseRecords,
   type Adjustment,
   type Lookups,
 } from './dataParts'
@@ -208,27 +217,23 @@ function parseRow(input: unknown, i: number): Parsed<TestRow> {
   if (input.g1_size !== null && (ci_lo !== null || ci_hi !== null)) {
     return fail(`${where} is withheld (g1_size ${show(input.g1_size)}) but keeps its interval [${show(ci_lo)}, ${show(ci_hi)}]`)
   }
+  // T1
+  if (input.role === 'primary') {
+    for (const key of ['p_value', 'p_holm'] as const) {
+      if (input[key] === null) return fail(`${where} has role "primary" but ${key} is null: a primary keeps its p-value and Holm p`)
+    }
+  }
+  // T2
+  if (input.p_holm !== null && input.role !== 'primary' && input.subgroup_key !== 'season_cut') {
+    return fail(
+      `${where}.p_holm is given only for a primary row or a season-cut counterfactual, but role is ${show(input.role)} and subgroup_key is ${show(input.subgroup_key)}`,
+    )
+  }
   return { ok: true, data: Object.fromEntries(TEST_ROW_KEYS.map((k) => [k, input[k]])) as unknown as TestRow }
 }
 
 /** A list of hypothesis names in a nested object: every entry a hypothesis-like string. */
 const parseNames = (input: unknown, where: string) => parseArrayOf(input, where, isText, 'a non-empty string')
-
-/** The records of g1.calibrated / g1.designs / g1.power: exact keys, then each field. */
-function parseRecords<T>(input: unknown, where: string, keys: readonly string[], build: (o: Record<string, unknown>, at: string) => Parsed<T>): Parsed<T[]> {
-  if (!Array.isArray(input)) return fail(`${where} must be an array, got ${show(input)}`)
-  const out: T[] = []
-  for (const [i, o] of input.entries()) {
-    const at = `${where}[${i}]`
-    if (!isObject(o)) return fail(`${at} must be an object, got ${show(o)}`)
-    const problem = keyProblem(at, o, keys)
-    if (problem) return fail(problem)
-    const r = build(o, at)
-    if (!r.ok) return r
-    out.push(r.data)
-  }
-  return { ok: true, data: out }
-}
 
 function parseG1(input: unknown): Parsed<G1> {
   if (!isObject(input)) return fail(`g1 must be an object, got ${show(input)}`)
@@ -300,6 +305,18 @@ function parseHolm(input: unknown): Parsed<Holm> {
     const names = parseNames(input[key], `holm.${key}`)
     if (!names.ok) return names
     lists[key] = names.data
+  }
+  // T3
+  const { family, tested, untested, left_family } = lists
+  const both = family.find((h) => left_family.includes(h))
+  if (both !== undefined) return fail(`holm: ${both} is in both family and left_family`)
+  const twice = tested.find((h) => untested.includes(h))
+  if (twice !== undefined) return fail(`holm: ${twice} is in both tested and untested`)
+  const union = [...tested, ...untested]
+  const missing = family.filter((h) => !union.includes(h))
+  const extra = union.filter((h) => !family.includes(h))
+  if (missing.length > 0 || extra.length > 0) {
+    return fail(`holm.tested and holm.untested together must be holm.family [${family.join(', ')}], but they lack [${missing.join(', ')}] and have the extra [${extra.join(', ')}]`)
   }
   return { ok: true, data: lists }
 }

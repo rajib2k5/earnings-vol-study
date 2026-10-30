@@ -1,0 +1,26 @@
+/home/rajib2k5/dev/earnings-vol-study/src/earnings_vol/stats/g1.py:424: RuntimeWarning: Mean of empty slice
+  csm = np.where(n_t >= min_firms, np.nanmean(np.where(np.isfinite(Z), Z, np.nan), axis=0), np.nan)
+[    23s] drivers calibrated: H5 twoway_date_t 9.55%; H6 twoway_date_t 8.10%; H7 twoway_date_wald 16.15%
+[    23s] drivers calibrated_random_scale: H5 twoway_date_t 8.20%; H6 twoway_date_t 8.05%
+[    23s] drivers D0: H5 twoway_date_t 8.70%; H6 twoway_date_t 7.45%
+[    23s] drivers D2: H5 twoway_date_t 8.80%; H6 twoway_date_t 6.55%
+[    23s] drivers D4: H5 twoway_date_t 7.25%; H6 twoway_date_t 6.30%
+[    23s] drivers D4+firm_fx0.03: H5 twoway_date_t 8.00%; H6 twoway_date_t 7.55%
+[    23s] drivers D2+common_ar0.5: H5 twoway_date_t 7.50%; H6 twoway_date_t 6.90%
+[    23s] drivers h7:normal: H7 twoway_date_wald 12.30%
+[    23s] drivers h7:t4.5: H7 twoway_date_wald 20.50%
+[    23s] drivers h7:date0.3: H7 twoway_date_wald 16.40%
+[    23s] drivers h7:firm0.5: H7 twoway_date_wald 20.25%
+compared 52 H5-H7 rates; differ 0
+gate rerun {'H5': False, 'H6': False, 'H7': False} report {'H5': False, 'H6': False, 'H7': False}
+calibrated primaries: {'H5': 0.0955, 'H6': 0.081, 'H7': 0.1615}
+calibration_h7 equal: True
+n_events {'H5': 347, 'H6': 347, 'H7': 336, 'h7_floored': 0} report {'H5': 347, 'H6': 347, 'H7': 336, 'h7_floored': 0}
+power H5 {'shifts': [0.01, 0.02, 0.03, 0.05], 'power': [0.2665, 0.639, 0.9, 1.0], 'detectable_80': 0.02616858237547893} report {'detectable_80': 0.02616858237547893, 'power': [0.2665, 0.639, 0.9, 1.0], 'shifts': [0.01, 0.02, 0.03, 0.05]}
+power H6 {'shifts': [0.01, 0.02, 0.03, 0.05], 'power': [0.1475, 0.3295, 0.605, 0.9395], 'detectable_80': 0.041659192825112115} report {'detectable_80': 0.041659192825112115, 'power': [0.1475, 0.3295, 0.605, 0.9395], 'shifts': [0.01, 0.02, 0.03, 0.05]}
+power H7 {'shifts': [0.6, 0.8, 1.2, 1.4], 'power': [0.961, 0.6155, 0.161, 0.5185], 'detectable_80': None} report {'detectable_80': None, 'power': [0.961, 0.6155, 0.161, 0.5185], 'shifts': [0.6, 0.8, 1.2, 1.4]}
+
+real	0m26.113s
+user	2m59.590s
+sys	0m1.208s
+rc=0

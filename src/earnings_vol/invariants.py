@@ -14,7 +14,9 @@
 #      p_value = 2 * P(T_df > |stat|).
 #   3. A normal row (patell_z, gen_sign_z, rank_t): p_value = 2 * P(Z > |z|),
 #      and no df.
-#   4. A Wald row: its numerator df is stored (df_num) and p_value =
+#   4. A Wald row (wald, and since milestone 4 twoway_date_wald and
+#      cluster_date_wald, whose df rule 1 checks like a t row's): its numerator
+#      df is stored (df_num), its denominator df too, and p_value =
 #      P(F(df_num, df) > stat).
 #   5. A row with a CI, an se > 0 and a df: (ci_hi - estimate) / se and
 #      (estimate - ci_lo) / se both equal t_{df, 0.975}. That is the CI
@@ -35,6 +37,9 @@ from scipy import stats
 
 TWO_WAY_T = ("twoway_date_t", "twoway_season_t", "sa_twoway_season_t")
 ONE_WAY_T = ("cluster_date_t", "cluster_season_t")
+TWO_WAY_WALD = ("twoway_date_wald",)            # milestone 4: H7 (ADR 0005 §3)
+ONE_WAY_WALD = ("cluster_date_wald",)
+WALD = ("wald",) + TWO_WAY_WALD + ONE_WAY_WALD
 OTHER_T = ("bmp_t", "kp_ow_t", "kpp_t")
 NORMAL = ("patell_z", "gen_sign_z", "rank_t")
 P_TOL, CI_TOL = 1e-10, 1e-9
@@ -50,14 +55,19 @@ def row_problems(r: dict) -> list[str]:
         return []
     st, df, p = r.get("statistic"), r.get("df"), r.get("p_value")
     out = []
-    clustered = st in TWO_WAY_T + ONE_WAY_T or (st == "ols_coef" and not _null(r.get("n_clusters")))
+    is_wald = st in WALD
+    clustered = (st in TWO_WAY_T + ONE_WAY_T + TWO_WAY_WALD + ONE_WAY_WALD
+                 or (st in ("ols_coef", "wald") and not _null(r.get("n_clusters"))))
     if clustered:
         g, gf = r.get("n_clusters"), r.get("n_clusters_firm")
-        two = st in TWO_WAY_T or not _null(gf)
+        two = st in TWO_WAY_T + TWO_WAY_WALD or not _null(gf)
+        if _null(g) or (two and _null(gf)):
+            out.append(f"a clustered row without its cluster counts (n_clusters {g}, n_clusters_firm {gf})")
+            return out
         want = (min(g, gf) - 1) if two else (g - 1)
         if _null(df) or df != want:
             out.append(f"df {df} != {'min(n_clusters, n_clusters_firm)' if two else 'n_clusters'} - 1 = {want}")
-    is_t = clustered or st in OTHER_T or (st == "mean" and not _null(df))
+    is_t = (clustered and not is_wald) or st in OTHER_T or (st == "mean" and not _null(df))
     if is_t and not _null(p) and not _null(r.get("stat")) and not _null(df):
         want_p = 2.0 * stats.t.sf(abs(r["stat"]), df)
         if abs(p - want_p) > P_TOL:
@@ -68,10 +78,12 @@ def row_problems(r: dict) -> list[str]:
         want_p = 2.0 * stats.norm.sf(abs(r["stat"]))
         if abs(p - want_p) > P_TOL:
             out.append(f"p_value {p} is not the two-sided normal tail of {r['stat']} ({want_p})")
-    if st == "wald":
+    if is_wald:
         dn = r.get("df_num")
         if _null(dn):
             out.append("a Wald row without its numerator df (df_num)")
+        elif _null(df):
+            out.append("a Wald row without its denominator df")
         elif not _null(p) and abs(p - stats.f.sf(r["stat"], dn, df)) > P_TOL:
             out.append(f"p_value {p} is not the F({dn}, {df}) tail of {r['stat']}")
     se, est, lo, hi = r.get("se"), r.get("estimate"), r.get("ci_lo"), r.get("ci_hi")

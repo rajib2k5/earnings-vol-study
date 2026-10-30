@@ -1,0 +1,37 @@
+== drivers top keys ['data', 'generated_at', 'kind', 'schema_version', 'source_commit']
+== implied_vs_realised top keys ['data', 'generated_at', 'kind', 'schema_version', 'source_commit']
+   .data.points[] 336
+   .data.points[].abs_realized float
+   .data.points[].day0 str
+   .data.points[].event_id str
+   .data.points[].event_var float
+   .data.points[].implied_abs_move_total float
+   .data.points[].implied_move float
+   .data.points[].implied_move_status str
+   .data.points[].implied_var_total float
+   .data.points[].realized_ret_0 float
+   .data.points[].sector str
+   .data.points[].surprise_scaled float
+   .data.points[].ticker str
+   .data.points[].timing_used str
+points: 336
+point keys: ['abs_realized', 'day0', 'event_id', 'event_var', 'implied_abs_move_total', 'implied_move', 'implied_move_status', 'implied_var_total', 'realized_ret_0', 'sector', 'surprise_scaled', 'ticker', 'timing_used']
+drivers.data keys: ['caveats', 'g1', 'holm', 'lookups', 'models', 'provenance']
+caveats 4 ["Timing labels are provisional: 20 press releases were looked up and every other event keeps the calendar's label (not_checked) until SEC EDGAR is set up, so a few events may sit on the wrong day 0. Every number here depends on those labels.", "Coefficients are in log points of the outcome per standard deviation of the regressor (z-scored over each model's own events). Fixed-effect coefficients are not shown (data model §2.1).", 'Two-way standard errors cluster by day-0 date and firm, with t (or F) on min(G) - 1 degrees of freedom (ADR 0005 §3).']
+g1 ['band', 'calibrated', 'calibration_h7', 'designs', 'power', 'reps']
+holm ['all_declared', 'family', 'left_family']
+lookups ['complete', 'n_done']
+models 12 ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+provenance ['code_commit', 'dolt_commits', 'params_hash', 'sample_label']
+ model crush_drivers daily market rows 6 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model crush_drivers daily mean rows 2 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model implied_realised daily none rows 5 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model dsigma_d_drivers daily market rows 4 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model crush_prior_cm30 daily market rows 4 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model crush_sue daily market rows 4 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model crush_disp daily market rows 4 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model crush_signed daily market rows 5 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model crush_firm_fe daily market rows 4 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model crush_vix daily market rows 6 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model crush_drivers coarse market rows 4 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']
+ model implied_realised_m2 daily none rows 3 keys ['adjustment', 'dep_var', 'fixed_effects', 'label', 'model_id', 'n', 'n_clusters_date', 'n_clusters_firm', 'r2', 'sample', 'terms']

@@ -3,7 +3,7 @@ import { isIsoUtc, parseEnvelope, SCHEMA_VERSION } from './contract'
 
 // Hand-built fixture: the smallest valid envelope.
 const valid = () => ({
-  schema_version: '0.4.0',
+  schema_version: '0.5.0',
   kind: 'meta',
   generated_at: '2026-10-27T12:00:00Z',
   source_commit: 'abc1234',
@@ -27,7 +27,7 @@ describe('parseEnvelope: accepts a valid envelope', () => {
     expect(r.ok).toBe(true)
   })
   it('exports the version the app understands', () => {
-    expect(SCHEMA_VERSION).toBe('0.4.0')
+    expect(SCHEMA_VERSION).toBe('0.5.0')
   })
 })
 
@@ -36,18 +36,22 @@ describe('parseEnvelope: schema_version', () => {
     // 0.2.0 is an old contract: its sample_funnel.json has the two milestone-2 fields always null
     // and it has no iv_measures file, so it must not be accepted.
     const r = parseEnvelope({ ...valid(), schema_version: '0.2.0' })
-    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.2.0": this app only understands "0.4.0"' })
+    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.2.0": this app only understands "0.5.0"' })
     expectError({ ...valid(), schema_version: '0.1.0' }, 'unsupported schema_version "0.1.0"')
-    expectError({ ...valid(), schema_version: '0.5.0' }, 'unsupported schema_version "0.5.0"')
+    expectError({ ...valid(), schema_version: '0.6.0' }, 'unsupported schema_version "0.6.0"')
   })
-  it('rejects 0.3.0, the previous contract: it has no tests, event_paths, terrain or heatmap file', () => {
+  it('rejects 0.4.0, the previous contract: it has no drivers or implied_vs_realised file', () => {
+    const r = parseEnvelope({ ...valid(), schema_version: '0.4.0' })
+    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.4.0": this app only understands "0.5.0"' })
+  })
+  it('rejects 0.3.0, an older contract: it has no tests, event_paths, terrain or heatmap file', () => {
     const r = parseEnvelope({ ...valid(), schema_version: '0.3.0' })
-    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.3.0": this app only understands "0.4.0"' })
+    expect(r).toEqual({ ok: false, error: 'unsupported schema_version "0.3.0": this app only understands "0.5.0"' })
   })
-  it('does not coerce: the number 0.4 or an array is not "0.4.0"', () => {
-    expectError({ ...valid(), schema_version: 0.4 }, 'schema_version must be the string "0.4.0", got number 0.4')
-    expectError({ ...valid(), schema_version: ['0.4.0'] }, 'schema_version must be the string "0.4.0", got an array')
-    expectError({ ...valid(), schema_version: null }, 'schema_version must be the string "0.4.0", got null')
+  it('does not coerce: the number 0.5 or an array is not "0.5.0"', () => {
+    expectError({ ...valid(), schema_version: 0.5 }, 'schema_version must be the string "0.5.0", got number 0.5')
+    expectError({ ...valid(), schema_version: ['0.5.0'] }, 'schema_version must be the string "0.5.0", got an array')
+    expectError({ ...valid(), schema_version: null }, 'schema_version must be the string "0.5.0", got null')
   })
   it('reports the version problem before extra keys, since a newer file may add keys', () => {
     expectError({ ...valid(), schema_version: '9.9.9', brand_new: 1 }, 'unsupported schema_version')

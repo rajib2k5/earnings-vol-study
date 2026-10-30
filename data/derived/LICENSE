@@ -38,6 +38,16 @@ service):
   - security.parquet, column in_universe: which 50 companies the study keeps,
     chosen by a one-time Yahoo market-cap rank (the rank itself is not here).
 
+Since milestone 4, results.parquet also holds regression coefficients of SIZE
+(ln market cap at day -1, built from the rank date's Yahoo market cap and
+Yahoo closes; the per-event values stay local): Yahoo's terms, not CC BY-SA.
+And event_measures.parquet holds vix_regime, a three-level label (low, mid,
+high) of the Cboe VIX close at day -1, cut at terciles within each sample:
+Cboe's terms, not CC BY-SA. The other milestone-4 columns of
+event_measures.parquet (price_ref, surprise_scaled, abs_surprise_scaled_w,
+sue_hist, sue_hist_n) come from the DoltHub option forwards and EPS history
+and stay under CC BY-SA.
+
 FRED: no column here is a FRED value. The IVs, variances and moves in
 iv_daily.parquet and event_iv.parquet are computed from the DoltHub option
 quotes with FRED's DTB3 rate as an input (the discount factor and the carry);
@@ -71,7 +81,21 @@ terms: the median, minimum and maximum company VIX beta (the minimum and
 the maximum are each one unnamed company's beta), and six named per-company
 firm-cluster terms of the VIX-adjusted RUNUP and PERSIST_10 (the sum over one
 company's events of its deviations from the mean). The root DATA.md lists
-them.
+them. Since milestone 4, docs/milestones/04-drivers.md §6.6 and
+research/prototypes/rhobar_crush.out.txt quote per-date aggregates of the
+standardised VIX-adjusted crush-baseline changes on 10 named dates
+(2025-11-24, 2026-06-05, 2024-12-19, 2026-03-09, 2026-03-10, 2024-12-18,
+2026-06-08, 2025-03-10, 2025-03-14, 2025-06-23): each date's mean and mean
+pair product over 31 to 41 companies, under the same decision and terms.
+
+Also outside this folder, app/public/data/implied_vs_realised.json (milestone
+4) has 336 per-event rows built from event_measures.parquet, events.parquet
+and security.parquet here: the implied move at day -1 and the realised day-0
+move r0, both from the DoltHub option quotes (r0 is the option-forward return
+realized_ret_0, not a Yahoo return), the scaled surprise and the GICS sector.
+It is derived from the DoltHub and Wikipedia data above and is shared under
+CC BY-SA 4.0 on the same terms, under the owner's decision of 2026-10-29
+(ADR 0001 §7).
 
 Cboe VX*: no VX* value is in this folder or anywhere else in this
 repository. security.parquet's cboe_vx_index only names the Cboe index that

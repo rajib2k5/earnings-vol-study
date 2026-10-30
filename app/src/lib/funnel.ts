@@ -1,5 +1,5 @@
 /**
- * Loads and checks `data/sample_funnel.json` (kind "sample_funnel", schema 0.4.0): how many
+ * Loads and checks `data/sample_funnel.json` (kind "sample_funnel", schema 0.5.0): how many
  * earnings events survive each filtering step, written by the Python exporter. The app only draws
  * these counts; it never recomputes them. Like `meta.ts`, `fetch` is injected so tests never touch
  * the network, and nothing here throws or coerces.

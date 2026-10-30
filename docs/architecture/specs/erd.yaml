@@ -25,7 +25,7 @@
 # see which columns never leave the machine. The tables committed to data/derived are drawn in full;
 # drop the suffixed columns to get the committed shape.
 # JSON entities: `kind` is the file stem. Their columns are the top-level keys of `data`; nested
-# fields (tests.rows[].estimand, drivers.models[].n_clusters_season, ...) are listed in data-model
+# fields (tests.rows[].estimand, drivers.models[].terms[].g1_size, ...) are listed in data-model
 # section 4. The from_* columns are lineage links, not stored foreign keys: they join a file to the
 # table(s) it is exported from, and carry no cardinality meaning. At milestone 1 meta.json and
 # sample_funnel.json are written at schema 0.2.0 with the keys drawn here; the other view files do
@@ -37,6 +37,9 @@
 # event_measures.implied_move_status is nullable (as event_iv's: null without a pre session);
 # results.df_num is new (the Wald numerator df, ADR 0005 §5); each new view also carries lookups
 # and caveats (the timing labels are provisional).
+# Milestone 4 fills event_measures' regressor columns (price_ref ... vix_regime; the _yf ones stay
+# local), adds results rows of family regression (and the enum value adjustment = none for H7) and
+# writes drivers.json and implied_vs_realised.json at schema 0.5.0 with the keys drawn here.
 # events.edgar_accession / edgar_accepted_utc: SEC EDGAR is accepted (2026-10-28), gated on the
 # owner's contact string. The client refuses to run until SEC_EDGAR_USER_AGENT is set, so both columns
 # stay null until then. A column cannot carry a note in the kit, so the events entity label says it.
@@ -435,6 +438,8 @@ entities:
       - {name: kind, type: string, pk: true}
       - {name: points, type: array}
       - {name: summary, type: object}
+      - {name: lookups, type: object}
+      - {name: caveats, type: array}
       - {name: provenance, type: object}
       - {name: from_event_measures, type: string, fk: event_measures.event_id, nullable: true}
       - {name: from_results, type: string, fk: results.result_id, nullable: true}
@@ -454,6 +459,10 @@ entities:
     columns:
       - {name: kind, type: string, pk: true}
       - {name: models, type: array}
+      - {name: g1, type: object}
+      - {name: holm, type: object}
+      - {name: lookups, type: object}
+      - {name: caveats, type: array}
       - {name: provenance, type: object}
       - {name: from_results, type: string, fk: results.result_id, nullable: true}
   - id: json_validation

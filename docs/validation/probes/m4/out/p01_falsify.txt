@@ -1,0 +1,4 @@
+compared 52 H5-H7 rates; differ 50
+gate rerun {'H5': False, 'H6': False, 'H7': False} report {'H5': False, 'H6': False, 'H7': False}
+calibrated primaries: {'H5': 0.084, 'H6': 0.0775, 'H7': 0.1805}
+falsify_rc=1

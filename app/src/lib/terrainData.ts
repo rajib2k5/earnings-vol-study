@@ -1,5 +1,5 @@
 /**
- * Loads and checks `data/terrain.json` (kind "terrain", schema 0.4.0): one row per company and one
+ * Loads and checks `data/terrain.json` (kind "terrain", schema 0.5.0): one row per company and one
  * column per event day, each cell the company's mean abnormal log IV, for the 3D view. Written by
  * the Python exporter; the app only draws it (`terrain.ts` turns the grid into a mesh). `fetch` is
  * injected so tests never touch the network; nothing here throws or coerces.

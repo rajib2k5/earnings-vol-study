@@ -350,10 +350,12 @@ IV_COPY = ("crush_mean_adj", "dsigma_d_mean_adj", "crush_front_fixed", "crush_sp
 
 
 def measures_table(events: pd.DataFrame, event_iv: pd.DataFrame, p: Panel, m: dict,
-                   columns: tuple[str, ...]) -> pd.DataFrame:
-    """event_measures, one row per event of `events` (1:1), in the registry's column order."""
+                   columns: tuple[str, ...], regs: pd.DataFrame | None = None) -> pd.DataFrame:
+    """event_measures, one row per event of `events` (1:1), in the registry's column order.
+    `regs` (panel/regressors.regressor_table, milestone 4) fills the regressor columns."""
     pos = {eid: i for i, eid in enumerate(p.events["event_id"])}
     eiv = event_iv.set_index("event_id")
+    reg = {} if regs is None else {r["event_id"]: r for r in regs.to_dict("records")}
     out = []
     for r in events.itertuples(index=False):
         row = {c: None for c in columns}
@@ -362,6 +364,11 @@ def measures_table(events: pd.DataFrame, event_iv: pd.DataFrame, p: Panel, m: di
         for c in IV_COPY:
             v = iv[c]
             row[c] = (None if v is None or (isinstance(v, float) and math.isnan(v)) else v)
+        for c, v in reg.get(r.event_id, {}).items():
+            if c != "event_id":
+                row[c] = None if v is None or (isinstance(v, float) and math.isnan(v)) else v
+        if row["sue_hist_n"] is not None:
+            row["sue_hist_n"] = int(row["sue_hist_n"])
         if row["crush_span_sessions"] is not None:
             row["crush_span_sessions"] = int(row["crush_span_sessions"])
         i = pos.get(r.event_id)

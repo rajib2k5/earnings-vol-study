@@ -32,7 +32,7 @@ const ROW = {
 }
 
 /**
- * Hand-built `data/tests.json` body for tests, in the shape the Python exporter writes (schema 0.4.0).
+ * Hand-built `data/tests.json` body for tests, in the shape the Python exporter writes (schema 0.5.0).
  * Every name, unit, number and caveat is invented ("Fixture ...", "fix_...") so a page that still showed
  * the real file's text, or computed anything itself, would not match. Layout:
  *   rows[0]  primary H1, every number present
@@ -76,7 +76,7 @@ export const TESTS_DATA_FIXTURE = {
 }
 
 export const TESTS_FIXTURE = {
-  schema_version: '0.4.0',
+  schema_version: '0.5.0',
   kind: 'tests',
   generated_at: '2031-03-04T05:06:07Z',
   source_commit: 'fix1234',

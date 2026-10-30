@@ -1,8 +1,10 @@
 import { AboutPage } from './lib/about'
 import { ArchitecturePage } from './lib/ArchitecturePage'
 import { CrushPathsPage } from './lib/CrushPathsPage'
+import { DriversPage } from './lib/DriversPage'
 import { FunnelPage } from './lib/FunnelPage'
 import { HeatmapPage } from './lib/HeatmapPage'
+import { ImpliedRealisedPage } from './lib/ImpliedRealisedPage'
 import { IvMeasuresPage } from './lib/IvMeasuresPage'
 import { MetaFooter } from './lib/MetaFooter'
 import { ResultsPage } from './lib/ResultsPage'
@@ -24,6 +26,8 @@ const PAGES: ShellPage[] = [
   { id: 'sample', label: 'Sample', render: () => <FunnelPage /> },
   { id: 'iv', label: 'IV measures', render: () => <IvMeasuresPage /> },
   { id: 'results', label: 'Results', render: () => <ResultsPage /> },
+  { id: 'drivers', label: 'Drivers', render: () => <DriversPage /> },
+  { id: 'implied', label: 'Implied vs realised', render: () => <ImpliedRealisedPage /> },
   { id: 'paths', label: 'Crush paths', render: () => <CrushPathsPage /> },
   { id: 'heatmap', label: 'Heatmap', render: () => <HeatmapPage /> },
   { id: 'architecture', label: 'Architecture', render: () => <ArchitecturePage slug={PROJECT_SLUG} /> },

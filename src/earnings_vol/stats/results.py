@@ -5,15 +5,23 @@
 # Pure: arrays in, a DataFrame out. Holm and BH are applied here.
 #
 # ROLES
-#   primary      the declared statistic of H1-H4 (ADR 0005 §4), when gate G1
-#                passed for it; Holm-adjusted over the declared family
+#   primary      the declared statistic of each hypothesis in the binding Holm
+#                family (ADR 0005 §4): H1-H4 when gate G1 passed for them, and
+#                H5-H7 (regressions, stats/drivers.py) whatever G1's regression
+#                size check says (binding_family; ADR 0005 §5, dated note of
+#                2026-10-29: the size designs declared at milestone 0 cover
+#                H1-H4 only); Holm-adjusted over that family
 #   robustness   the rows ADR 0005 §4 lists beside each primary, and the
 #                mean-adjusted twin of each primary (ADR 0004 §2: "always
 #                reported next to it")
 #   exploratory  everything else (other rel_days, PERSIST_1 and _5, the timing
 #                subgroups, the front-expiry crush, the mixed and coarse
-#                samples), with BH q-values within each sample; and a primary
-#                whose G1 gate failed (ADR 0005 §5)
+#                samples), with BH q-values within each sample; and the primary
+#                of a hypothesis that left the family (ADR 0005 §5)
+# Fixes after the milestone-4 review: result_rows refuses a G1 report without a
+# verdict for every hypothesis that gets rows (require_verdicts); the Holm p
+# of the family after dropping every failed G1 primary is a descriptive
+# sensitivity (holm_post_gate_rows), not the binding one.
 # Added after the milestone-3 review:
 #   - a robustness row whose statistic gate G1's calibrated design rejects
 #     above the band's top keeps estimate, se and stat and loses p_value and
@@ -40,6 +48,11 @@ from earnings_vol.panel import abnormal
 from earnings_vol.stats import clustering, g1, inputs, multiple, suite
 
 HYP = {"H1": "crush", "H2": "runup", "H3": "persist_10", "H4": "dsigma_d"}
+# The hypotheses whose failed G1 primary leaves the binding Holm family (ADR 0005 §5): the ones G1's
+# size designs were declared for at milestone 0 (the intercept-only H1-H4). H5-H7's regression size
+# check (milestone 4) is reported beside their rows; it does not move them out (fix R1 after the
+# milestone-4 review). An owner who prefers the post-gate family sets this to all seven.
+SIZE_GATED = tuple(HYP)
 MEASURE_NAME = {"crush": "crush_cm30", "runup": "runup", "persist_1": "persist_1", "persist_5": "persist_5",
                 "persist_10": "persist_10", "dsigma_d": "dsigma_d", "crush_front_fixed": "crush_front_fixed"}
 KEY = ("family", "hypothesis", "role", "measure", "statistic", "rel_day", "sample", "subgroup_key",
@@ -113,7 +126,8 @@ def withhold(r: dict) -> dict:
 
 
 def event_test_rows(f: inputs.Frame, st: dict, gate: dict, common: dict, mis_sized: dict | None = None) -> list[dict]:
-    """Every event_test row; `gate` maps H1-H4 to True (G1 passed) or False; `mis_sized` is
+    """Every event_test row; `gate` maps H1-H4 to True when the hypothesis is in the binding Holm
+    family (binding_family: its G1 gate passed) or False, read strictly; `mis_sized` is
     oversized()'s {(hypothesis, statistic): rate}: those robustness rows are withheld."""
     out = []
     mis_sized = mis_sized or {}
@@ -180,16 +194,75 @@ def path_rows(f: inputs.Frame, st: dict, common: dict) -> list[dict]:
     return out
 
 
+TESTED_FAMILIES = ("event_test", "regression")     # milestone 4: H5-H7's primaries are regression rows
+
+
+def primary_rows(rows: list[dict]) -> dict:
+    """{hypothesis: its primary row}, over the event tests (H1-H4) and the regressions (H5-H7)."""
+    return {r["hypothesis"]: r for r in rows if r["family"] in TESTED_FAMILIES and r["role"] == "primary"}
+
+
+def require_verdicts(report: dict, hypotheses) -> None:
+    """Refuse gate G1's report unless it holds a verdict for every hypothesis in `hypotheses` (the
+    ones the results run writes rows for): a bool in report["gate"] and the calibrated rates the
+    hypothesis's robustness rows are withheld by (report["rates"]["calibrated"]). Fix R2 after the
+    milestone-4 review: a missing verdict used to count as a pass (gate.get(h, True)), so a
+    milestone-3 report gave H5-H7 the primary role with no size check and withheld nothing."""
+    gate = report.get("gate") or {}
+    cal = (report.get("rates") or {}).get("calibrated") or {}
+    missing = sorted(h for h in set(hypotheses) if not isinstance(gate.get(h), bool) or h not in cal)
+    if missing:
+        raise ValueError(f"gate G1's report has no verdict for {', '.join(missing)}: run "
+                         "`python -m earnings_vol.stats.run --g1` again before the results")
+
+
+def binding_family(declared: list, gate: dict, gated: tuple = SIZE_GATED) -> list[str]:
+    """The binding Holm family: the declared one (params stats.holm_family) minus each hypothesis
+    in `gated` whose G1 primary failed (ADR 0005 §5). A hypothesis outside `gated` (H5-H7 by
+    default) stays whatever its size check says; its rows carry that size instead. gate[h] is read
+    strictly: require_verdicts has run."""
+    return [h for h in declared if h not in gated or gate[h]]
+
+
+def post_gate_family(declared: list, gate: dict) -> list[str]:
+    """The declared family minus EVERY hypothesis whose G1 primary failed, H5-H7's regression size
+    check included: the family of the descriptive sensitivity (holm_post_gate_rows)."""
+    return [h for h in declared if gate[h]]
+
+
 def apply_holm(rows: list[dict], family: list[str]) -> dict:
-    """Set p_holm on the primary rows of the declared family; hypotheses with no primary
-    row (not tested yet, or out of the family after a failed G1) enter as p = 1 if they are
-    still in the family. Returns {hypothesis: adjusted p}."""
-    prim = {r["hypothesis"]: r for r in rows if r["family"] == "event_test" and r["role"] == "primary"}
+    """Set p_holm on the primary rows of the binding family; a hypothesis of the family with no
+    primary row (not tested) enters as p = 1. Returns {hypothesis: adjusted p}. Since milestone 4
+    H5-H7 have rows."""
+    prim = primary_rows(rows)
     pv = {h: (prim[h]["p_value"] if h in prim else None) for h in family}
     adj = multiple.holm(pv)
     for h, r in prim.items():
         r["p_holm"] = adj[h]
     return adj
+
+
+def holm_post_gate_rows(rows: list[dict], family: list[str], common: dict) -> list[dict]:
+    """A sensitivity, not a test: the Holm p each hypothesis of the POST-GATE family (post_gate_family:
+    the declared family minus every hypothesis whose G1 primary failed) would get from the primary
+    rows' p-values, and the same for each season-cut counterfactual row (its p in place of its
+    hypothesis's, the family's other p-values as reported). Family descriptive, measure
+    holm_post_gate, statistic holm, estimate = that Holm p, n = the family's size; no p-value of its
+    own. The binding p_holm is the primary rows' (fix R1 after the milestone-4 review: until then
+    this family was the binding one, and the declared seven a sensitivity)."""
+    prim = primary_rows(rows)
+    pv = {h: (prim[h]["p_value"] if h in prim else None) for h in family}
+    adj = multiple.holm(pv)
+    base = dict(family="descriptive", role="exploratory", measure="holm_post_gate", statistic="holm", sample="daily",
+                n=len(family), **common)
+    out = [row(**base, hypothesis=h, subgroup_key="all", subgroup_value="all",
+               adjustment=prim[h]["adjustment"] if h in prim else "market", estimate=float(adj[h])) for h in family]
+    for c in rows:
+        if c["subgroup_key"] == "season_cut" and c["hypothesis"] in family:
+            h = c["hypothesis"]
+            out.append(row(**base, hypothesis=h, subgroup_key="season_cut", subgroup_value=c["subgroup_value"],
+                           adjustment=c["adjustment"], estimate=float(multiple.holm(dict(pv, **{h: c["p_value"]}))[h])))
+    return out
 
 
 def season_cut_rows(f: inputs.Frame, st: dict, rows: list[dict], family: list[str], common: dict) -> list[dict]:
@@ -203,7 +276,7 @@ def season_cut_rows(f: inputs.Frame, st: dict, rows: list[dict], family: list[st
     hypothesis would get with that p (the family's other p-values as reported). Role
     robustness, subgroup_key "season_cut", subgroup_value "<last>_into_<previous>"."""
     out = []
-    prim = {r["hypothesis"]: r for r in rows if r["family"] == "event_test" and r["role"] == "primary"}
+    prim = primary_rows(rows)
     for h, r in prim.items():
         if r["statistic"] != "rad_season_p":
             continue
@@ -234,12 +307,15 @@ def season_cut_rows(f: inputs.Frame, st: dict, rows: list[dict], family: list[st
 
 
 def apply_bh(rows: list[dict]) -> None:
-    """BH q-values within each sample's exploratory event-test rows that have a p-value."""
-    for sample in schema.RESULT_SAMPLES:
-        fam = [r for r in rows if r["family"] == "event_test" and r["role"] == "exploratory"
-               and r["sample"] == sample and r["p_value"] is not None]
-        for r, q in zip(fam, multiple.bh([r["p_value"] for r in fam])):
-            r["q_bh"] = q
+    """BH q-values within each exploratory family: the exploratory rows with a p-value of one
+    sample, event tests and regressions apart (milestone 4: the regression rows of a sample are a
+    family of their own, so the milestone-3 q-values do not move)."""
+    for family in TESTED_FAMILIES:
+        for sample in schema.RESULT_SAMPLES:
+            fam = [r for r in rows if r["family"] == family and r["role"] == "exploratory"
+                   and r["sample"] == sample and r["p_value"] is not None]
+            for r, q in zip(fam, multiple.bh([r["p_value"] for r in fam])):
+                r["q_bh"] = q
 
 
 def g1_rows(report: dict, common: dict) -> list[dict]:
@@ -264,19 +340,23 @@ def g1_rows(report: dict, common: dict) -> list[dict]:
                            statistic=name, sample="daily", subgroup_key="all", subgroup_value="all",
                            adjustment="market", n=int(rem["reps"]), estimate=float(rate), **common))
     n_ev = int(report["n_events"])
-    # The cm30 calibration (H1-H3) and, since the review, H4's own sigma_d calibration.
-    for key, label in (("calibration", "g1_calibration"), ("calibration_sigma_d", "g1_calibration_sigma_d")):
+    # The cm30 calibration (H1-H3) and, since the review, H4's own sigma_d calibration; since
+    # milestone 4 H7's (n = its events; an infinite nu, normal moves, is stored as a null estimate).
+    for key, label in (("calibration", "g1_calibration"), ("calibration_sigma_d", "g1_calibration_sigma_d"),
+                       ("calibration_h7", "g1_calibration_h7")):
         cal = report.get(key)
         if cal is None:
             continue
+        n_cal = int((report.get("n_events_drivers") or {}).get("H7", n_ev)) if key == "calibration_h7" else n_ev
         for kind in ("params", "measured"):
             for k, v in cal[kind].items():
                 vals = v if isinstance(v, list) else [v]
                 for lag, x in enumerate(vals, 1):
                     out.append(row(family="validation", role="exploratory", measure=f"{label}:{kind}",
                                    statistic=k, rel_day=lag if isinstance(v, list) else None, sample="daily",
-                                   subgroup_key="all", subgroup_value="all", adjustment="market", n=n_ev,
-                                   estimate=float(x), **common))
+                                   subgroup_key="all", subgroup_value="all",
+                                   adjustment="none" if key == "calibration_h7" else "market", n=n_cal,
+                                   estimate=float(x) if np.isfinite(x) else None, **common))
     return out
 
 

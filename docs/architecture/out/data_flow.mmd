@@ -27,9 +27,9 @@ flowchart TB
     t_snap[("session_snapshot\nsnapshot_status (milestone 1)")]
     t_eiv[("event_iv\nevar_m1, crush_mean_adj, abs_move_cand_max")]
     t_ewo[("event_window_obs\nrel_day, aliv_mean_adj, in_baseline")]
-    t_em[("event_measures\ncrush, runup, persist, price_ref, eligible_*")]
+    t_em[("event_measures\ncrush, runup, persist, surprise_scaled, vix_regime")]
     t_vx[("event_measures_vx\ncboe5 members, local only")]
-    t_results[("results\nstatistic, estimand, n_clusters_firm, p_holm")]
+    t_results[("results\nstatistic, model_id, term, n_clusters_firm, p_holm")]
     j_meta[/"meta.json"/]
     j_funnel[/"sample_funnel.json"/]
     j_ivm[/"iv_measures.json"/]
@@ -90,11 +90,11 @@ flowchart TB
     t_events -->|"exclusion_reason (eligible_*)"| t_em
     t_eps -->|"surprise (surprise_scaled, SUE)"| t_em
     t_market -.->|"vix_regime"| t_em
-    s_yf -.->|"close, shares (local)"| t_em
+    s_yf -.->|"close, rank-date cap (local)"| t_em
     t_ewo -.->|"ln_vx_cboe, e_abn_vx_cboe"| t_vx
     t_security -.->|"cboe_vx_index"| t_vx
     t_events -.->|"exclusion_reason"| t_vx
-    t_em -->|"crush, runup, persist, E"| t_results
+    t_em -->|"crush, runup, persist, E, regressors"| t_results
     t_ewo -->|"aliv path"| t_results
     t_vx -.->|"cboe5 rows (all only)"| t_results
     t_eps -->|"dispersion, signed surprise"| t_results
@@ -118,7 +118,7 @@ flowchart TB
     t_em -->|"event_var, realized_ret_0, surprise_scaled"| j_ivr
     t_results -->|"H7 regression"| j_ivr
     t_results -->|"event_test rows, G1 sizes (family validation)"| j_tests
-    t_results -->|"regression#58; n_clusters_season"| j_drivers
+    t_results -->|"regression rows, G1 for H5-H7"| j_drivers
     t_results -->|"family validation"| j_valid
     classDef source fill:#E0F2FE,stroke:#0284C7,color:#0F172A
     class s_cal,s_eps,s_est,s_chain,s_vol source
