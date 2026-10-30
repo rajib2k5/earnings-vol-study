@@ -71,10 +71,10 @@
   [`:196`](../../tools/report_numbers.py#L196) `numbers` (every key, with its source);
   [`:449`](../../tools/report_numbers.py#L449) `prose_check`; [`:535`](../../tools/report_numbers.py#L535) `cross_check`; [`:587`](../../tools/report_numbers.py#L587) `render`; [`:601`](../../tools/report_numbers.py#L601) `splice` (a README/PR-FAQ block); [`:616`](../../tools/report_numbers.py#L616) `rendered`;
   [`:630`](../../tools/report_numbers.py#L630) `check_exports`; [`:650`](../../tools/report_numbers.py#L650) `check_lookups_against_stage`; [`:665`](../../tools/report_numbers.py#L665) `main`.
-- [`tools/build_report.py:79`](../../tools/build_report.py#L79) `to_html`, [`:87`](../../tools/build_report.py#L87)
-  `build_pdf` (refuses a page whose images did not load), [`:119`](../../tools/build_report.py#L119) `DocxWriter`
-  (raises on a token it does not handle, so a new construct cannot vanish), [`:236`](../../tools/build_report.py#L236)
-  `table`, [`:336`](../../tools/build_report.py#L336) `main` (the 10 MB limit and the stamp).
+- [`tools/build_report.py:89`](../../tools/build_report.py#L89) `to_html`, [`:99`](../../tools/build_report.py#L99)
+  `build_pdf` (refuses a page whose images did not load), [`:131`](../../tools/build_report.py#L131) `DocxWriter`
+  (raises on a token it does not handle, so a new construct cannot vanish), [`:248`](../../tools/build_report.py#L248)
+  `table`, [`:348`](../../tools/build_report.py#L348) `main` (the 10 MB limit and the stamp).
 - [`tools/screenshots.py:47`](../../tools/screenshots.py#L47) `PAGES`, [`:68`](../../tools/screenshots.py#L68)
   `FIGURES`, [`:95`](../../tools/screenshots.py#L95) `compress`, [`:109`](../../tools/screenshots.py#L109) `trim`,
   [`:148`](../../tools/screenshots.py#L148) `shoot` (fails on any page error).
