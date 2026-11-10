@@ -6,7 +6,8 @@ The index of what this project teaches, one milestone at a time. Each milestone 
 [`docs/milestones/`](docs/milestones/). The goal is that the owner can explain the architecture and the code, at a low
 level, in an interview.
 
-Last updated: 2026-10-29 (milestone 2), after the milestone-2 review and its fixes.
+Last updated: 2026-11-10, after the two additions to milestone 5 (the Cboe VX\* cross-check and the SEC EDGAR
+timing labels) and the history rewrite of 2026-11-09 ([map](docs/validation/history-rewrite-2026-11-09.md)).
 
 ## Milestones
 
@@ -18,6 +19,7 @@ Last updated: 2026-10-29 (milestone 2), after the milestone-2 review and its fix
 | 3 | Event study | done, pending owner review (gate G1 passed for H1-H4; two adversarial reviews; timing labels still provisional) | [`docs/milestones/03-event-study.md`](docs/milestones/03-event-study.md) | queued, 0 of 14 answered | | | |
 | 4 | Drivers | done, pending owner review (H5-H7 not rejected under the declared H1-H7 Holm family; regression statistics liberal per G1; timing labels still provisional) | [`docs/milestones/04-drivers.md`](docs/milestones/04-drivers.md) | queued, 0 of 14 answered | | | |
 | 5 | Report and polish | done, pending owner review (report is a draft for owner review; timing labels still provisional) | [`docs/milestones/05-report-and-polish.md`](docs/milestones/05-report-and-polish.md) | queued, 0 of 14 answered | | | |
+| 5b | Cboe VX\* cross-check and SEC EDGAR timing (added to milestone 5) | done, pending owner review (ADR 0003's slope falsifier is met for 3 of 5 names; EDGAR labels provisional: 42 of the 473 required look-ups still open, the 50-event audit not run) | [`docs/milestones/05-report-and-polish.md`](docs/milestones/05-report-and-polish.md) §11 and §12 | queued, 0 of 14 answered | | | |
 
 The milestone names come from the [PR/FAQ](docs/prfaq.md).
 
@@ -29,6 +31,7 @@ The milestone names come from the [PR/FAQ](docs/prfaq.md).
 - Milestone 03 (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 3" to resume it.
 - Milestone 04 (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 4" to resume it.
 - Milestone 05 (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 5" to resume it.
+- Milestone 05b (queued, 0 of 14 answered). Answer in its quiz widget, or say "quiz me on milestone 5b" to resume it.
 
 ## Missed topics
 
@@ -44,7 +47,7 @@ None yet.
 | [`docs/concepts/00-background.md`](docs/concepts/00-background.md) | The finance and statistics background, in plain English. |
 | [`docs/prfaq.md`](docs/prfaq.md) | The product story, written backwards from the finished study. No results yet. |
 | [`docs/adr/0001-overall-architecture.md`](docs/adr/0001-overall-architecture.md) | ADR 0001: the layered pipeline, where the data lives, the JSON contract, licensing (a licence class per column). |
-| [`docs/adr/0002-day-zero-convention.md`](docs/adr/0002-day-zero-convention.md) | ADR 0002: what "day 0" means, and how the before/after-market label is checked against documents (SEC EDGAR is proposed, pending the owner's decision; the default is the press release, then the calendar label). |
+| [`docs/adr/0002-day-zero-convention.md`](docs/adr/0002-day-zero-convention.md) | ADR 0002: what "day 0" means, and how the before/after-market label is checked against documents (SEC EDGAR 8-Ks first, in use since the owner's decision of 2026-11-09; then the press release; then the calendar label). |
 | [`docs/adr/0003-iv-measures.md`](docs/adr/0003-iv-measures.md) | ADR 0003: how IV is recomputed, the 30-day IV, event variance and implied move. |
 | [`docs/adr/0004-baseline-and-event-windows.md`](docs/adr/0004-baseline-and-event-windows.md) | ADR 0004: the event window, the baseline, abnormal IV, and why not CAAIV. |
 | [`docs/adr/0005-statistical-test-suite.md`](docs/adr/0005-statistical-test-suite.md) | ADR 0005: the tests (a two-way cluster-robust t as primary; BMP and the Kolari-Pynnönen family as robustness), the regressions, the size gate G1, and the multiple-testing rule. |
