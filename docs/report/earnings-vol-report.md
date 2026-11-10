@@ -20,7 +20,7 @@
 
 Data: DoltHub `post-no-preference/earnings` at `fjrb6h5le9h1qiif2j4pl6cpaas7pnee` and `post-no-preference/options` at
 `msfqpodh24viv7prdqdan8517rkjp861`; parameters hash `d23d18972bf0c8d4`; app data contract 0.5.0, exported from
-commit `6b8453f`. Every measured number in this report is filled in by `tools/report_numbers.py` from
+commit `8c4b36e`. Every measured number in this report is filled in by `tools/report_numbers.py` from
 `data/derived/results.parquet`, `data/derived/vx_crosscheck.json`, the app's JSON files and the kept ρ̄ output
 (section 8); the look-up counts that need a local Yahoo flag (the
 473 required look-ups, why 42 are open, and the 37
