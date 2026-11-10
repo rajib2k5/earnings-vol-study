@@ -126,7 +126,7 @@ erDiagram
         date32 snapshot_date "nullable"
         enum snapshot_status
     }
-    events["events (edgar#95;#42;#58; gated on the owner's contact string)"] {
+    events["events (edgar#95;#42;#58; null where no 8-K was found)"] {
         string event_id PK
         string security_id FK
         string ticker_at_event

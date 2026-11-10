@@ -1,6 +1,6 @@
 # Milestone 3 adversarial review: claims ledger
 
-- **Reviewed:** the uncommitted working tree on top of `fca9972` (milestone 3, "the event study"), on 2026-10-29.
+- **Reviewed:** the uncommitted working tree on top of `9441774` (milestone 3, "the event study"), on 2026-10-29.
 - **Protocol:** `evidence-gated-validation`, Tier 2. Default verdict for every claim: broken.
 - **Mode, stated honestly.** The claims and probe designs were frozen first in
   [`probes/m3/00-preregistration.md`](probes/m3/00-preregistration.md). Channel A (documents and papers, no execution)
@@ -98,8 +98,8 @@ Count note: the eight modules hold **59** tests (`test_eventtests.py` has 9 test
 5. **G1 calibration gaps (minor, disclosed in part).** The AR moment is not reproduced (z −5.7). H4 is gated on the
    crush process, not σ_d. The drift estimator differs from the ADR's. *Fix:* state in §6.1 that H4's gate is crush
    evidence, and that H3's pass requires φ < ~0.995 (φ = 1: 6.45%).
-6. **Provenance (minor, repeat of M2).** Every JSON says `source_commit` fca9972, and `results.code_commit` is
-   `fca9972…-dirty`. Neither names code that contains milestone 3. *Fix:* re-export after the commit.
+6. **Provenance (minor, repeat of M2).** Every JSON says `source_commit` 9441774, and `results.code_commit` is
+   `9441774…-dirty`. Neither names code that contains milestone 3. *Fix:* re-export after the commit.
 7. **Misprints (trivial).** Day −10 path "+0.236" should be +0.235 (0.2355). "6 of 366" should be 7 of 366. The
    test-count breakdown says 10 for `test_eventtests` (9).
 8. **The oversized robustness rows (judgement).** In G1's calibrated design, H1/H4's one-way, BMP, KP, KPP, Patell

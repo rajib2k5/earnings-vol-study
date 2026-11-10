@@ -53,6 +53,12 @@ def no_prices(_symbol):
     return pd.DataFrame({"date": [], "open": [], "close": [], "dividends": []})
 
 
+def no_filings(_security_id):
+    # params.yaml has timing.edgar true (2026-11-09), so build() needs an EDGAR
+    # loader; here no company has an Item 2.02 8-K, so EDGAR resolves nothing.
+    return []
+
+
 def params_with(tmp_path, changes: dict):
     raw = yaml.safe_load(params_mod.DEFAULT_PATH.read_text(encoding="utf-8"))
     for (section, key), value in changes.items():
@@ -64,7 +70,7 @@ def params_with(tmp_path, changes: dict):
 
 @pytest.fixture(scope="module")
 def built():
-    return run.build(params_mod.load(), inputs(), no_prices)
+    return run.build(params_mod.load(), inputs(), no_prices, edgar_loader=no_filings)
 
 
 def test_build_marks_the_duplicate_row_and_links_the_release(built):
@@ -84,13 +90,13 @@ def test_build_stops_on_sample_ranges_with_a_gap(tmp_path):
     # The gap the milestone-1 review found: coarse ending 2024-09-09 leaves 09-10 and 09-11 in no sample.
     p = params_with(tmp_path, {("samples", "coarse"): ["2020-04-01", "2024-09-09"]})
     with pytest.raises(ValueError, match="not contiguous"):
-        run.build(p, inputs(), no_prices)
+        run.build(p, inputs(), no_prices, edgar_loader=no_filings)
 
 
 def test_build_uses_the_window_parameter(tmp_path):
     # With a fixed window of +40 .. +100 days, the Saturday releases 33-34 days after their
     # periods cannot be linked: the parameter, not a constant, decides.
     p = params_with(tmp_path, {("eps_match", "window_start"): 40})
-    eps = run.build(p, inputs(), no_prices)["eps"].set_index("fiscal_period_end")
+    eps = run.build(p, inputs(), no_prices, edgar_loader=no_filings)["eps"].set_index("fiscal_period_end")
     assert eps.loc[date(2024, 12, 31), "event_id"] == "XYZ:2025-02-22"
     assert eps.loc[date(2024, 9, 30), "event_id"] is None

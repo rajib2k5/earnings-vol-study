@@ -1,0 +1,15 @@
+mutant:        M3_recent_only
+file:          src/earnings_vol/ingest/edgar.py
+mutation:      'blocks = [doc["filings"]["recent"], *pages]'  ->  'blocks = [doc["filings"]["recent"]]'
+probe:         e2_extra_pages.py
+sha256 before: dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe
+sha256 after:  dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe   restored_identical=True
+falsifier_rc:  1
+--- stdout (tail) ---
+pages listed 256; cached 135; on disk 135
+newest filing of each cached page minus its CIK's oldest `recent` filing (days): min -2117 max -1 (<=0 means page is entirely older)
+events dated before their `recent` block starts: 234; with an Item 2.02 8-K within +-1 day via the code: 0
+FAIL ('events older than `recent` not found', 234, 0)
+RESULT: REFUTED
+--- stderr ---
+

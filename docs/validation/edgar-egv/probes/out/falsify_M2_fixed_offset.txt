@@ -1,0 +1,22 @@
+mutant:        M2_fixed_offset
+file:          src/earnings_vol/ingest/edgar.py
+mutation:      'NY = ZoneInfo("America/New_York")'  ->  'NY = timezone(timedelta(hours=-4))'
+probe:         e4_after_cutoff.py
+sha256 before: dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe
+sha256 after:  dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe   restored_identical=True
+falsifier_rc:  1
+--- stdout (tail) ---
+   ('XOM (predecessor CIK)', '2017-01-26T22:15:28.000Z', '2017-01-26', '2017-01-26 18:15:28')
+   ('XOM (predecessor CIK)', '2017-01-17T21:37:33.000Z', '2017-01-17', '2017-01-17 17:37:33')
+   ('XOM (predecessor CIK)', '2016-12-16T22:24:37.000Z', '2016-12-16', '2016-12-16 18:24:37')
+   ('XOM (predecessor CIK)', '2014-11-24T22:21:22.000Z', '2014-11-24', '2014-11-24 18:21:22')
+   ('XOM (predecessor CIK)', '2009-12-14T22:24:25.000Z', '2009-12-14', '2009-12-14 18:24:25')
+   ('XOM (predecessor CIK)', '2007-02-28T21:45:07.000Z', '2007-02-28', '2007-02-28 17:45:07')
+   ('XOM (predecessor CIK)', '2006-01-25T21:31:40.000Z', '2006-01-25', '2006-01-25 17:31:40')
+   ('XOM (predecessor CIK)', '2005-12-01T22:15:03.000Z', '2005-12-01', '2005-12-01 18:15:03')
+EDT (summer): after-cut-off (by the code's local time) 151/174 carry a later filingDate
+EST (winter): after-cut-off (by the code's local time) 72/698 carry a later filingDate
+distinct minutes of day among after-cut-off acceptances: 195 min 1050 max 1375
+RESULT: REFUTED: after-cut-off rate; after-cut-off rate in EST (winter)
+--- stderr ---
+

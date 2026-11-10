@@ -1,0 +1,21 @@
+# Cboe VX\* cross-check: EGV verdict
+
+`route: rows 2, 3, 5, 6, 10 | primary: dual-channel EGV Mode 1 on C1–C10 (row 3), gates + hand mutants (row 2), pre-registered bars with block bootstrap (row 5) | complement: verifier + adversarial on the agreement statistics (rows 5–6, separate report); verifier on the doc figures (row 10) | not-run: EGV on the statistic values (Channel A N/A for a value) | stop: met for C1, C2, C4, C5, C7, C10, C9a; not met for C6, C8, C9b (UNRESOLVED by construction); C3 minor`
+
+`mode: Mode 1, dual subagent.` Channel A (documents only): `channel-a.md`. Channel B (local files and probes only, no network, mutants on copies): `channel-b.md`, `probes/`. The ledger (`claims-ledger.md`, SHA-256 `3003e850…1c54`) was frozen before either channel ran and was not edited.
+
+| ID | Claim (short) | Mat | A | B | Gate |
+|---|---|---|---|---|---|
+| C1 | each index measures one stock's 30-day expected volatility | mat | CONFIRMED: Cboe methodology v9.0 (2026-03-30) | CONFIRMED (consistency): VX tracks `cm30_blind_iv` (r 0.67–0.86) more closely than `front_atm_iv` (0.52–0.77) | **ACCEPTED** |
+| C2 | VIX method on an out-of-the-money strip | mat | CONFIRMED: "same as that used for the VIX® Index" | UNVERIFIABLE: a daily close cannot show the strip | **split.** C2a, the published method (A; B N/A by construction). C2b, the series sits above ATM IV by a skew/convexity spread, as a strip index must (B CONFIRMED: above on 91–99% of days). **ACCEPTED** |
+| C3 | VXGOG is on GOOG | minor | CONFIRMED: "PM-settled GOOG option contracts" | UNVERIFIABLE: no GOOG option data | minor, reported; does not block |
+| C4 | the CDN URL serves the five series with a `CLOSE` column | mat | UNVERIFIABLE: the history page links host `cdn-api.cboe.com` and lists only VXAPL and VXAZN | CONFIRMED from the recorded fetch: a 307 redirect from `cdn.cboe.com` to `cdn-api.cboe.com`; columns DATE, OPEN, HIGH, LOW, CLOSE; SHA-256 matches the fetch log | **split.** C4a, Cboe publishes the history files on its CDN (A: the page links them; B: the fetch). C4b, the column layout (B; A N/A, undocumented). **ACCEPTED** |
+| C5 | `CLOSE / 100` is a decimal IV | mat | partly: the index level is documented as σ × 100 | CONFIRMED: median (CLOSE/100) ÷ ours = 1.08–1.12; the no-/100 mutant fails | **split.** C5a, level = σ × 100 (A). C5b, the CSV holds that level (B). **ACCEPTED** |
+| C6 | a row dated D is session D's close | mat | UNVERIFIABLE: only live dissemination hours are documented | CONFIRMED: lag 0 highest for every name; lags ±1 between −0.09 and 0.10; the one-session-shift mutant fails | **UNRESOLVED by construction** (docs silent). The lag falsifier is strong |
+| C7 | values on most sessions 2020-01-02 to 2026-10-26 | mat | UNVERIFIABLE: "first value date" only | CONFIRMED: 1,712 of 1,713 sessions in each file; the gap is 2020-10-16 in all five | **split.** C7a, the series began before 2020 (A and B). C7b, the coverage (B). **ACCEPTED** |
+| C8 | DoltHub documents no maturity for `iv_current` | mat | UNVERIFIABLE: the README is silent, the column docs could not be reached | UNVERIFIABLE: a claim about documents | **UNRESOLVED.** No number depends on it: the maturity was identified from the data (21 sessions) |
+| C9 | Künsch's moving-block bootstrap | mat | the code matches a reference statement, but no primary text could be quoted (Project Euclid returned empty pages) | CONFIRMED: starts on [0, n−l], ⌈n/l⌉ blocks, contiguous, overlapping, with replacement, no wrap, cut to n; mutants m1–m5 fail (m3–m5 by exception only) | **split.** C9a, the code does exactly that (A by reading, B by probe): **ACCEPTED**. C9b, that this is Künsch's scheme: **UNRESOLVED** (no primary quote) |
+| C10 | pooled statistics resample the same dates for all names | mat | CONFIRMED by reading: one count matrix per block length feeds every name and the pooled rows | CONFIRMED: equals a one-row reference and differs from an independent-draw reference | **ACCEPTED** (the `level_block` pooled path was read, not probed) |
+
+Caveat from Channel B: the C1/C2 roll-jump leg was tuned over four passes after a first look, so that leg is weakly
+pre-registered; its shift mutant is killed by GS only. It is supporting evidence, not load-bearing.

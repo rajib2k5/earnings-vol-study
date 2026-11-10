@@ -100,6 +100,11 @@ CC BY-SA 4.0 on the same terms, under the owner's decision of 2026-10-29
 Cboe VX*: no VX* value is in this folder or anywhere else in this
 repository. security.parquet's cboe_vx_index only names the Cboe index that
 exists for a company (VXAPL and four others); it holds no index value.
+Since 2026-11-09, vx_crosscheck.json holds aggregate statistics of the VX*
+cross-check (correlations, slopes, median level spreads and their intervals,
+per name and pooled, and one pooled crush ratio), computed from the VX*
+closes. They fall under Cboe's terms, not under CC BY-SA, and are committed
+under the owner's decision of 2026-10-29 (ADR 0001 §7; data model §6 item 8).
 
 The timing labels (events.parquet) are not derived from Yahoo data: they come
 from the DoltHub calendar and from company press releases. A Yahoo price gap

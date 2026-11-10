@@ -29,16 +29,17 @@ that the shared clone did not change at all (`src/earnings_vol/ingest/dolt.py`).
 lane per layer of [ADR 0001](../adr/0001-overall-architecture.md) (ingest, events, measures, panel, stats, export),
 and each layer reads only from the layers before it in that list.
 
-Two sources feed the timing label ([ADR 0002 §3](../adr/0002-day-zero-convention.md)). **SEC EDGAR 8-K acceptance
-times are accepted (2026-10-28) but gated on the owner's contact string** (dashed edge): the client refuses to run
-until `SEC_EDGAR_USER_AGENT` is set, so nothing flows yet. Until then the rule in force is the company's press release
-(its investor-relations time stamp, checked by hand; 20 look-ups are done at milestone 1), then the calendar label. The price gap is a local
+Two sources feed the timing label ([ADR 0002 §3](../adr/0002-day-zero-convention.md)). The rule in force is the
+company's press release (its investor-relations time stamp, checked by hand; 20 look-ups), then the **SEC EDGAR 8-K
+Item 2.02 acceptance time** (in use since 2026-11-09, 411 look-ups; dashed edge, because the submissions JSON is cached
+locally and never committed), then the calendar label. 42 of the 473 required look-ups are still open and the ADR's
+50-event audit has not run ([edgar-ledger](../validation/edgar-ledger.md) §10), so the labels stay provisional. The price gap is a local
 diagnostic: it triggers a second reading (daily/mixed) or a look-up (coarse) and never sets a label. Who writes and who reads which
 table:
 
 | Layer | Writes | Reads |
 |---|---|---|
-| events | `session`, `market_daily`, `security`, `ticker_alias`, `events`, `eps`, `timing_check` | raw and cache extracts: calendar, EPS, Yahoo prices, FRED, S&P list; hand-checked press releases, recorded in the committed `data/manual/press_release_checks.csv`; the SEC EDGAR filing index once the owner's contact string is set |
+| events | `session`, `market_daily`, `security`, `ticker_alias`, `events`, `eps`, `timing_check` | raw and cache extracts: calendar, EPS, Yahoo prices, FRED, S&P list; hand-checked press releases, recorded in the committed `data/manual/press_release_checks.csv`; the SEC EDGAR submissions JSON (local cache, since 2026-11-09) |
 | measures | `session_snapshot` (milestone 1), `chain_expiry` (local), `iv_daily`, `event_iv` (milestone 2: the IV columns of `event_measures`, built early) | option-chain extracts, `session_snapshot`, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0) |
 | panel | `event_window_obs`, `event_measures`, `event_measures_vx` | `iv_daily`, `chain_expiry`, `events`, `eps`, `security`, `session`, `market_daily`, local Yahoo and VX\* extracts |
 | stats | `results` | `event_measures`, `event_measures_vx`, `event_window_obs`, `events`, `eps`, `security`; for validation also `iv_daily`, `chain_expiry`, the VX\* extract |
@@ -67,7 +68,7 @@ flowchart TB
         cboe_vx{{"CBOE VX* indices\n5 names, local only"}}
         sp500{{"S#38;P 500 list\nsector, sub-industry"}}
         pr{{"Press releases\nIR time stamp, press_release_checks.csv"}}
-        edgar{{"SEC EDGAR 8-K (accepted)\ngated on contact string"}}
+        edgar{{"SEC EDGAR 8-K\nItem 2.02 acceptance time"}}
     end
     subgraph ingest["Ingest"]
         mirror[("Dolt mirrors\nprivate copies, cache/dolt_mirror")]
@@ -110,7 +111,7 @@ flowchart TB
     fred --> fetch
     cboe_vx -->|"local only"| fetch
     sp500 --> fetch
-    edgar -.->|"gated on contact string"| fetch
+    edgar -.->|"local cache"| fetch
     pr -->|"timing label"| evt
     dolt -->|"monthly extracts"| cache
     fetch -->|"raw files"| cache
@@ -195,8 +196,8 @@ section 4. At milestone 2 three files are written, `meta.json`, `sample_funnel.j
 all at schema version 0.3.0; the other view files do not exist yet. `meta.json` has `project`, `milestone`, `title`,
 `data_sources` (each source with `name`, `uses`, `url`, `licence`, `committed`), `data_licence`, `sample`, `params`,
 `files` and `provenance`. In `sample_funnel.json`, `by_move_tercile` and `evar_nonpositive` are filled since
-milestone 2 (they were null at 0.2.0). The `events` entity's label says that `edgar_accession` and `edgar_accepted_utc` are gated on the owner's
-contact string: they stay null until it is set.
+milestone 2 (they were null at 0.2.0). The `events` entity's label says that `edgar_accession` and `edgar_accepted_utc` are null where no Item 2.02 8-K
+was found (since 2026-11-09 they are set for 447 events).
 
 ```mermaid
 ---
@@ -327,7 +328,7 @@ erDiagram
         date32 snapshot_date "nullable"
         enum snapshot_status
     }
-    events["events (edgar#95;#42;#58; gated on the owner's contact string)"] {
+    events["events (edgar#95;#42;#58; null where no 8-K was found)"] {
         string event_id PK
         string security_id FK
         string ticker_at_event
@@ -688,8 +689,8 @@ no way to show enum members or unique constraints.
   unique constraints on `session.session_index` and `eps.event_id` have no marker in the kit.
 - **Licensing classes (U, R, S, F) are not drawn.** Only the `_yf` / `_cboe` suffixes show which columns are class R.
   The class of every other column is in `data-model.md` section 2.1.
-- **Columns cannot carry a note.** `events.edgar_accession` and `events.edgar_accepted_utc` stay null until the
-  owner's contact string is set (ADR 0002: EDGAR accepted 2026-10-28, gated on that string). The kit has no per-column
+- **Columns cannot carry a note.** `events.edgar_accession` and `events.edgar_accepted_utc` are null where no Item 2.02
+  8-K was found on D−1…D+1 (ADR 0002: EDGAR in use since 2026-11-09; 447 events have them). The kit has no per-column
   note, so the `events` entity's label says it. The `edgar` value of `timing_source` is an enum member and is not drawn.
 - **`session_snapshot` is temporary.** It holds the first four columns of `iv_daily` (data model §3.6a, R22 and
   R23). At milestone 2 `iv_daily` carries the same four columns and the funnel reads them there; the table is kept
@@ -714,7 +715,7 @@ no way to show enum members or unique constraints.
 - **Data flow.** There is no `iv_daily` to `events` edge any more: `events` needs no IV data (the per-measure
   `eligible_*` columns moved to `event_measures`). One dashed edge feeds `events` from `eps` (`match_status` to
   `orphan_nearby`). It stays inside the events layer, whose fixed internal order makes it legal. Two more dashed edges
-  enter `events`: the SEC EDGAR input (accepted, gated on the contact string), and `timing_check`, which triggers a second reading (daily/mixed) or a
+  enter `events`: the SEC EDGAR input (in use since 2026-11-09; its raw JSON is local only), and `timing_check`, which triggers a second reading (daily/mixed) or a
   look-up (coarse) and never sets `timing_used` (ADR 0002 §3). The five DoltHub source tables are fed by one
   "Dolt mirrors" node (the private copies of the clones). *Milestone 2:* `session_snapshot` feeds `iv_daily` (which
   sessions have a snapshot), and `iv_daily`, `event_iv` and `timing_check` (its gap verdict, committed since the owner's

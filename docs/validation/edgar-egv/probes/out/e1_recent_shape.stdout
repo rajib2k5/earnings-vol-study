@@ -1,0 +1,4 @@
+51 CIK main files; total recent rows 120329
+first file keys of recent: ['acceptanceDateTime', 'accessionNumber', 'act', 'core_type', 'fileNumber', 'filingDate'] ...
+rows read via edgar.merge_filings: 390040; non-str form/items: 0
+RESULT: SURVIVES

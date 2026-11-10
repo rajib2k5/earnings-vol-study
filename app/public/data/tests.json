@@ -1,7 +1,7 @@
 {
   "data": {
     "caveats": [
-      "Timing labels are provisional: 20 press releases were looked up and every other event keeps the calendar's label (not_checked) until SEC EDGAR is set up, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
+      "Timing labels are provisional: 431 labels rest on a document (a company press release or the SEC EDGAR 8-K filing time) and every other event keeps the calendar's label (not_checked), among them some that ADR 0002 requires to be looked up; the ADR's 50-event audit of the EDGAR labels has not run, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
       "Holm runs over H1, H2, H3, H4, H5, H6, H7 (7 hypotheses). H5 (9.55%), H6 (8.10%), H7 (16.15%) failed gate G1's regression size check, which ran before their results were computed: their statistics are liberal on this design, so a rejection by them would not be trusted. They stay in the declared family with their real p-values (ADR 0005 \u00a75, dated note of 2026-10-29); their rows are in drivers.json. Sensitivity, not binding: over the family without them (H1, H2, H3, H4) the Holm p would be H1 2.32e-22, H2 0.02344, H3 1.0, H4 1.0, H2's season cut 0.04688.",
       "Primary rows are equal-weighted means of market-adjusted abnormal log IV (VIX, beta per company). Precision-weighted rows (BMP, KP, KPP, Patell) test another estimand and are robustness only.",
       "Market-adjusted numbers are aggregates of values computed with the Cboe VIX index (via FRED VIXCLS); see DATA.md for Cboe's terms.",
@@ -3890,15 +3890,15 @@
     },
     "lookups": {
       "complete": false,
-      "n_done": 20
+      "n_done": 431
     },
     "provenance": {
-      "code_commit": "75948b3",
+      "code_commit": "6b8453f",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "74bed6f4b1281810d09f7bf6bc90addd10e20be263c3ea7005369b9ebb6e288e",
+      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
       "sample_label": "daily"
     },
     "rows": [
@@ -5209,8 +5209,8 @@
       }
     ]
   },
-  "generated_at": "2026-10-30T04:34:55Z",
+  "generated_at": "2026-11-09T21:45:42Z",
   "kind": "tests",
   "schema_version": "0.5.0",
-  "source_commit": "75948b3"
+  "source_commit": "6b8453f"
 }

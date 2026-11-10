@@ -2,7 +2,7 @@
 
 PRE-REGISTRATION (written before the Channel B probes below were run; verdicts are appended in §3 after both channels).
 
-- Reviewed: the uncommitted working tree on top of commit `3636e98` (milestone 1, "Universe and events").
+- Reviewed: the uncommitted working tree on top of commit `e49a560` (milestone 1, "Universe and events").
 - Protocol: `evidence-gated-validation`, Tier 2 for every numeric claim. **Mode: single-context sequential fallback**
   (one reviewer context; a separate researcher sub-agent did the web look-ups for claim 3 and saw only the claimed
   values, not the code). Dual-confirmed results below are "dual-confirmed (fallback mode)".
@@ -49,7 +49,7 @@ PRE-REGISTRATION (written before the Channel B probes below were run; verdicts a
 
 | ID | Primary source read | Finding |
 |---|---|---|
-| 1a | ADR 0001 M1 note; `git log` (M0 commit `3636e98` at 2026-10-28 14:44:27 −05) | ADR says the `options` manifest was rewritten 2026-10-28 14:11 CDT, before M1 |
+| 1a | ADR 0001 M1 note; `git log` (M0 commit `e49a560` at 2026-10-28 14:44:27 −05) | ADR says the `options` manifest was rewritten 2026-10-28 14:11 CDT, before M1 |
 | 1b | `ingest/dolt.py:129-176` | stat fingerprint covers `<clone>/.dolt/**` only; content fingerprint hashes 5 named files and only sizes the content-addressed table files |
 | 1c | dolt 2.6.1 docs | no primary document states that `dolt sql` touches files on a SELECT: **UNVERIFIABLE** on Channel A |
 | 2 | ADR 0002 §2 table; installed `exchange_calendars/exchange_calendar_xnys.py` | XNYS "does not observe" Columbus/Veterans Day; early closes on July 3 (Mon/Tue/Thu) and Black Friday; `day0()` code mirrors the four rows |
@@ -88,7 +88,7 @@ Gate key: ACCEPTED = both channels confirm; REJECTED = refuted. "B-only" = no pr
 | 9 | **ACCEPTED (one latent gap)** | `p10`: all 100,000 decimal(5,4) values and 400,000 sampled decimal(12,2)/(10,4)/(18,8)/(38,18) values: `normalise mismatches 0` (direct cast: 30,763 / 13,464 / 31,926 / 117 / 7,084). Cached small extracts (source types decimal(16,2), decimal(7,2)) and all 82 chain months (`NORMALISE_VERSION 2`) hold only nearest floats. Latent: `normalise()` truncates a timestamp with a time of day to its date silently (`2026-10-24T01:00` → `2026-10-24`); harmless for Dolt DATE columns |
 | 10 | **REFUTED under the strict reading** | `p11`: no `_yf`/`_cboe` column, no home path, no secret, no personal mail domain, no Kaggle/OptionsDX file in 319 tracked + untracked files; CC BY-SA README + LICENSE in `data/derived/`. But `security.parquet.universe_rank` commits a **Yahoo market-cap ordinal for 497 firms**; data model §2.1:246 justifies F as "a rank of 50 firms", and its own stricter reading (§2.1:322) makes it R. Nothing downstream reads it (`grep`) |
 | 11a | **ACCEPTED** | `"0.2.0"` in `contract.py:25`, `contract.ts:21`, tests, DATA.md; funnel key set identical in exporter output, `funnel.ts:67` and data model §4; status order identical. The app computes only bar widths (`FunnelPage.tsx:14`) |
-| 11b | **REFUTED literally; SURVIVES modulo the timestamp** | `p11`: rebuilt `sample_funnel.json` and `meta.json` differ only in `generated_at` (the exporter stamps the wall clock; `contract.envelope` could take a fixed time but `main()` passes `now`). Both name `source_commit`/`code_commit` `3636e98`, the M0 commit, which does not contain the code that wrote them. `p11b`: the five committed events-layer tables rebuild byte-identically |
+| 11b | **REFUTED literally; SURVIVES modulo the timestamp** | `p11`: rebuilt `sample_funnel.json` and `meta.json` differ only in `generated_at` (the exporter stamps the wall clock; `contract.envelope` could take a fixed time but `main()` passes `now`). Both name `source_commit`/`code_commit` `e49a560`, the M0 commit, which does not contain the code that wrote them. `p11b`: the five committed events-layer tables rebuild byte-identically |
 | 12a | **ACCEPTED** | `uv run pytest -q`: `2 failed, 249 passed` = 251 (the 2 are `tests/test_diagrams.py`, the parallel agent's); `-m dolt`: `2 passed`; `npx vitest run`: `Test Files 27 passed`, `Tests 447 passed` |
 | 12b | **PARTLY REFUTED** | `p12` (13 mutants on a scratch copy, whole suite each, working tree SHA-256 unchanged): killed M1, M2, M3, M4, M5, M6, M7, M9, M11, M13; **survived M8** (lag 10 no longer matches: nothing pins the inclusive lower bound; the golden test never re-runs the match), **M10** (`open(__file__)` and `import urllib.request` added to `events/eps.py`), **M12** (invariant scope). No test greps source text; no test helper re-implements the code. The page's own 50-mutant run was not repeated |
 | 13 | **ACCEPTED (P3 inherits 5a)** | `p14`: P1 = 4/417 = 0.959% (BRK.B ×3, WFC ×1); 2/368; 37/1,353 = 2.73%. `p07`: P3 = 357/366, median 30, p5 23.25, 348 after the snapshot rule. With corrected zones P3 = 359/366 |
@@ -100,7 +100,7 @@ Gate key: ACCEPTED = both channels confirm; REJECTED = refuted. "B-only" = no pr
 1. **Wrong EPS on events** (from 5a): the COST May events 2020–2026 carry the February quarter's `reported`/`estimate`/consensus (COST:2025-05-29 shows 4.02 vs 4.09, a miss; its own quarter was 4.28), ORCL:2024-12-09 carries Q1's 1.39; ORCL ×4, COST ×2, CSCO ×1 sample events have no EPS link at all (`p06`). Every surprise analysis (H5) would inherit this.
 2. **Milestone page §6.3 is corrupted** (`docs/milestones/01-universe-and-events.md:293`): "LOOKU" followed by a second copy of the P1–P3 table; the table of the 20 look-ups is missing.
 3. **Sample ranges leave day 0 on 2024-09-10 and 09-11 in no sample** (ADR 0004 §5: `coarse` ends 09-09, `mixed` starts 09-12): ORCL:2024-09-09, looked up and confirmed, ends as `outside_samples`.
-4. **Provenance names the wrong commit**: both JSON files say `3636e98`, which does not contain the funnel code; after the M1 commit they will still name M0 unless re-exported.
+4. **Provenance names the wrong commit**: both JSON files say `e49a560`, which does not contain the funnel code; after the M1 commit they will still name M0 unless re-exported.
 5. **EDGAR placeholder filter** misses reserved subdomains/TLDs and junk values (claim 4).
 6. **Fingerprint blind spots** (claim 1b): table files in the mirror are size-only; files beside `.dolt/` are not fingerprinted.
 7. **Vacuous test name**: `test_a_pure_select_touches_files_but_keeps_their_bytes` asserts nothing about touching.
@@ -137,5 +137,5 @@ gate pass; `uv run python tools/licensing/scan_real_rows.py` → `clean: 0 lines
 | 14, 3c: "499 ranked", "10.71 minutes", notebook caveat | 497 ranked; 10.72 (CSV sum); `notebooks/01_events.ipynb` §3 prints the funnel caveats (builder) | `test_events_notebook_cells_run` |
 | Licence scanner (added during the fixes) | FRED fixture values made up; EDGAR fixture accession and CIK made up; ADR 0002 Context item 3 and concept note 04 no longer quote Yahoo AAPL prices; `research/prototypes/worked.py` drops its Yahoo close-to-close line and `worked.out.txt` was regenerated | `scan_real_rows.py` → clean |
 
-Not changed: the JSON `source_commit`/`code_commit` still name `3636e98` (re-export after the commit, by the owner);
+Not changed: the JSON `source_commit`/`code_commit` still name `e49a560` (re-export after the commit, by the owner);
 `NORMALISE_VERSION`; ADR 0001's own "only if the owner approves EDGAR" wording (outside this fix list).

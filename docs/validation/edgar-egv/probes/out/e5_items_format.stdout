@@ -1,0 +1,4 @@
+8-K rows 7183; empty items 0; items not matching comma-separated item numbers 0 []
+rows with a comma 5120; rows with '2.02,9.01' exactly 1594; rows with ; | / or space 0
+8-K rows carrying item 2.02 (independent split on ','): 2312; selected by edgar.item_202_filings: 2312; sets equal: True
+RESULT: SURVIVES

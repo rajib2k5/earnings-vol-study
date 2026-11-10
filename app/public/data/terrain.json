@@ -1,21 +1,21 @@
 {
   "data": {
     "caveats": [
-      "Timing labels are provisional: 20 press releases were looked up and every other event keeps the calendar's label (not_checked) until SEC EDGAR is set up, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
+      "Timing labels are provisional: 431 labels rest on a document (a company press release or the SEC EDGAR 8-K filing time) and every other event keeps the calendar's label (not_checked), among them some that ADR 0002 requires to be looked up; the ADR's 50-event audit of the EDGAR labels has not run, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
       "Each cell is one company's mean over its primary events (about 7): a description of the event-time shape, not a test."
     ],
     "lookups": {
       "complete": false,
-      "n_done": 20
+      "n_done": 431
     },
     "measure": "aliv_mean_adj",
     "provenance": {
-      "code_commit": "75948b3",
+      "code_commit": "6b8453f",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "74bed6f4b1281810d09f7bf6bc90addd10e20be263c3ea7005369b9ebb6e288e",
+      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
       "sample_label": "daily"
     },
     "rel_days": [
@@ -1498,8 +1498,8 @@
       ]
     ]
   },
-  "generated_at": "2026-10-30T04:34:55Z",
+  "generated_at": "2026-11-09T21:45:42Z",
   "kind": "terrain",
   "schema_version": "0.5.0",
-  "source_commit": "75948b3"
+  "source_commit": "6b8453f"
 }

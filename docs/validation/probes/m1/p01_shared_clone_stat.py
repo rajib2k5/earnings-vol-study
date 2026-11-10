@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from earnings_vol import config
 from earnings_vol.ingest import dolt
 
-M0_COMMIT = datetime(2026, 10, 28, 19, 44, 27, tzinfo=timezone.utc)  # 3636e98, 14:44:27 -0500
+M0_COMMIT = datetime(2026, 10, 28, 19, 44, 27, tzinfo=timezone.utc)  # e49a560, 14:44:27 -0500
 
 
 def fp():

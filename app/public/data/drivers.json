@@ -1,7 +1,7 @@
 {
   "data": {
     "caveats": [
-      "Timing labels are provisional: 20 press releases were looked up and every other event keeps the calendar's label (not_checked) until SEC EDGAR is set up, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
+      "Timing labels are provisional: 431 labels rest on a document (a company press release or the SEC EDGAR 8-K filing time) and every other event keeps the calendar's label (not_checked), among them some that ADR 0002 requires to be looked up; the ADR's 50-event audit of the EDGAR labels has not run, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
       "Coefficients are in log points of the outcome per standard deviation of the regressor (z-scored over each model's own events). Fixed-effect coefficients are not shown (data model \u00a72.1).",
       "Two-way standard errors cluster by day-0 date and firm, with t (or F) on min(G) - 1 degrees of freedom (ADR 0005 \u00a73).",
       "Gate G1's regression size check ran before these results were computed. Its calibrated null rejects H5 twoway_date_t 9.55%; H6 twoway_date_t 8.10%; H7 twoway_date_wald 16.15% of the time at 5% (band upper edge 6.30% over 2,000 replications): these statistics are liberal on this design, so a rejection by them would not be trusted. H5, H6, H7 stay in the declared Holm family with their real p-values (ADR 0005 \u00a75, dated note of 2026-10-29: G1's size designs were declared for H1-H4 only); none of them is rejected. The Holm p over the family without them (H1, H2, H3, H4) is a sensitivity, shown apart, not the binding one.",
@@ -535,7 +535,7 @@
     },
     "lookups": {
       "complete": false,
-      "n_done": 20
+      "n_done": 431
     },
     "models": [
       {
@@ -1002,7 +1002,7 @@
             "note": null,
             "p_holm": null,
             "p_value": 0.6341,
-            "q_bh": 0.7728,
+            "q_bh": 0.7977,
             "role": "exploratory",
             "se": 0.011282,
             "statistic": "twoway_date_t",
@@ -1136,13 +1136,13 @@
         "n": 339,
         "n_clusters_date": 166,
         "n_clusters_firm": 50,
-        "r2": 0.4072,
+        "r2": 0.407,
         "sample": "daily",
         "terms": [
           {
-            "ci_hi": 0.009552,
-            "ci_lo": -0.005376,
-            "coef": 0.002088,
+            "ci_hi": 0.009169,
+            "ci_lo": -0.005852,
+            "coef": 0.001659,
             "cov_type": "two-way day-0 date x firm, t",
             "df": 49.0,
             "df_num": null,
@@ -1155,18 +1155,18 @@
             "n_clusters_firm": 50,
             "note": null,
             "p_holm": null,
-            "p_value": 0.5766,
-            "q_bh": 0.7496,
+            "p_value": 0.6591,
+            "q_bh": 0.8033,
             "role": "exploratory",
-            "se": 0.003714,
+            "se": 0.003737,
             "statistic": "twoway_date_t",
-            "t": 0.5621,
+            "t": 0.4438,
             "term": "abs_sue"
           },
           {
-            "ci_hi": 0.02409,
-            "ci_lo": -0.019767,
-            "coef": 0.002161,
+            "ci_hi": 0.024172,
+            "ci_lo": -0.019726,
+            "coef": 0.002223,
             "cov_type": "two-way day-0 date x firm, t",
             "df": 49.0,
             "df_num": null,
@@ -1179,18 +1179,18 @@
             "n_clusters_firm": 50,
             "note": null,
             "p_holm": null,
-            "p_value": 0.8438,
-            "q_bh": 0.9141,
+            "p_value": 0.8396,
+            "q_bh": 0.9095,
             "role": "exploratory",
-            "se": 0.010912,
+            "se": 0.010922,
             "statistic": "twoway_date_t",
-            "t": 0.1981,
+            "t": 0.2035,
             "term": "ln_sigma_d"
           },
           {
-            "ci_hi": -0.014395,
-            "ci_lo": -0.044647,
-            "coef": -0.029521,
+            "ci_hi": -0.014307,
+            "ci_lo": -0.044553,
+            "coef": -0.02943,
             "cov_type": "two-way day-0 date x firm, t",
             "df": 49.0,
             "df_num": null,
@@ -1203,18 +1203,18 @@
             "n_clusters_firm": 50,
             "note": null,
             "p_holm": null,
-            "p_value": 0.0002732,
-            "q_bh": 0.001522,
+            "p_value": 0.0002832,
+            "q_bh": 0.001578,
             "role": "exploratory",
-            "se": 0.007527,
+            "se": 0.007526,
             "statistic": "twoway_date_t",
-            "t": -3.9221,
+            "t": -3.9107,
             "term": "slope"
           },
           {
-            "ci_hi": 0.026149,
-            "ci_lo": -0.002397,
-            "coef": 0.011876,
+            "ci_hi": 0.02617,
+            "ci_lo": -0.002383,
+            "coef": 0.011893,
             "cov_type": "two-way day-0 date x firm, t",
             "df": 49.0,
             "df_num": null,
@@ -1227,12 +1227,12 @@
             "n_clusters_firm": 50,
             "note": null,
             "p_holm": null,
-            "p_value": 0.1009,
-            "q_bh": 0.2185,
+            "p_value": 0.1005,
+            "q_bh": 0.2177,
             "role": "exploratory",
-            "se": 0.007102,
+            "se": 0.007104,
             "statistic": "twoway_date_t",
-            "t": 1.6722,
+            "t": 1.6741,
             "term": "size"
           }
         ]
@@ -1269,7 +1269,7 @@
             "note": null,
             "p_holm": null,
             "p_value": 0.6245,
-            "q_bh": 0.7728,
+            "q_bh": 0.7977,
             "role": "exploratory",
             "se": 0.005957,
             "statistic": "twoway_date_t",
@@ -1777,9 +1777,9 @@
         "sample": "coarse",
         "terms": [
           {
-            "ci_hi": 0.013446,
-            "ci_lo": -0.025609,
-            "coef": -0.006081,
+            "ci_hi": 0.013445,
+            "ci_lo": -0.02561,
+            "coef": -0.006082,
             "cov_type": "two-way day-0 date x firm, t",
             "df": 39.0,
             "df_num": null,
@@ -1797,7 +1797,7 @@
             "role": "exploratory",
             "se": 0.009654,
             "statistic": "twoway_date_t",
-            "t": -0.6299,
+            "t": -0.63,
             "term": "abs_surprise"
           },
           {
@@ -1827,7 +1827,7 @@
           {
             "ci_hi": -0.055895,
             "ci_lo": -0.113698,
-            "coef": -0.084796,
+            "coef": -0.084797,
             "cov_type": "two-way day-0 date x firm, t",
             "df": 39.0,
             "df_num": null,
@@ -1951,7 +1951,7 @@
             "note": null,
             "p_holm": null,
             "p_value": 0.8216,
-            "q_bh": 0.9141,
+            "q_bh": 0.9095,
             "role": "exploratory",
             "se": null,
             "statistic": "twoway_date_wald",
@@ -1962,17 +1962,17 @@
       }
     ],
     "provenance": {
-      "code_commit": "75948b3",
+      "code_commit": "6b8453f",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "74bed6f4b1281810d09f7bf6bc90addd10e20be263c3ea7005369b9ebb6e288e",
+      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
       "sample_label": "daily"
     }
   },
-  "generated_at": "2026-10-30T04:34:55Z",
+  "generated_at": "2026-11-09T21:45:42Z",
   "kind": "drivers",
   "schema_version": "0.5.0",
-  "source_commit": "75948b3"
+  "source_commit": "6b8453f"
 }

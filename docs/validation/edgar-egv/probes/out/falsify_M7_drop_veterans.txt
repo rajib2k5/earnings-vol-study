@@ -1,0 +1,22 @@
+mutant:        M7_drop_veterans
+file:          src/earnings_vol/ingest/edgar.py
+mutation:      'out = {columbus, vet} |'  ->  'out = {columbus} |'
+probe:         e7_holidays.py
+sha256 before: dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe
+sha256 after:  dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe   restored_identical=True
+falsifier_rc:  1
+--- stdout (tail) ---
+Columbus  2022-10-10 Mon NYSE session=True acceptances(NY date, UTC date, filingDate)=(0, 0, 0) in edgar_holidays=True
+Veterans  2022-11-11 Fri NYSE session=True acceptances(NY date, UTC date, filingDate)=(0, 10, 0) in edgar_holidays=False
+Columbus  2023-10-09 Mon NYSE session=True acceptances(NY date, UTC date, filingDate)=(0, 0, 0) in edgar_holidays=True
+Veterans  2023-11-10 Fri NYSE session=True acceptances(NY date, UTC date, filingDate)=(0, 5, 0) in edgar_holidays=False
+Columbus  2024-10-14 Mon NYSE session=True acceptances(NY date, UTC date, filingDate)=(0, 0, 0) in edgar_holidays=True
+Veterans  2024-11-11 Mon NYSE session=True acceptances(NY date, UTC date, filingDate)=(0, 0, 0) in edgar_holidays=False
+Columbus  2025-10-13 Mon NYSE session=True acceptances(NY date, UTC date, filingDate)=(0, 0, 0) in edgar_holidays=True
+Veterans  2025-11-11 Tue NYSE session=True acceptances(NY date, UTC date, filingDate)=(0, 9, 0) in edgar_holidays=False
+Columbus  2026-10-12 Mon NYSE session=True acceptances(NY date, UTC date, filingDate)=(0, 0, 0) in edgar_holidays=True
+Veterans 2026-11-11: after the last cached acceptance, not testable
+control: 1710 other sessions, min acceptances 0, median 180; sessions with zero acceptances (other than targets): [datetime.date(2020, 12, 24), datetime.date(2021, 6, 18), datetime.date(2021, 12, 31), datetime.date(2024, 12, 24), datetime.date(2025, 12, 24), datetime.date(2025, 12, 26)]
+RESULT: REFUTED: ('Veterans', '2020-11-11'); ('Veterans', '2021-11-11'); ('Veterans', '2022-11-11'); ('Veterans', '2023-11-10'); ('Veterans', '2024-11-11'); ('Veterans', '2025-11-11')
+--- stderr ---
+

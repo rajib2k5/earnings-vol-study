@@ -1,0 +1,3 @@
+cmd: probes/run_probe.sh e1_recent_shape.py <fresh-pycache-prefix>
+rc: 0
+wall_time: .766874942s

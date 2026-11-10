@@ -1,14 +1,14 @@
 {
   "data": {
     "caveats": [
-      "Timing labels are provisional: 20 press releases were looked up and every other event keeps the calendar's label (not_checked) until SEC EDGAR is set up, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
+      "Timing labels are provisional: 431 labels rest on a document (a company press release or the SEC EDGAR 8-K filing time) and every other event keeps the calendar's label (not_checked), among them some that ADR 0002 requires to be looked up; the ADR's 50-event audit of the EDGAR labels has not run, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
       "Implied: at day -1, E (event variance) and sigma_d (ordinary variance per session = sigma_d^2/252, ADR 0003 \u00a7c). The expected |move| of a normal move with variance E + sigma_d^2/252 is sqrt(2/pi) sqrt(E + sigma_d^2/252); it is exceeded 42.5% of the time, not 50%, when pricing is fair.",
       "Realised: r0, the log change of the option-implied forward from day -1 to day 0 plus carry (DoltHub option quotes), on the same expiry both days.",
       "H7's Wald test failed gate G1's size check (its calibrated null rejects 16.15% at 5%, band upper edge 6.30%): the test is liberal on this design, so a rejection by it would not be trusted. H7 stays in the declared Holm family (ADR 0005 \u00a75, dated note of 2026-10-29) with this p-value; its Holm p is 1.0, not rejected. The coefficient and share p-values come from the same kind of two-way statistic."
     ],
     "lookups": {
       "complete": false,
-      "n_done": 20
+      "n_done": 431
     },
     "points": [
       {
@@ -5053,12 +5053,12 @@
       }
     ],
     "provenance": {
-      "code_commit": "75948b3",
+      "code_commit": "6b8453f",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "74bed6f4b1281810d09f7bf6bc90addd10e20be263c3ea7005369b9ebb6e288e",
+      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
       "sample_label": "daily"
     },
     "summary": {
@@ -5098,8 +5098,8 @@
       "share_exceed_se": 0.0242
     }
   },
-  "generated_at": "2026-10-30T04:34:55Z",
+  "generated_at": "2026-11-09T21:45:42Z",
   "kind": "implied_vs_realised",
   "schema_version": "0.5.0",
-  "source_commit": "75948b3"
+  "source_commit": "6b8453f"
 }

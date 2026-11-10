@@ -3,7 +3,8 @@
 #
 # THE ORDER INSIDE THE LAYER (ADR 0001 §1)
 #   base events (calendar rows resolved to securities)
-#   -> timing (documents, then the calendar label)          timing.py
+#   -> timing (press releases; the 8-K when params
+#      timing.edgar; then the calendar label)               timing.py
 #   -> duplicate rows of one release (duplicate_rows)
 #   -> day 0 / day -1, prev/next links, gap_sessions_prev   calendar.py
 #   -> EPS matching (duplicate rows are skipped)            eps.py
@@ -35,7 +36,7 @@ import pandas as pd
 
 from earnings_vol.events import calendar, securities
 from earnings_vol.events.calendar import Sessions
-from earnings_vol.events.timing import Reading, lookup_reasons, parse_when, resolve_timing
+from earnings_vol.events.timing import Reading, lookup_reasons, parse_when, resolve_edgar, resolve_timing
 
 COLUMNS = ["event_id", "security_id", "ticker_at_event", "announce_date", "announce_date_used", "timing_raw",
            "timing_used", "timing_status", "timing_source", "gap_check_changed", "edgar_accession",
@@ -132,20 +133,38 @@ def sample_of(d: date, ranges: dict[str, tuple[date, date]]) -> str:
 
 
 def build_events(base: pd.DataFrame, checks: pd.DataFrame, sessions: Sessions, *, calendar_commit: str,
-                 sample_ranges: dict[str, tuple[date, date]], duplicate_days: int) -> pd.DataFrame:
+                 sample_ranges: dict[str, tuple[date, date]], duplicate_days: int,
+                 edgar: dict | None = None) -> pd.DataFrame:
     """Steps up to the prev/next links, and the duplicate rows (exclusion_reason
     `duplicate_row`, None otherwise). EPS-dependent columns and the other
-    exclusion reasons are filled by finish_events()."""
+    exclusion reasons are filled by finish_events().
+
+    `edgar` maps event_id -> its EDGAR reading (ingest.edgar.read_acceptance;
+    None for no 8-K) for every event EDGAR is consulted on. An event with a
+    press-release row keeps the press release's timing and only records the
+    8-K; any other consulted event is resolved by timing.resolve_edgar(). The
+    extra column edgar_outcome (not committed; finish_events drops it) says
+    what EDGAR gave: an EDGAR_OUTCOMES value, "press_release", or None when
+    EDGAR was not consulted.
+    """
+    edgar = edgar or {}
     by_event = readings_by_event(checks)
-    unknown = sorted(set(by_event) - set(base["event_id"]))
+    unknown = sorted((set(by_event) | set(edgar)) - set(base["event_id"]))
     if unknown:
-        raise ValueError(f"press-release checks for events not in the calendar: {unknown}")
+        raise ValueError(f"press-release checks or EDGAR readings for events not in the calendar: {unknown}")
     rows = []
     for r in base.itertuples(index=False):
-        t = resolve_timing(r.announce_date, r.timing_raw, by_event.get(r.event_id, []), sessions)
+        readings = by_event.get(r.event_id, [])
+        if r.event_id in edgar and not readings:
+            t = resolve_edgar(r.announce_date, r.timing_raw, edgar[r.event_id], sessions)
+        else:
+            t = resolve_timing(r.announce_date, r.timing_raw, readings, sessions)
+            x = edgar.get(r.event_id)
+            t.update(edgar_accession=x["accession"] if x else None, edgar_accepted_utc=x["accepted_utc"] if x else None,
+                     edgar_outcome="press_release" if r.event_id in edgar else None)
         d0, dm1 = calendar.day0(t["announce_date_used"], t["timing_used"], sessions)
-        rows.append({**r._asdict(), **t, "edgar_accession": None, "edgar_accepted_utc": None,
-                     "day0_session": d0, "day_m1_session": dm1, "calendar_commit": calendar_commit})
+        rows.append({**r._asdict(), **t, "day0_session": d0, "day_m1_session": dm1,
+                     "calendar_commit": calendar_commit})
     ev = pd.DataFrame(rows, dtype=object)
     dup = duplicate_rows(ev, duplicate_days)
     ev["exclusion_reason"] = pd.Series(["duplicate_row" if e in dup else None for e in ev["event_id"]],

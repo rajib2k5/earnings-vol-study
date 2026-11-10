@@ -12,12 +12,12 @@
         "tercile": 1,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 0,
+          "confirmed": 110,
           "corrected": 0,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 118
+          "not_checked": 8
         }
       },
       {
@@ -31,12 +31,12 @@
         "tercile": 2,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 0,
+          "confirmed": 113,
           "corrected": 0,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 118
+          "not_checked": 5
         }
       },
       {
@@ -50,12 +50,12 @@
         "tercile": 3,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 0,
+          "confirmed": 118,
           "corrected": 0,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 118
+          "not_checked": 0
         }
       },
       {
@@ -69,12 +69,12 @@
         "tercile": 1,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 3,
+          "confirmed": 13,
           "corrected": 0,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 11
+          "not_checked": 1
         }
       },
       {
@@ -88,12 +88,12 @@
         "tercile": 2,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 1,
+          "confirmed": 10,
           "corrected": 1,
           "date_corrected": 1,
           "inferred": 1,
           "no_document": 0,
-          "not_checked": 10
+          "not_checked": 1
         }
       },
       {
@@ -107,18 +107,18 @@
         "tercile": 3,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 3,
+          "confirmed": 13,
           "corrected": 1,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 10
+          "not_checked": 0
         }
       },
       {
         "mean_abs_move": 0.013,
-        "mean_crush_mean_adj": -0.1618,
-        "n_crush": 200,
+        "mean_crush_mean_adj": -0.1622,
+        "n_crush": 201,
         "n_events": 214,
         "n_gap_check_changed": 0,
         "sample": "coarse",
@@ -126,12 +126,12 @@
         "tercile": 1,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 0,
+          "confirmed": 2,
           "corrected": 0,
           "date_corrected": 0,
-          "inferred": 0,
+          "inferred": 1,
           "no_document": 0,
-          "not_checked": 214
+          "not_checked": 211
         }
       },
       {
@@ -145,31 +145,31 @@
         "tercile": 2,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 2,
+          "confirmed": 9,
           "corrected": 0,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 211
+          "not_checked": 204
         }
       },
       {
         "mean_abs_move": 0.09114,
-        "mean_crush_mean_adj": -0.2079,
-        "n_crush": 205,
+        "mean_crush_mean_adj": -0.2076,
+        "n_crush": 208,
         "n_events": 213,
         "n_gap_check_changed": 0,
         "sample": "coarse",
-        "share_gap_contradicts": 0.0097,
+        "share_gap_contradicts": 0.0095,
         "tercile": 3,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 1,
+          "confirmed": 4,
           "corrected": 0,
           "date_corrected": 0,
-          "inferred": 0,
+          "inferred": 4,
           "no_document": 0,
-          "not_checked": 212
+          "not_checked": 205
         }
       }
     ],
@@ -194,7 +194,7 @@
     ],
     "caveats": [
       "Survivorship: the 50 companies are today's largest S&P 500 members by market cap, so firms that shrank or left the index since 2020 are missing and firms that grew are over-represented.",
-      "Timing labels are provisional: only 20 press releases were looked up (owner default, 2026-10-29); every other event keeps the calendar label as not_checked until SEC EDGAR is set up.",
+      "Timing labels are provisional: the events that ADR 0002 requires to be looked up take their label from a company press release or, since 2026-11-09, from the SEC EDGAR 8-K filing time; some of them are still open (no 8-K, an EDGAR holiday, an 8-K on another day or against the calendar), keep the calendar label as not_checked, and the ADR's 50-event audit of the EDGAR labels has not run.",
       "A baseline session counts only with an observed option snapshot and a 30-day IV (cm30_iv), so the last count is the primary sample before the milestone-3 eligibility rules of each measure.",
       "Implied moves are read on day -1, from the two shortest option expiries that span day 0; when that day's quotes are wide, the estimate is noisy (ADR 0003)."
     ],
@@ -207,15 +207,15 @@
     "evar_nonpositive_status": "computed: E at day -1 over the 347 events of the last step; 0 have no E at day -1 (fewer than two usable expiries span day 0)",
     "lookups": {
       "complete": false,
-      "n_done": 20
+      "n_done": 431
     },
     "provenance": {
-      "code_commit": "75948b3",
+      "code_commit": "6b8453f",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "74bed6f4b1281810d09f7bf6bc90addd10e20be263c3ea7005369b9ebb6e288e",
+      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
       "sample_label": "daily"
     },
     "steps": [
@@ -228,15 +228,15 @@
       },
       {
         "label": "One row per release, and day 0 can be placed",
-        "n_events": 1320,
-        "n_removed": 33,
+        "n_events": 1326,
+        "n_removed": 27,
         "reason": "duplicate_row|timing_ambiguous|timing_not_checked",
         "step": "timing_known"
       },
       {
         "label": "Day 0 in the daily range 2024-12-05 to 2026-10-26",
         "n_events": 366,
-        "n_removed": 954,
+        "n_removed": 960,
         "reason": "outside_daily_range",
         "step": "daily_range"
       },
@@ -267,36 +267,36 @@
         "sample": "daily",
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 0,
+          "confirmed": 351,
           "corrected": 0,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 368
+          "not_checked": 17
         }
       },
       {
         "sample": "mixed",
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 11,
+          "confirmed": 41,
           "corrected": 2,
           "date_corrected": 1,
           "inferred": 1,
           "no_document": 0,
-          "not_checked": 34
+          "not_checked": 4
         }
       },
       {
         "sample": "coarse",
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 5,
+          "confirmed": 29,
           "corrected": 0,
           "date_corrected": 0,
-          "inferred": 0,
+          "inferred": 6,
           "no_document": 0,
-          "not_checked": 863
+          "not_checked": 833
         }
       },
       {
@@ -314,16 +314,16 @@
     ],
     "timing_status_counts": {
       "ambiguous": 0,
-      "confirmed": 16,
+      "confirmed": 421,
       "corrected": 2,
       "date_corrected": 1,
-      "inferred": 1,
+      "inferred": 7,
       "no_document": 0,
-      "not_checked": 1333
+      "not_checked": 922
     }
   },
-  "generated_at": "2026-10-30T04:34:55Z",
+  "generated_at": "2026-11-09T21:45:42Z",
   "kind": "sample_funnel",
   "schema_version": "0.5.0",
-  "source_commit": "75948b3"
+  "source_commit": "6b8453f"
 }

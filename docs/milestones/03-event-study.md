@@ -5,7 +5,9 @@
   round); pending the owner's review. **The timing labels are provisional**: 20 of the 473 required press-release
   look-ups are done, and every other event keeps the calendar's label until SEC EDGAR runs (accepted 2026-10-28; it
   makes no request until the owner sets the contact string). Every result on this page, in `results.parquet` and in
-  the app depends on those labels.
+  the app depends on those labels. *Since 2026-11-09* SEC EDGAR is in use: 431 of the 473 look-ups are done (20 press releases, 411 EDGAR 8-K
+  times), 42 are open and the 50-event audit has not run, so the labels are still provisional. H1–H7, G1 and the
+  sample counts did not change; 13 exploratory rows moved slightly ([milestone 5](05-report-and-polish.md) §12).
 - **Later (milestone 4, 2026-10-29, as fixed after its review):** H5–H7 failed gate G1's regression size check but
   stay in Holm's declared family with their real p-values (ADR 0005 §5, dated note). H1–H4's p_holm are unchanged
   (H1 4.06e−22, H2 0.0469), and H2's G = 7 counterfactual is **0.0781** (not 0.0938: H5's p 0.0102 now ranks before
@@ -487,7 +489,8 @@ After the second fix round (§9), all on 2026-10-29 in the working tree unless a
 
 - **The Cboe VX\* cross-check** (ADR 0003 validation item 1). The owner's decision of 2026-10-29 allows building it and
   committing its values (data model §6 item 8, closed). Not built: no VX\* file has been downloaded. It is the next
-  step, together with `cboe5` (`event_measures_vx`).
+  step, together with `cboe5` (`event_measures_vx`). *Update 2026-11-09:* the cross-check ran
+  (`data/derived/vx_crosscheck.json`, milestone 5 §11); `cboe5` is still not built.
 - **ρ̂̄ = 0.30 for the crush** is above ADR 0005's warning line. Investigate before milestone 4: per-date common
   components of the abnormal changes (is there a date where every company moves together?), a stale shared snapshot,
   and whether a second market factor (sector IV) removes it. The primary statistic is robust to it; the KP-type rows
@@ -506,9 +509,10 @@ After the second fix round (§9), all on 2026-10-29 in the working tree unless a
   (no event is `timing_ambiguous`); the SPY placebo and the drop-the-10-largest robustness check of ADR 0004; the β
   stability check (first vs second half); the disclosure test of data model §2.1 (it belonged to the strict reading
   the owner replaced). `event_iv` and `session_snapshot` are kept, not folded or dropped.
-- **Provenance:** every JSON names `source_commit` fca9972 and `results.code_commit` is `fca9972…-dirty`, because this
+- **Provenance:** every JSON names `source_commit` 9441774 and `results.code_commit` is `9441774…-dirty`, because this
   work is uncommitted; re-export after the milestone commit (ledger defect 6).
-- **The timing look-ups** (453 to go) wait for SEC EDGAR; every number here is provisional until they are done.
+- **The timing look-ups:** 42 of 473 are still open and the 50-event audit has not run (SEC EDGAR in use since
+  2026-11-09, milestone 5 §12); every number here is provisional until they are done.
 
 ---
 

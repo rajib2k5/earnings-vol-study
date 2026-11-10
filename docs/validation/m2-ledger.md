@@ -1,6 +1,6 @@
 # Milestone 2 adversarial review: claims ledger
 
-- **Reviewed:** the uncommitted working tree on top of `0409627` (milestone 2, "IV measures"), on 2026-10-29.
+- **Reviewed:** the uncommitted working tree on top of `b48f765` (milestone 2, "IV measures"), on 2026-10-29.
 - **Protocol:** `evidence-gated-validation`, Tier 2 for every numeric claim. Default verdict for every claim: broken.
 - **Mode, stated honestly.** Channel A (method and documents) ran as a separate sub-agent. It saw the claims and the
   code, never a probe output: [`probes/m2/channel-a.md`](probes/m2/channel-a.md). Channel B (runtime) ran in this
@@ -40,7 +40,7 @@ The Gate column follows the skill's convergence table.
 | 10 | Funnel 1,353/1,320/366/356/354/348; `iv_usable` and the baseline change right; terciles; 285 missing for the stated reasons | **SURVIVES**, with one finding: **the baseline change is inert** | `p10`, with no funnel code imported: [1353, 1320, 366, 356, 354, 348]. `iv_usable` drops ABBV:2025-01-31 and LIN:2025-02-06. Terciles: 9/9 rows equal the JSON. Falsifier (baseline counted by snapshot only, the milestone-1 rule): **also 348, with the same 6 drops** (`falsifier_rc=1` = "mutant gives 348"). So 350 → 348 comes entirely from the new step; the cm30 rule is guarded only by unit-test event G. `p10b`: 285 = coarse 228 (88 no common forward, 140 an end without a snapshot), none 36 (28 after the data end), daily 14, mixed 7. Mixed includes 1 `duplicate_row` (BRK.B:2024-11-01), which the doc does not mention | ADR 0004 §1 rule 2 requires the cm30 | Accepted. The baseline rule's effect on real data is nil |
 | 11 | P4, P5, P6, the leak | **SURVIVES** for the headline numbers; **two figures in the walkthrough are wrong** | `p10`: AAPL n = 6, median 4.76%; MSFT n = 7, median 5.45%. P5: 4/348 = 0.0115. Leak (sessions 22–60): n 33,801, mean +0.225, p95 1.37, 75.8% equal; 1–21 sessions: −0.219 (n 19,045). On proper ADR 0004 clean baselines: +0.286. `p11`: P6 n 53,083, mean −0.163, median −0.113, below 72.5%; session clock +0.701. **Clock explanation holds:** vendor − ours(cal) is uncorrelated with τ_cal·252/(τ·365) (corr +0.025), while vendor − ours(session) correlates −0.818; the vendor's implied T·365/τ_cal has median 1.0074. Errors: (i) "whole primary sample: median 6.45%" is the median over the **344** with E > 0; over 348 (E ≤ 0 as 0) it is 6.27%. (ii) "\|r₀\| / implied above 1 for **38.2% (332)**" is 133/348; of 332 it is **40.1%** (`p11c`) | The ADR rejects E > 0-only averages | Accepted. The two wording/number errors are in `02-iv-measures.md:214, 261` |
 | 12 | Byte-identical rebuild; `chain_expiry` local, 17 MB | **SURVIVES** | `p12`: fresh scratch `VOL_DATA_DIR` (copied extracts and raw files), the 9 derived files deleted, then events → snapshots → iv. Result: "byte-identical: 9 files". Stage `chain_expiry`, `iv_daily` and `event_iv` are identical to the local stage. `chain_expiry` is 16,965,282 B and not in the index. (IV stage wall 152 s here, against 50.7 s claimed: machine load) | — (runtime-only claim) | Accepted (B only, by the nature of the claim) |
-| 13 | Contract 0.3.0 consistent; the app only draws; coverage | **SURVIVES**; provenance caveat | 0.3.0 appears in `contract.py:27`, `contract.ts:21`, `app/DATA.md:6`, data-model §4 and all three JSON files. `npm run verify` on a scratch copy: 29 files, **675 tests passed**, coverage 99.48 / 98.6 / 98.45 / 99.72, build OK. The pages compute only bar heights and widths. Caveat: every JSON says `source_commit`/`code_commit` **0409627**, the milestone-1 commit, which does not contain the code that produced these numbers | — | Accepted |
+| 13 | Contract 0.3.0 consistent; the app only draws; coverage | **SURVIVES**; provenance caveat | 0.3.0 appears in `contract.py:27`, `contract.ts:21`, `app/DATA.md:6`, data-model §4 and all three JSON files. `npm run verify` on a scratch copy: 29 files, **675 tests passed**, coverage 99.48 / 98.6 / 98.45 / 99.72, build OK. The pages compute only bar heights and widths. Caveat: every JSON says `source_commit`/`code_commit` **b48f765**, the milestone-1 commit, which does not contain the code that produced these numbers | — | Accepted |
 | 14 | Tests meaningful; 5 of 47 mutants; no re-implementation | **PARTLY REFUTED** | `p14` on a scratch copy, every file restored and SHA-256 checked. Claimed mutants: C1, C2, C3 and C5 KILLED. **C4 "quadratic unweighted" SURVIVES when planted where the atom chooses its weights** (`1/rel` → ones, or → `rel`). It is killed only inside `_wls_quadratic_intercept`. The test `test_quadratic_fit_is_weighted_by_inverse_spread` tests the helper, not the atom. Own mutants: R2, R3, R6 killed; **R1 (tie direction), R4 (σ_d fallback pair), R5 (quadratic window), R7 (w_ref) survive**. No test re-implements code under test as its own oracle. One mild circularity: the second half of `test_synthetic_truth_is_recovered` builds its inputs with `chain.tau_sessions` | — | Rejected for the claim that the tests pin the fallback, tie and weight rules |
 | 15a | DATA.md states each source's terms accurately | **REFUTED** | `p15`/reads: `data/derived/LICENSE:3-4` says "Everything in this folder" is CC BY-SA, and `:29-30` says no Yahoo data is in the repository. **`timing_check.parquet` (Yahoo-derived `gap_verdict_yf`) is now in that folder.** `meta.json` (About page) says Yahoo data is "never committed" with `committed: false` (`tools/export_app_data.py:78-83, 102-103`). `sample_funnel.json` exports a Yahoo-derived share. DATA.md's Yahoo row gives no restriction | G1 CONFIRMED (DoltHub CC BY-SA at the pinned commits). G2–G5: the one-liners are accurate but omit restrictions (Yahoo no redistribution; Cboe no distribution or verification use). **Escalate** | **Rejected**: notices contradict each other |
 | 15b | `check_data_files.py` reads the index, catches renamed copies, cannot be bypassed by folder or extension | **REFUTED** (holds only for exact local copies) | `p15` on a scratch copy's index. **Caught:** an exact AAPL Yahoo file as `docs/notes.txt` (T1) and exact DTB3 as `Raw/DTB3.CSV` (T7). **Passed:** the same with no vendor folder, as in CI (T2, T7b); gzip (T3); +1 byte (T4); **a whole raw `option_chain` month re-serialised, 72,465 rows, 383 KB (T5)**; the stage `market_daily` with the class-R VIX column (T6). No git hook exists. The 4 new M2 data files are untracked, so today's "every test run" check has not seen them (staged with `git add -A` they pass, T0b) | H: reads `git ls-files -s -z`; the docstring (`:19-21`) itself admits CI and edited copies | **Rejected** |
@@ -76,7 +76,7 @@ Also re-run: the Python suite on a scratch copy gives `439 passed, 48 warnings`.
 5. **Wrong figures in the walkthrough (minor).**
    - `02-iv-measures.md:214`: 38.2% should be 40.1% (n = 332).
    - `:261`: the "whole sample" median is over E > 0 only, the selection ADR 0003 §c warns against.
-6. **Provenance (minor).** The JSON `source_commit`/`code_commit` name `0409627` for numbers produced by uncommitted
+6. **Provenance (minor).** The JSON `source_commit`/`code_commit` name `b48f765` for numbers produced by uncommitted
    milestone-2 code.
 7. **AMC-on-expiry-day expiries classed clean (minor).** 7 events, 13 iv_daily rows; contested by the exercise
    cut-off (row 7).
@@ -117,7 +117,7 @@ look-ups, which ADR 0002 §3 says cannot show a trend yet. And it is what makes 
 
 ## 5. Fixes applied
 
-Applied 2026-10-29 by an implementer sub-agent, in the working tree on top of `0409627` (nothing committed). The
+Applied 2026-10-29 by an implementer sub-agent, in the working tree on top of `b48f765` (nothing committed). The
 sections above are left as the review wrote them. Scratch scripts and their outputs live under
 `$VOL_DATA_DIR/earnings-vol-study/cache/m2fix-scratch/`, outside the repository. The probes in `probes/m2/` were re-run
 unchanged, never edited.
@@ -214,7 +214,7 @@ Elsewhere:
 
 **Not done, or left to the owner.**
 
-- `source_commit` / `code_commit` still name `0409627`, as asked: the owner re-exports after the commit.
+- `source_commit` / `code_commit` still name `b48f765`, as asked: the owner re-exports after the commit.
 - `app/CLAUDE.md` still says "no CBOE or Yahoo data … in `dist/`". The app now ships the Yahoo-derived
   `share_gap_contradicts`. That file is agent configuration, so it was not edited.
 - Rule 6 does not cover `data/manual/`, so T4 (an edited vendor copy there) still passes.

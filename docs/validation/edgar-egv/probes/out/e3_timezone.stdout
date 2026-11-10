@@ -1,0 +1,29 @@
+== (a) press-release ground truth: code reading (UTC instant -> NY) vs rival (wall clock = NY)
+CRWD  release 2024-08-28 nan   AMC | raw 2024-08-28T20:07:19.000Z | code 08-28 16:07 AMC            ok=True | rival 08-28 20:07 AMC            ok=True
+NVDA  release 2024-08-28 16:20 AMC | raw 2024-08-28T20:21:16.000Z | code 08-28 16:21 AMC            ok=True | rival 08-28 20:21 AMC            ok=True | delta_min code +1 rival +241
+DELL  release 2024-08-29 nan   AMC | raw 2024-08-29T20:14:00.000Z | code 08-29 16:14 AMC            ok=True | rival 08-29 20:14 AMC            ok=True
+AVGO  release 2024-09-05 nan   AMC | raw 2024-09-05T20:21:56.000Z | code 09-05 16:21 AMC            ok=True | rival 09-05 20:21 AMC            ok=True
+ORCL  release 2024-09-09 16:05 AMC | raw 2024-09-09T20:17:34.000Z | code 09-09 16:17 AMC            ok=True | rival 09-09 20:17 AMC            ok=True | delta_min code +13 rival +253
+MU    release 2024-09-25 16:07 AMC | raw 2024-09-25T20:00:27.000Z | code 09-25 16:00 AMC            ok=True | rival 09-25 20:00 AMC            ok=True | delta_min code -7 rival +233
+COST  release 2024-09-26 nan   AMC | raw 2024-09-26T20:17:15.000Z | code 09-26 16:17 AMC            ok=True | rival 09-26 20:17 AMC            ok=True
+JPM   release 2024-10-11 06:55 BMO | raw 2024-10-11T10:46:16.000Z | code 10-11 06:46 BMO            ok=True | rival 10-11 10:46 during_session ok=False | delta_min code -9 rival +231
+WFC   release 2024-10-11 07:03 BMO | raw 2024-10-11T10:45:18.000Z | code 10-11 06:45 BMO            ok=True | rival 10-11 10:45 during_session ok=False | delta_min code -18 rival +222
+BAC   release 2024-10-15 06:45 BMO | raw 2024-10-15T10:46:39.000Z | code 10-15 06:46 BMO            ok=True | rival 10-15 10:46 during_session ok=False | delta_min code +2 rival +242
+GS    release 2024-10-15 nan   BMO | raw 2024-10-15T11:32:34.000Z | code 10-15 07:32 BMO            ok=True | rival 10-15 11:32 during_session ok=False
+JNJ   release 2024-10-15 nan   BMO | raw 2024-10-15T11:37:20.000Z | code 10-15 07:37 BMO            ok=True | rival 10-15 11:37 during_session ok=False
+UNH   release 2024-10-15 05:55 BMO | raw 2024-10-15T10:03:51.000Z | code 10-15 06:03 BMO            ok=True | rival 10-15 10:03 during_session ok=False | delta_min code +9 rival +249
+MS    release 2024-10-16 07:29 BMO | raw 2024-10-16T11:28:47.000Z | code 10-16 07:28 BMO            ok=True | rival 10-16 11:28 during_session ok=False | delta_min code -0 rival +240
+NFLX  release 2024-10-17 16:00 AMC | raw 2024-10-17T20:01:18.000Z | code 10-17 16:01 AMC            ok=True | rival 10-17 20:01 AMC            ok=True | delta_min code +1 rival +241
+PG    release 2024-10-18 06:55 BMO | raw 2024-10-18T11:02:32.000Z | code 10-18 07:02 BMO            ok=True | rival 10-18 11:02 during_session ok=False | delta_min code +8 rival +248
+GE    release 2024-10-22 nan   BMO | raw 2024-10-22T10:34:48.000Z | code 10-22 06:34 BMO            ok=True | rival 10-22 10:34 during_session ok=False
+PM    release 2024-10-22 06:59 BMO | raw 2024-10-22T11:01:37.000Z | code 10-22 07:01 BMO            ok=True | rival 10-22 11:01 during_session ok=False | delta_min code +3 rival +243
+RTX   release 2024-10-22 nan   BMO | raw 2024-10-22T11:00:03.000Z | code 10-22 07:00 BMO            ok=True | rival 10-22 11:00 during_session ok=False
+GOOGL release 2024-10-29 nan   AMC | raw 2024-10-29T20:01:46.000Z | code 10-29 16:01 AMC            ok=True | rival 10-29 20:01 AMC            ok=True
+label+date agreement: code 20/20, rival 9/20
+time-stamped rows within +-60 min of the release stamp: code 11/11, rival 0/11
+== (b) EDGAR filingDate consistency (8-K, weekday, 17:30 NY cut-off)
+code : before-17:30 same-day 6934/6935 (0.9999); at/after-17:30 later-day 223/248 (0.8992); violations 26
+rival: before-17:30 same-day 2387/2389 (0.9992); at/after-17:30 later-day 132/4785 (0.0276); violations 4655
+== (c) calendar labels: events with timing_raw in BMO/AMC and exactly one Item 2.02 8-K on announce_date
+events compared 1297; label agreement code 1292/1297 (0.9961); rival 669/1297 (0.5158)
+RESULT: SURVIVES

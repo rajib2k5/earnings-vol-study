@@ -1,0 +1,8 @@
+$ .venv/bin/python -I probes/probe_c4.py
+VXAPL cols ['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE'] rows 3978 first 2011-01-07 last 2026-11-06 median day gap 1.0 sha ok True hops [307, 200] final_url https://cdn-api.cboe.com/api/global/us_indices/daily_prices/VXAPL_History.csv -> True
+VXAZN cols ['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE'] rows 3978 first 2011-01-07 last 2026-11-06 median day gap 1.0 sha ok True hops [307, 200] final_url https://cdn-api.cboe.com/api/global/us_indices/daily_prices/VXAZN_History.csv -> True
+VXGOG cols ['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE'] rows 3978 first 2011-01-07 last 2026-11-06 median day gap 1.0 sha ok True hops [307, 200] final_url https://cdn-api.cboe.com/api/global/us_indices/daily_prices/VXGOG_History.csv -> True
+VXGS cols ['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE'] rows 3978 first 2011-01-07 last 2026-11-06 median day gap 1.0 sha ok True hops [307, 200] final_url https://cdn-api.cboe.com/api/global/us_indices/daily_prices/VXGS_History.csv -> True
+VXIBM cols ['DATE', 'OPEN', 'HIGH', 'LOW', 'CLOSE'] rows 3978 first 2011-01-07 last 2026-11-06 median day gap 1.0 sha ok True hops [307, 200] final_url https://cdn-api.cboe.com/api/global/us_indices/daily_prices/VXIBM_History.csv -> True
+PASS []
+rc=0

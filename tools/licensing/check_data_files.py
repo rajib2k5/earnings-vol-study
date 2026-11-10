@@ -23,11 +23,15 @@ file is checked before the commit. A tracked path is refused when:
    local file, so it holds in CI too:
 
    - ``data/derived/`` holds only ``README.md``, ``LICENSE``, the milestone-0
-     ``earnings_calendar_30_large_caps.json``, and ``<name>.parquet`` for a table the schema registry marks
-     ``committed``. That staged blob must be a Parquet file whose columns are exactly those of the table's committed
-     copy (``store.committed_schema``), in order;
+     ``earnings_calendar_30_large_caps.json``, ``vx_crosscheck.json`` (below), and ``<name>.parquet`` for a table
+     the schema registry marks ``committed``. That staged blob must be a Parquet file whose columns are exactly those
+     of the table's committed copy (``store.committed_schema``), in order;
    - ``app/public/data/`` holds only ``<kind>.json`` for a kind of the JSON contract (``contract.KINDS``), and its
-     ``kind`` field must say that kind.
+     ``kind`` field must say that kind;
+   - ``data/derived/vx_crosscheck.json`` (the Cboe VX* cross-check, added 2026-11-09) holds aggregates only: a JSON
+     object whose ``kind`` is ``vx_crosscheck``, with no list of more than ``AGG_MAX_LIST`` items, no object of more
+     than ``AGG_MAX_KEYS`` keys, no key shaped like a date (``YYYY-MM-DD``) and at most ``AGG_MAX_NUMBERS`` numbers
+     in all. A per-day or per-event VX* series does not fit in that shape (one name holds about 1,200 days).
 
    So a raw ``option_chain`` month, re-serialised under any name, a local-only table (``market_daily``,
    ``chain_expiry``) or an unregistered table is refused;
@@ -49,6 +53,7 @@ from __future__ import annotations
 import fnmatch
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
@@ -68,7 +73,11 @@ DATA_DIRS = ("data/derived/", "data/manual/")
 JSON_DATA_DIRS = DATA_DIRS + ("app/public/data/",)
 DERIVED_DIR, APP_DATA_DIR = "data/derived/", "app/public/data/"
 # Rule 6: the files data/derived/ may hold besides the committed tables.
-DERIVED_OTHER = ("README.md", "LICENSE", "earnings_calendar_30_large_caps.json")
+DERIVED_OTHER = ("README.md", "LICENSE", "earnings_calendar_30_large_caps.json", "vx_crosscheck.json")
+# Rule 6 by content for the aggregate JSON files of data/derived/ (name -> its kind) and the shape they must keep.
+AGGREGATE_JSON = {"vx_crosscheck.json": "vx_crosscheck"}
+AGG_MAX_LIST, AGG_MAX_KEYS, AGG_MAX_NUMBERS = 16, 32, 2000
+_DATE_KEY = re.compile(r"\d{4}-\d{2}-\d{2}")
 COMMITTED_TABLES = tuple(sorted(name for name, t in schema.REGISTRY.items() if t.committed))
 REPO = Path(__file__).resolve().parents[2]
 
@@ -139,13 +148,48 @@ def blob(repo: Path, sha: str) -> bytes:
     return subprocess.run(["git", "cat-file", "blob", sha], cwd=repo, capture_output=True, check=True).stdout
 
 
+def aggregate_shape_problems(doc, kind: str) -> list[str]:
+    """Rule 6 by content for an aggregate JSON file: an object of `kind`, small lists and objects, no date keys,
+    few numbers (see the header)."""
+    if not isinstance(doc, dict):
+        return ["not a JSON object"]
+    out = [] if doc.get("kind") == kind else [f"its kind is {doc.get('kind')!r}, not {kind!r}"]
+    numbers = 0
+    stack = [doc]
+    while stack:
+        x = stack.pop()
+        if isinstance(x, dict):
+            if len(x) > AGG_MAX_KEYS:
+                out.append(f"an object with {len(x)} keys (at most {AGG_MAX_KEYS})")
+            dated = [k for k in x if _DATE_KEY.fullmatch(str(k))]
+            if dated:
+                out.append(f"keys shaped like dates ({dated[0]}, ...): a per-day series")
+            stack.extend(x.values())
+        elif isinstance(x, list):
+            if len(x) > AGG_MAX_LIST:
+                out.append(f"a list of {len(x)} items (at most {AGG_MAX_LIST})")
+            stack.extend(x)
+        elif isinstance(x, (int, float)) and not isinstance(x, bool):
+            numbers += 1
+    if numbers > AGG_MAX_NUMBERS:
+        out.append(f"{numbers} numbers (at most {AGG_MAX_NUMBERS})")
+    return out
+
+
 def content_problems(blobs: list[tuple[str, str, int]], repo: Path = REPO) -> list[str]:
     """Rule 6 by content: a registered table's columns, an app file's kind (paths whose names rule 6 allows)."""
     out = []
     for path, sha, size in blobs:
         if size > DATA_LIMIT or _allowed_name(path) is not None:
             continue                           # refused already by rules 4 or 6
-        if path.startswith(DERIVED_DIR) and path.endswith(".parquet"):
+        if path.startswith(DERIVED_DIR) and path[len(DERIVED_DIR):] in AGGREGATE_JSON:
+            try:
+                doc = json.loads(blob(repo, sha))
+            except ValueError:
+                out.append(f"{path}: not JSON")
+                continue
+            out += [f"{path}: {p}" for p in aggregate_shape_problems(doc, AGGREGATE_JSON[path[len(DERIVED_DIR):]])]
+        elif path.startswith(DERIVED_DIR) and path.endswith(".parquet"):
             name = path[len(DERIVED_DIR):-len(".parquet")]
             want = list(store.committed_schema(schema.REGISTRY[name]).names)
             try:

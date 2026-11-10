@@ -123,8 +123,8 @@ What has to be true:
 
 | Layer | Modules (planned) | Reads | Writes (tables in data-model.md) |
 |---|---|---|---|
-| `ingest` | `dolt.py`, `prices.py`, `fred.py`, `cboe.py`, `edgar.py` (accepted 2026-10-28; runs only once the owner sets the `SEC_EDGAR_USER_AGENT` contact string), `universe.py` | Dolt clones, yfinance, FRED, CBOE, SEC EDGAR submissions JSON (one per security; only if approved), S&P 500 list | `raw/…` downloads, `cache/…` extracts |
-| `events` | `calendar.py` (NYSE sessions), `market.py`, `events.py`, `timing.py`, `eps.py` | raw and cache extracts (calendar, EPS, Yahoo prices, FRED, S&P list, and the SEC EDGAR 8-K filing index only if the owner approves EDGAR); the committed press-release look-up record `data/manual/press_release_checks.csv` (ADR 0002 §3, data model §1.3) | `session`, `market_daily`, `security`, `ticker_alias`, `events`, `eps`, `timing_check` |
+| `ingest` | `dolt.py`, `prices.py`, `fred.py`, `cboe.py`, `edgar.py` (accepted 2026-10-28; in use since 2026-11-09, fetching with the owner's `SEC_EDGAR_USER_AGENT` contact string set in the command only), `universe.py` | Dolt clones, yfinance, FRED, CBOE, SEC EDGAR submissions JSON (one per security, plus its extra pages), S&P 500 list | `raw/…` downloads, `cache/…` extracts |
+| `events` | `calendar.py` (NYSE sessions), `market.py`, `events.py`, `timing.py`, `eps.py` | raw and cache extracts (calendar, EPS, Yahoo prices, FRED, S&P list, and the SEC EDGAR 8-K filing index, in use since 2026-11-09); the committed press-release look-up record `data/manual/press_release_checks.csv` (ADR 0002 §3, data model §1.3) | `session`, `market_daily`, `security`, `ticker_alias`, `events`, `eps`, `timing_check` |
 | `measures` | `black.py`, `chain.py`, `termstructure.py`, `realised.py`; at milestone 1 `snapshots.py`, `forward.py`, `snapshot_close.py`; at milestone 2 `black.py`, `chain.py`, `termstructure.py`, `tables.py`, `event_iv.py` (the planned `realised.py` became part of `event_iv.py`) and `report.py` | option extracts, `session_snapshot`, `session`, `market_daily` (`r_cont`), `security`, `ticker_alias`, `events` (day 0, to classify spanning expiries) | `session_snapshot` (milestone 1: which sessions have a usable snapshot), `chain_expiry`, `iv_daily`, `event_iv` (milestone 2: the IV columns of `event_measures`, data model §3.11a) |
 | `panel` | `panel.py`, `abnormal.py`, `eligibility.py` | `iv_daily`, `chain_expiry`, `events`, `eps`, `security` (`cboe_vx_index`), `session`, `market_daily`, Yahoo and VX\* extracts (local `_yf`/`_cboe` columns) | `event_window_obs`, `event_measures`, `event_measures_vx` |
 | `stats` | `eventtests.py`, `regress.py`, `multiple.py`, `validate.py` | `event_measures`, `event_measures_vx`, `event_window_obs`, `events`, `eps`, `security`, and for validation `iv_daily`, `chain_expiry` and the VX\* extract | `results` |
@@ -297,10 +297,14 @@ under test. A new assertion is seen to fail before it passes. Coverage is not ev
 
 > **Owner decision, 2026-10-29 (data policy), replaced the same day by the note above.** Keep the strict rule. No new commit may hold a real vendor
 > value or a vendor data file: no Yahoo, Cboe (including VIX via FRED), Kaggle or OptionsDX values. Tests use
-> made-up values, and DoltHub rows are preferred made up there too. Public history stays as it is: commit `3636e98`
+> made-up values, and DoltHub rows are preferred made up there too. Public history stays as it is: commit `e49a560`
 > holds two quoted Yahoo values (ADR 0002 and `research/prototypes/worked.py`, both AAPL around 2025-10-30). They are
 > left in place, with no rewrite and no force-push. Before every push, `tools/licensing/scan_real_rows.py` must report
 > 0 lines flagged.
+> *Update 2026-11-10:* the history was rewritten after all, by owner decision of 2026-11-09, for two other reasons:
+> the Claude attribution lines in commit messages, and two `iv_current` values in ADR 0003. Every commit has a new ID
+> ([map](../validation/history-rewrite-2026-11-09.md)); the IDs in this note are the new ones. The two Yahoo values
+> were not part of the rewrite and stay in `e49a560`.
 >
 > **Owner decision, 2026-10-29 (DoltHub tables), replaced the same day by the first note.** Small derived DoltHub tables may be committed, as the original
 > plan said. They are per-event and per-company tables in `data/derived/`, under CC BY-SA 4.0 with the attribution

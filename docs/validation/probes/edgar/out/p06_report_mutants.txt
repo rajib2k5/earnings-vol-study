@@ -1,0 +1,10 @@
+copy: report-mutants-73polk65
+baseline: 29 passed in 3.94s
+R25  rc 1 KILLED  1 failed in 0.54s  restored sha256 ok e6d16c3ed24a
+R26  rc 1 KILLED  1 failed in 0.75s  restored sha256 ok e6d16c3ed24a
+R27  rc 1 KILLED  1 failed in 1.89s  restored sha256 ok e6d16c3ed24a
+R28  rc 1 KILLED  1 failed in 1.30s  restored sha256 ok e6d16c3ed24a
+R29  rc 1 KILLED  1 failed in 0.84s  restored sha256 ok e6d16c3ed24a
+R30  rc 1 KILLED  1 failed in 1.30s  restored sha256 ok e6d16c3ed24a
+final tools/report_numbers.py same as repo: True
+final tests/test_report_numbers.py same as repo: True

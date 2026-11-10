@@ -50,9 +50,10 @@ SA_UNITS = "mean standardised value (precision-weighted)"
 
 
 def provisional_caveat(lookups: dict) -> str:
-    return (f"Timing labels are provisional: {lookups['n_done']} press releases were looked up and every other event "
-            "keeps the calendar's label (not_checked) until SEC EDGAR is set up, so a few events may sit on the wrong "
-            "day 0. Every number here depends on those labels.")
+    return (f"Timing labels are provisional: {lookups['n_done']} labels rest on a document (a company press release "
+            "or the SEC EDGAR 8-K filing time) and every other event keeps the calendar's label (not_checked), among "
+            "them some that ADR 0002 requires to be looked up; the ADR's 50-event audit of the EDGAR labels has not "
+            "run, so a few events may sit on the wrong day 0. Every number here depends on those labels.")
 
 
 def lookups(events: pd.DataFrame, p) -> dict:

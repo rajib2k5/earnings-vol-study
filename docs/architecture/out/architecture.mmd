@@ -11,7 +11,7 @@ flowchart TB
         cboe_vx{{"CBOE VX* indices\n5 names, local only"}}
         sp500{{"S#38;P 500 list\nsector, sub-industry"}}
         pr{{"Press releases\nIR time stamp, press_release_checks.csv"}}
-        edgar{{"SEC EDGAR 8-K (accepted)\ngated on contact string"}}
+        edgar{{"SEC EDGAR 8-K\nItem 2.02 acceptance time"}}
     end
     subgraph ingest["Ingest"]
         mirror[("Dolt mirrors\nprivate copies, cache/dolt_mirror")]
@@ -54,7 +54,7 @@ flowchart TB
     fred --> fetch
     cboe_vx -->|"local only"| fetch
     sp500 --> fetch
-    edgar -.->|"gated on contact string"| fetch
+    edgar -.->|"local cache"| fetch
     pr -->|"timing label"| evt
     dolt -->|"monthly extracts"| cache
     fetch -->|"raw files"| cache

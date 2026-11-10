@@ -2,10 +2,12 @@
 
 - **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review**, **again
   after the milestone-0 delta review**, **on 2026-10-29 after the milestone-1 review**, and **again the same day after
-  its delta review** (notes below). **The EDGAR rule (§3, source 1) is Accepted 2026-10-28; it
-  runs once the owner's contact string is set** (milestone-1 note). Until then the **default rule** of §3 applies: the
-  press release decides, then the calendar label. At milestone 1 only the first 20 look-ups were done; the rest wait
-  for EDGAR (owner default, 2026-10-29), so most labels are still the calendar's (`not_checked`).
+  its delta review** (notes below). **The EDGAR rule (§3, source 1) is Accepted 2026-10-28 and in use since
+  2026-11-09** (owner decision; `params.yaml` `timing.edgar: true`; note "SEC EDGAR switched on" below). Of the 473
+  look-ups the default rule requires, 20 rest on press releases, 411 on an Item 2.02 8-K time, and **42 are still open**
+  (no 8-K 26, EDGAR holiday 11, 8-K on another date 4, 8-K against the calendar 1). The milestone-1 EDGAR audit (50
+  `confirmed` EDGAR labels against press releases) has not run, and 37 EDGAR labels that the price gap questions wait
+  for a press-release check, so `timing.lookups_complete` stays false and the labels are still provisional.
 - **Date:** 2026-10-28
 - **Related:** [0001](0001-overall-architecture.md), [0003](0003-iv-measures.md), [0004](0004-baseline-and-event-windows.md),
   [data model](../architecture/data-model.md) (`events`, `timing_check`, `session`)
@@ -103,6 +105,29 @@
 > 9. **Found while fixing, not changed.** Under the proposed EDGAR rule, job 1's gap-triggered press-release check
 >    also puts a Yahoo-derived bit into `timing_status`. So "class U under the EDGAR rule" (Consequences, data model
 >    §2.1, ADR 0001 §7) holds only if job 1 is dropped. That is settled when the owner decides on EDGAR.
+
+> **SEC EDGAR switched on, 2026-11-09** ([ledger](../validation/edgar-ledger.md)).
+>
+> 1. **Fetched.** 186 requests to `data.sec.gov/submissions/` with the owner's contact in the User-Agent (set only in
+>    the command, never in a file): 51 submissions files and 135 extra pages, 72.8 MB, every company back before
+>    2020-01-01 (XOM through its predecessor CIK). The events stage reads only this local cache.
+> 2. **Time zone.** `acceptanceDateTime` is a UTC instant. Read as UTC it agrees with all 20 press releases, with 1,273
+>    of 1,306 calendar labels and with EDGAR's own filing-date cut-off; read as New York time it puts all 11 BMO
+>    releases inside the session and shifts all 50 companies' median filing times by 45 minutes or more between
+>    daylight-saving and winter months (median −60 minutes).
+> 3. **EDGAR closed days.** Besides Columbus Day and Veterans Day, the data show EDGAR closed on 2020-12-24,
+>    2021-06-18, 2021-12-31, 2024-12-24, 2025-12-24 and 2025-12-26 (NYSE sessions); they are read as EDGAR holidays.
+> 4. **Coverage.** An Item 2.02 8-K on D−1…D+1 for 98.1% of `daily` events (361 of 368), above the 95% criterion of
+>    milestone 1. The misses are BRK.B, which releases on Saturdays and files its 8-K days later.
+> 5. **Applied (owner decision 2026-11-09, `timing.edgar: true`).** EDGAR is read for the 453 required look-ups without
+>    a press release: 405 `confirmed`, 6 `inferred` (NULL labels given AMC by the 8-K), 42 left `not_checked`. Where
+>    the ADR is silent, the event stays open (ledger §5, D1–D15): an 8-K against the label (1), on another date (4),
+>    in an EDGAR-holiday window (11) or missing (26). No event's day 0 moved; 6 events gained one.
+> 6. **Not done.** The 50-event audit; the 37 press-release checks that job 1 asks for (the gap contradicts 18 EDGAR
+>    labels and the outside flag questions 19); the 42 open look-ups. `timing.lookups_complete` stays false.
+> 7. **For the owner.** Whether EDGAR should also label the `coarse` events that the default rule does not require
+>    (now: no; it would remove the gap-triggered selection of that sample), and whether BRK.B's Saturday releases
+>    should take their timing from the 8-K filed days later (now: no; they stay open).
 
 > **Milestone 1, 2026-10-29: owner decisions and what was measured.**
 >
@@ -225,8 +250,8 @@ after-market-close (AMC) report it is the next session. Day −1 is the last ses
 *before* the news, so the crush is `X(0) − X(−1)` for any IV measure `X`. The calendar's timing label is checked
 against **documents**. By default that is the company's press release, looked up for every event in the `daily` and
 `mixed` samples. Using the acceptance time of the company's SEC 8-K earnings filing (Item 2.02) instead was
-**accepted 2026-10-28, gated on the owner's contact string** (see Status); until that string is set, the press
-release decides. The label is never checked against IV, because that would
+**accepted 2026-10-28 and is in use since 2026-11-09** (see Status); where a press release was looked up, it still
+decides. The label is never checked against IV, because that would
 be circular. It is never *decided* by the stock's price move either, because big moves make price evidence strong,
 and a rule driven by them corrects and keeps big movers selectively. The overnight price gap stays as a local
 diagnostic. No event is dropped because of how much its stock moved. Two move-dependent steps remain (§3), and
@@ -369,8 +394,9 @@ never excludes an event.**
 
 **Sources, in order:**
 
-*Source 1 was accepted by the owner on 2026-10-28 and runs once the owner's contact string is set (milestone-1 note).
-Until then sources 2 and 3 are the chain, applied as "The default rule" below.*
+*Source 1 was accepted by the owner on 2026-10-28 and is in use since 2026-11-09 (note "SEC EDGAR switched on").
+"The default rule" below still decides who is looked up; a press release decides where one was read, EDGAR answers
+the other required look-ups where the cases below allow it (ledger D1–D15), and the rest stay open.*
 
 1. **SEC EDGAR, Form 8-K Item 2.02 ("Results of Operations"), acceptance time.**
    - EDGAR is US-government public data, with licence class U (data model §2.1).
@@ -395,7 +421,7 @@ Until then sources 2 and 3 are the chain, applied as "The default rule" below.*
        (below).
 2. **The company's press release (hand look-up).** Under the default rule (below) it is read for every event that
    can fall in `daily` or `mixed`, for every NULL-label event, and for `coarse` events the gap flags. Under the
-   EDGAR rule (accepted 2026-10-28, gated on the owner's contact string) it is used when:
+   EDGAR rule (in use since 2026-11-09; until the release is read, these events stay open) it is used when:
    - EDGAR contradicts the calendar label;
    - EDGAR says `during_session`;
    - no matching 8-K exists;
@@ -434,7 +460,8 @@ not be checked, the second one whose label nobody tried to check.
   `date_suspect` exclusion is gone. A date the price diagnostic doubts is checked against the documents and then
   kept, either confirmed or corrected.
 
-**The default rule (no EDGAR; it applies until the owner's contact string is set).** *Rewritten after the delta review*
+**The default rule (no EDGAR; since 2026-11-09 it sets who is looked up and EDGAR answers the look-ups that have
+no press release; it applies alone if EDGAR fails its milestone-1 check).** *Rewritten after the delta review*
 ([delta ledger](../validation/m0-delta-ledger.md) 4b, 4c, N1, N7).
 
 - **Who is looked up.**
@@ -612,7 +639,8 @@ These are the first version's thresholds. They now do three jobs:
    - The mean crush may trend for real reasons: bigger moves come with bigger event variance. It is reported, but it
      is not a test of label quality.
 
-**Milestone-1 check of the EDGAR rule** (it runs once the owner's contact string is set). On the daily sample:
+**Milestone-1 check of the EDGAR rule** (run in part on 2026-11-09: coverage passes, 361 of 368 daily events, 98.1%;
+the hand checks of disagreements and the 50-event audit have not run). On the daily sample:
 
 - **Coverage:** at least 95% of events have an Item 2.02 8-K on D−1…D+1.
 - **Agreement:** every disagreement with the calendar label is hand-checked.
@@ -701,8 +729,8 @@ Three design points that matter:
   - Both kinds of zone, period end + 10 to + 60 sessions, are marked as contaminated for neighbouring events'
     baselines (ADR 0004). The sensitivity of the counts to the window's lower bound is in milestone 1 §6.5.
   Recovering the missing date from a second source is a **milestone-1 decision for the owner**.
-  - EDGAR's Item 2.02 8-Ks are the obvious candidate once EDGAR runs (accepted 2026-10-28, gated on the owner's
-    contact string), being public domain (not
+  - EDGAR's Item 2.02 8-Ks are the obvious candidate (EDGAR in use since 2026-11-09; recovering a missing date from
+    it is not built), being public domain (not
     checked for GS).
   - Under the default, the press-release look-up of a neighbouring period can supply the date by hand.
   - Yahoo's earnings-dates endpoint would make some event dates Yahoo-derived facts.
@@ -754,15 +782,16 @@ $$
   - Under the default, a gap contradiction decides which labels get a second reading, and in `coarse` which events
     are looked up at all. The status then encodes one Yahoo-derived bit per event, so it is class F, as before: the
     label is still a document fact, and no Yahoo value can be recovered from it.
-  - *Under the EDGAR rule* (once the contact string is set), `timing_used` and `timing_status` would come from the DoltHub
+  - *Under the EDGAR rule* (in use since 2026-11-09), `timing_used` and `timing_status` would come from the DoltHub
     calendar, EDGAR (US-government public data) and hand-checked press releases, with no Yahoo value in them: **class
     U** (data model §2.1). That holds only if job 1's gap-triggered check is dropped (delta revision note, item 9).
+    It is not dropped (the `coarse` look-ups are still gap-triggered), so the labels stay class F.
   - The gap values themselves (`timing_check`, all `_yf`) stay local in every case.
 - Cost (default): about 365 `daily` and 50 `mixed` press-release look-ups, plus re-reads (1.6–22.6 per 365 events in
   simulation), plus the `coarse` sample's gap-triggered and NULL-label look-ups. The old default needed 58.8–79.2
   per 365 events. Each look-up is a row of a committed file. The time per look-up is not yet measured; milestone 1
   times the first 20.
-- Cost, *under the EDGAR rule* (once the contact string is set): EDGAR becomes an input of the `events` layer. That means
+- Cost, *under the EDGAR rule* (in use since 2026-11-09; the fetch took 186 requests, 72.8 MB): EDGAR becomes an input of the `events` layer. That means
   one extra fetch per security and a parser for its JSON, pinned and cached like the Dolt reads (ADR 0001). Then a
   hand check for every disagreement, every `during_session` filing and every event without an 8-K, plus a 50-event
   audit. At about 365 primary events and a 3% label-error rate, that is a few dozen press releases.
@@ -794,7 +823,7 @@ $$
 - **The mean IV path has its biggest one-day drop on day +1, not day 0**, for either the BMO or the AMC subsample.
   This check uses IV, but it is *after* the fact and is not used to assign labels. It means the convention or the
   snapshot timing is off for that subsample.
-- *Once EDGAR runs (accepted 2026-10-28, gated on the owner's contact string):* **EDGAR fails its milestone-1
+- *Since EDGAR runs (2026-11-09; coverage passes, the 50-event audit has not run):* **EDGAR fails its milestone-1
   check** (§3): coverage below 95%, or more than
   one error in the 50-event audit. Then the default rule of §3 applies, and this ADR says so. (*Revised after the
   delta review:* "audit errors concentrated in one |r₀| tercile" is dropped, because 17 events per tercile cannot

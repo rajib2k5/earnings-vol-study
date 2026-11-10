@@ -3,7 +3,7 @@
     "caveats": [
       "Day -1 quotes of an after-close announcement are often wide, so a single event's E is noisy; read the distribution, not one bar.",
       "The 30-day IV is event-aware: before day 0 it is interpolated between expiries that span the event only, so the crush is the event variance leaving the 30-day horizon plus any change in ordinary volatility (ADR 0004 \u00a73).",
-      "Timing labels are provisional (20 press releases checked), so a few events may sit on the wrong day 0."
+      "Timing labels are provisional (press releases and SEC EDGAR filing times, with some required look-ups still open), so a few events may sit on the wrong day 0."
     ],
     "crush": {
       "bin_edges": [
@@ -178,12 +178,12 @@
       "units": "decimal move (0.05 = 5%)"
     },
     "provenance": {
-      "code_commit": "75948b3",
+      "code_commit": "6b8453f",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "74bed6f4b1281810d09f7bf6bc90addd10e20be263c3ea7005369b9ebb6e288e",
+      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
       "sample_label": "daily"
     },
     "sample": {
@@ -191,8 +191,8 @@
       "n_events": 347
     }
   },
-  "generated_at": "2026-10-30T04:34:55Z",
+  "generated_at": "2026-11-09T21:45:42Z",
   "kind": "iv_measures",
   "schema_version": "0.5.0",
-  "source_commit": "75948b3"
+  "source_commit": "6b8453f"
 }

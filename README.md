@@ -9,8 +9,8 @@ test's size on the real event structure. **Measured:** from the last close befor
 the 30-day IV falls by 0.199 log points (about 18.1%; p = 5.8e−23, Holm 4.1e−22), ordinary
 volatility does not change (+0.003, p = 0.782), IV is back at its baseline ten sessions later, and the options
 priced the earnings-day move about right on average (realised squared move 0.77 × the implied variance, interval
-[0.46, 1.07]). **Provisional:** only 20 of the 473 required before-open/after-close labels
-have been checked against a document. A React app draws the exported results, and a written report sums them up.
+[0.46, 1.07]). **Provisional:** 431 of the 473 required before-open/after-close labels rest
+on a document (411 on SEC EDGAR filing times); 42 are open. A React app draws the exported results, and a written report sums them up.
 <!-- /numbers:readme-summary -->
 
 **Not financial advice.** This is research for learning. It describes the past, ignores transaction costs, covers
@@ -18,9 +18,10 @@ large and liquid US stocks only, and recommends no trade.
 
 **Status (2026-10-29):** milestones 0–4 are built, adversarially reviewed and fixed, and wait for the owner's review.
 Milestone 5, this README, the [report](docs/report/earnings-vol-report.md) and the screenshots, is a draft that the
-owner has not reviewed yet. Every result is **provisional** until the remaining before-open/after-close labels are
-checked against SEC EDGAR filing times; EDGAR was accepted as the timing source on 2026-10-28, and its client makes no
-request until the owner sets a contact string.
+owner has not reviewed yet. Since 2026-11-09 the before-open/after-close labels come from SEC EDGAR filing times
+where no press release was looked up: of the 473 required look-ups, 20 rest on press releases, 411 on an 8-K time, and
+42 are still open. Every result stays **provisional** until those 42 are settled and the 50-event audit of the EDGAR
+labels has run ([EDGAR ledger](docs/validation/edgar-ledger.md)).
 
 ![The 3D terrain: each company's mean abnormal log IV (mean-adjusted) by event day](docs/images/terrain-default.png)
 
@@ -41,7 +42,8 @@ The story, written backwards from the finished study and revised with the measur
 <!-- numbers:readme-results -->
 Daily sample (day-0 window 2024-12-05 to 2026-10-26; the 347 primary events have day 0
 from 2024-12-10 to 2026-10-22), market-adjusted (VIX, β per company). **Timing labels
-provisional: 20 of 473 required look-ups done.** H1–H4 are equal-weighted means of
+provisional: 431 of 473 required look-ups done (411 by SEC EDGAR),
+42 open.** H1–H4 are equal-weighted means of
 abnormal log IV in log points; H5 and H6 are log points of crush per standard deviation of the regressor (positive: a
 smaller fall); H7 is the joint test that the implied variance is unbiased for the realised squared move. "G1 size" is
 how often the primary statistic rejects a true null at 5% in gate G1's calibrated simulation (2,000
@@ -71,10 +73,21 @@ replications; pass at most 6.30%). Holm runs over the declared family H1–H7, w
 - 14 robustness rows keep their estimate but not their p-value, because G1 found them oversized. The
   crush's same-date correlation after the VIX adjustment is ρ̄ = 0.30: one common date component, which H1's
   two-way statistic is robust to.
+- **Checked against Cboe's 30-day indices for five names** (VXAPL and four others; bars fixed before the download;
+  report §3.2). The level spread passes its pre-registered rule for all five names (a rule with little power: GS's
+  yearly medians step by about 2.1 vol points), and the day-0 crush ratio is 0.92
+  [0.87, 0.97], inside 1 ± 0.2 (provisional, like the timing labels). The correlation of daily changes is below the
+  planned 0.8 for GOOGL (0.778), IBM (0.668) and the pooled sample (0.790), and every slope
+  is below 1 (pooled 0.77). The pre-registration wrongly said ADR 0003 set no tolerance for the slope:
+  by the ADR's own reading its slope falsifier is met (3 of 5 slopes, GOOGL, GS and IBM, are below
+  0.8), while its correlation and crush-ratio falsifiers are not. Exploratory checks are consistent with
+  the low daily slopes being largely a clock effect (pooled slope 0.954 over 21 sessions; IBM
+  stays below 1), without proving it. The vendor's undocumented `iv_current` is closest to our ATM IV at
+  21 sessions, and reads as a 30-calendar-day IV.
 
 Every measured number in this block is filled in by `tools/report_numbers.py` from `data/derived/results.parquet`,
-`app/public/data/*.json` and, for ρ̄, the kept output `research/prototypes/rhobar_crush.out.txt`; the 473 required
-look-ups are pinned in the script. `--check` fails when a number is stale or the data contradict a sentence here.
+`data/derived/vx_crosscheck.json`, `app/public/data/*.json` and, for ρ̄, the kept output `research/prototypes/rhobar_crush.out.txt`; the look-up counts
+that need a local Yahoo flag are pinned in the script. `--check` fails when a number is stale or the data contradict a sentence here.
 <!-- /numbers:readme-results -->
 
 ## Screenshots
@@ -157,8 +170,10 @@ uv run --frozen python tools/export_app_data.py                             # th
 ```
 
 The pipeline never queries the shared DoltHub clones directly: on dolt 2.6.1 even a `SELECT` rewrites a clone's files.
-It copies each clone to a private mirror and reads it `AS OF` a commit pinned in `params.yaml`. Nothing calls SEC EDGAR
-yet: its client (`src/earnings_vol/ingest/edgar.py`) refuses to run until `SEC_EDGAR_USER_AGENT` holds a real contact.
+It copies each clone to a private mirror and reads it `AS OF` a commit pinned in `params.yaml`. The SEC EDGAR filings
+are fetched once, before the events stage, by `SEC_EDGAR_USER_AGENT="<name> <email>" uv run --frozen python -m
+earnings_vol.ingest.edgar` (set the variable in that command only; the client refuses to run without a real contact
+and never writes it to a file). The events stage reads only the local copy in `$VOL_DATA_DIR/…/raw/edgar/`.
 The milestone pages list the exact commands and what each one measured.
 
 ## Data
@@ -185,6 +200,9 @@ changed the study:
   wrong, so labels now come only from documents (ADR 0002 §3).
 - **Milestone 1** ([ledger](docs/validation/m1-ledger.md), [delta](docs/validation/m1-delta-ledger.md)): the look-up
   rule as worded required more events than the code reported; the rule was scoped to events that can enter a sample.
+  *SEC EDGAR, 2026-11-09* ([ledger](docs/validation/edgar-ledger.md)): EDGAR's acceptance time is a UTC instant (read
+  as New York time it put every before-open release inside the session), and EDGAR is closed on six more NYSE
+  sessions than the ADR listed.
 - **Milestone 2** ([ledger](docs/validation/m2-ledger.md)): float rounding broke exact cent ties in the parity-forward
   strike choice, and the quadratic fallback extrapolated the at-the-money variance from one side of the money; both
   were fixed (milestone 2, decisions table).
@@ -216,7 +234,7 @@ earnings-vol-study/
 ├── params.yaml                 every tunable choice: universe rule, pinned Dolt commits, sample ranges, windows
 ├── pyproject.toml, uv.lock     Python 3.12, exact pins; dependency groups dev, diagrams, report
 ├── src/earnings_vol/           the package, one sub-package per ADR 0001 layer
-│   ├── ingest/                 Dolt (through a private mirror), Wikipedia, Yahoo, FRED; the gated EDGAR client
+│   ├── ingest/                 Dolt (through a private mirror), Wikipedia, Yahoo, FRED, SEC EDGAR (gated client)
 │   ├── events/                 sessions, security, events and day 0, EPS, timing checks
 │   ├── measures/               snapshots, Black-76 on the parity forward, per-expiry variance, iv_daily, event_iv
 │   ├── panel/                  window matrices, abnormal IV, event_measures and the regressors

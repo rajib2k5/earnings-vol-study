@@ -1,0 +1,18 @@
+$ .venv/bin/python -I probes/probe_c10.py tools/vx_crosscheck.py
+pooled r CI   got (0.5223, 0.701) want (0.5223, 0.701)
+pooled slope CI got (1.4869, 2.3669) want (1.4869, 2.3669)
+independent-draw reference r CI (must differ from want): (0.5263, 0.7213)
+PASS match= True power= True
+rc=0
+### FALSIFIER c10_m1_shifteddates
+pooled r CI   got (0.5223, 0.6928) want (0.5223, 0.701)
+pooled slope CI got (1.4558, 2.3946) want (1.4869, 2.3669)
+independent-draw reference r CI (must differ from want): (0.5263, 0.7213)
+FAIL match= False power= True
+falsifier_rc=1
+### FALSIFIER c10_m2_rolledcounts
+pooled r CI   got (0.5135, 0.7066) want (0.5223, 0.701)
+pooled slope CI got (1.4918, 2.4025) want (1.4869, 2.3669)
+independent-draw reference r CI (must differ from want): (0.5263, 0.7213)
+FAIL match= False power= True
+falsifier_rc=1

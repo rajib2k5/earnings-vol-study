@@ -1,0 +1,22 @@
+mutant:        M1_utc_to_ny
+file:          src/earnings_vol/ingest/edgar.py
+mutation:      '.replace(tzinfo=timezone.utc)'  ->  '.replace(tzinfo=NY)'
+probe:         e3_timezone.py
+sha256 before: dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe
+sha256 after:  dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe   restored_identical=True
+falsifier_rc:  1
+--- stdout (tail) ---
+GE    release 2024-10-22 nan   BMO | raw 2024-10-22T10:34:48.000Z | code 10-22 10:34 during_session ok=False | rival 10-22 10:34 during_session ok=False
+PM    release 2024-10-22 06:59 BMO | raw 2024-10-22T11:01:37.000Z | code 10-22 11:01 during_session ok=False | rival 10-22 11:01 during_session ok=False | delta_min code +243 rival +243
+RTX   release 2024-10-22 nan   BMO | raw 2024-10-22T11:00:03.000Z | code 10-22 11:00 during_session ok=False | rival 10-22 11:00 during_session ok=False
+GOOGL release 2024-10-29 nan   AMC | raw 2024-10-29T20:01:46.000Z | code 10-29 20:01 AMC            ok=True | rival 10-29 20:01 AMC            ok=True
+label+date agreement: code 9/20, rival 9/20
+time-stamped rows within +-60 min of the release stamp: code 0/11, rival 0/11
+== (b) EDGAR filingDate consistency (8-K, weekday, 17:30 NY cut-off)
+code : before-17:30 same-day 2387/2389 (0.9992); at/after-17:30 later-day 132/4785 (0.0276); violations 4655
+rival: before-17:30 same-day 2387/2389 (0.9992); at/after-17:30 later-day 132/4785 (0.0276); violations 4655
+== (c) calendar labels: events with timing_raw in BMO/AMC and exactly one Item 2.02 8-K on announce_date
+events compared 1297; label agreement code 669/1297 (0.5158); rival 669/1297 (0.5158)
+RESULT: REFUTED: (a) code reading disagrees with a press-release label/date; (a) code reading is >60 min from a release stamp; (b) filingDate cut-off consistency below 0.995/0.85; (c) calendar-label agreement
+--- stderr ---
+

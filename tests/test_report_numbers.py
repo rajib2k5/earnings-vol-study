@@ -26,6 +26,25 @@ Added after the milestone-5 review (docs/validation/m5-ledger.md, claims 2 and 1
   - R16 the claim "E at day −2 gives a larger b" made always true
   - R17 --check no longer looks at the PDF and DOCX stamp
   - R18 the realised day-0 range read from the params window (meta.json) instead of the events
+Added with the Cboe VX* cross-check (2026-11-09; docs/validation/vx-ledger.md §4):
+  - R19 the bar-i prose claim made always true
+  - R20 the bar-iv timing-label prose claim made always true
+  - R21 the maturity prose claim made always true
+  - R22 the VX primary-sample size no longer compared with meta.json
+  - R23 the VX events.parquet hash no longer compared with the committed file
+  - R24a the pooled part of the longer-gap slope claim made always true
+  - R24b the per-name part of the longer-gap slope claim made always true
+Added with SEC EDGAR as the timing source (2026-11-09; docs/validation/edgar-ledger.md §10):
+  - R25 lookups.edgar counted from timing_source == "press_release"
+  - R26 the cross-check of look-ups done against press releases + EDGAR in events.parquet removed
+  - R27 the stage comparison of the open look-ups by reason skipped
+  - R28 the stage comparison of the gap-questioned EDGAR labels skipped
+  - R29 the bar-iv prose claim (most events on a document's label) made always true
+Added with the review fixes of 2026-11-09 (docs/validation/vx-ledger.md §9): each new VX* prose claim made always
+true (R30-R40: ADR slope falsifier, correlation falsifier, crush-ratio falsifier, the sd-ratio claim, GS's yearly
+step, the Monday snapshot calendar, Tuesday-to-Friday r, r without day-0 changes, the stepped slopes, the calendar-30
+fit, the extrapolation shares); the open look-ups' label count (R41, events_timing counting `sample` none as open);
+the stage report's null-label count no longer compared with events.parquet (R42).
 """
 
 from __future__ import annotations
@@ -45,6 +64,8 @@ _spec.loader.exec_module(rn)
 
 INPUTS = [
     "data/derived/results.parquet",
+    "data/derived/events.parquet",
+    "data/derived/vx_crosscheck.json",
     "research/prototypes/rhobar_crush.out.txt",
     "README.md",
     "docs/prfaq.md",
@@ -118,8 +139,40 @@ def test_key_numbers_from_the_committed_data():
     assert nums["h1.p"] == f"5.8e{m}23" and nums["h1.p_holm"] == f"4.1e{m}22"
     # 1 - exp(-0.199377) = 1 - 0.81924 = 0.18076 -> 18.1%
     assert nums["h1.pct_fall"] == "18.1%"
-    # 473 required (pinned), 20 done (sample_funnel.json) -> 453 left
-    assert (nums["lookups.required"], nums["lookups.done"], nums["lookups.left"]) == ("473", "20", "453")
+    # 473 required (pinned), 431 done (sample_funnel.json: 421 confirmed + 2 corrected + 1 date_corrected
+    # + 7 inferred) -> 42 left; events.parquet timing_source: 20 press_release, 411 edgar (20 + 411 = 431)
+    assert (nums["lookups.required"], nums["lookups.done"], nums["lookups.left"]) == ("473", "431", "42")
+    assert (nums["lookups.press_release"], nums["lookups.edgar"]) == ("20", "411")
+    # Open by reason (pinned; edgar-ledger.md §6): 26 + 11 + 4 + 1 = 42
+    assert [nums[f"lookups.open.{k}"] for k in ("no_8k", "edgar_holiday", "other_date", "contradicts")] == [
+        "26", "11", "4", "1"]
+    assert (nums["lookups.gap_questioned"], nums["lookups.audit"]) == ("37", "50")
+    # 922 not_checked events (events.parquet): 892 with a calendar label, 30 with none. Of the 42 open look-ups, 23 are
+    # not_checked, NULL-labelled events that can enter a sample (the stage report's by_reason null_label is 23): 42 - 23 = 19
+    assert (nums["timing.not_checked"], nums["timing.not_checked_labelled"], nums["timing.not_checked_unlabelled"]) == (
+        "922", "892", "30")
+    assert (nums["lookups.left_labelled"], nums["lookups.left_unlabelled"]) == ("19", "23")
+    # The daily sample's not_checked events by move tercile (sample_funnel.json by_move_tercile): 8 + 5 + 0 = 13
+    assert [nums[f"funnel.daily_open.t{t}"] for t in (1, 2, 3)] == ["8", "5", "0"] and nums["funnel.daily_open"] == "13"
+    # vx_crosscheck.json, exploratory: 1,515 of 3,697 changes end on a Monday (41%); 1,005 of 1,111 before 2024-09-03
+    assert (nums["vx.cal.end_monday"], nums["vx.pooled.n"], nums["vx.cal.end_monday_share"]) == ("1,515", "3,697", "41%")
+    assert (nums["vx.cal.early_monday"], nums["vx.cal.early"], nums["vx.cal.era_from"]) == ("1,005", "1,111", "2024-09-03")
+    assert (nums["vx.cal.mon_vx"], nums["vx.cal.mon_ours"]) == ("+0.0173", f"{m}0.0053")
+    assert (nums["vx.tf.googl.r"], nums["vx.tf.pooled.r"], nums["vx.tf.ibm.r"]) == ("0.814", "0.826", "0.765")
+    assert (nums["vx.d0.dropped"], nums["vx.d0.pooled.r"], nums["vx.d0.ibm.r"]) == ("43", "0.747", "0.558")
+    assert (nums["vx.step10.pooled.slope"], nums["vx.step10.pooled.rev"]) == ("0.939", "1.011")
+    assert (nums["vx.step21.ibm.slope"], nums["vx.step21.ibm.rev"]) == ("0.895", "0.941")
+    # Bar ii against the ADR's band: slopes 0.77, 0.79, 0.66 below 0.8; sd ratio sqrt(0.7674 * 1.2299) = 0.97
+    assert (nums["vx.ii_below"], nums["vx.ii_below_names"], nums["vx.pooled.sd"]) == ("3", "GOOGL, GS and IBM", "0.97")
+    # GS's yearly medians: 2020-22 3.825, 4.105, 4.103; 2023-26 2.060, 1.712, 2.122, 1.764; step 4.011 - 1.9145 = 2.1
+    assert [nums[f"vx.gs.{k}"] for k in ("early_lo", "early_hi", "late_lo", "late_hi", "step")] == [
+        "3.8", "4.1", "1.7", "2.1", "2.1"]
+    # iv_current at 30 calendar days against 21 sessions (same 5,959 days), and the extrapolated shares
+    assert (nums["vh.cal.med"], nums["vh.cal.med21"], nums["vh.cal.n"]) == ("0.327", "0.606", "5,959")
+    assert (nums["vh.extrap.h42"], nums["vh.extrap.h42_n"], nums["vh.extrap.h10"], nums["vh.extrap.h10_n"]) == (
+        "4,160", "5,413", "2,334", "5,964")
+    # Bar iv's 34 events: 32 confirmed, 2 not_checked (vx_crosscheck.json)
+    assert (nums["vx.iv.documented"], nums["vx.iv.not_checked"]) == ("32", "2")
     # G1 calibrated rejection rates in tests.json: 0.0955, 0.081, 0.1615
     assert (nums["h5.g1"], nums["h6.g1"], nums["h7.g1"]) == ("9.55%", "8.10%", "16.15%")
     # H2: 8 seasons, floor 2/2^8; the cut has 7 seasons, floor 2/2^7 = 0.015625, Holm 0.078125
@@ -127,6 +180,19 @@ def test_key_numbers_from_the_committed_data():
     # The binding family's verdicts
     assert nums["holm.rejected"] == "H1 and H2"
     assert nums["h5.g1_verdict"] == "**fail**" and nums["h1.g1_verdict"] == "pass"
+
+
+def test_events_timing_counts_labels_and_the_open_events_without_one():
+    # Made-up events: not_checked with a label x2, not_checked without one in a sample x2 and outside every sample x1,
+    # and a confirmed one without a label (resolved by EDGAR, so not counted).
+    ev = pd.DataFrame({
+        "timing_source": ["calendar", "calendar", None, None, None, "edgar"],
+        "timing_status": ["not_checked"] * 5 + ["inferred"],
+        "timing_raw": ["BMO", "AMC", None, None, None, None],
+        "sample": ["daily", "coarse", "coarse", "daily", "none", "coarse"]})
+    got = rn.events_timing(ev)
+    assert (got["not_checked"], got["not_checked_unlabelled"], got["not_checked_open_unlabelled"]) == (5, 3, 2)
+    assert got["timing_source"] == {"calendar": 2, "edgar": 1}
 
 
 def test_check_passes_on_the_committed_files():
@@ -138,7 +204,7 @@ def test_check_passes_on_the_committed_files():
 @pytest.mark.parametrize("rel, old, new", [
     ("docs/report/earnings-vol-report.md", "falls by 0.199 log points", "falls by 0.198 log points"),
     ("README.md", "| H5 | Does a bigger earnings surprise", "| H5 | Does a larger earnings surprise"),
-    ("docs/prfaq.md", "Only 20 of the 473 required look-ups", "Only 21 of the 473 required look-ups"),
+    ("docs/prfaq.md", "431 of 473 required look-ups done", "432 of 473 required look-ups done"),
 ])
 def test_check_fails_when_a_rendered_file_was_edited(root, capsys, rel, old, new):
     path = root / rel
@@ -217,6 +283,23 @@ def _edit_json(root, kind, fn):
     path.write_text(json.dumps(env))
 
 
+def _edit_vx(root, fn):
+    path = root / "data/derived/vx_crosscheck.json"
+    doc = json.loads(path.read_text())
+    fn(doc)
+    path.write_text(json.dumps(doc))
+
+
+def _edit_events_source(root, old, new):
+    # One event's timing_source changed (made up), so events.parquet no longer matches the funnel's look-up count.
+    path = root / "data/derived/events.parquet"
+    ev = pd.read_parquet(path)
+    src = ev["timing_source"].astype(object)
+    src[src.index[src == old][0]] = new
+    ev["timing_source"] = src
+    ev.to_parquet(path)
+
+
 def _g1(data, h):
     return [x for x in data["g1"]["calibrated"] if x["hypothesis"] == h][0]
 
@@ -243,7 +326,49 @@ CROSS_AND_PROSE = [
                                             & (x.role == "exploratory"), "estimate", 0.60),
      "E read at day -2 gives a larger b"),
     ("timing statuses", lambda r: _edit_json(r, "sample_funnel", lambda d: d["timing_status_counts"].update(
-        confirmed=15, ambiguous=1)), "no ambiguous, no no_document"),
+        confirmed=d["timing_status_counts"]["confirmed"] - 1, ambiguous=1)), "no ambiguous, no no_document"),
+    ("look-ups by source", lambda r: _edit_events_source(r, "edgar", "calendar"),
+     "look-ups done / press releases + EDGAR (events.parquet)"),
+    # The Cboe VX* cross-check (data/derived/vx_crosscheck.json); the edited values are made up.
+    ("VX bar i", lambda r: _edit_vx(r, lambda d: d["bar_i"]["per_name"]["GOOGL"].update(r=0.9, verdict="pass")),
+     "VX bar i fails for GOOGL, IBM and the pooled sample"),
+    ("VX timing", lambda r: _edit_vx(r, lambda d: d["bar_iv"]["events"].update(
+        timing_status_counts={"not_checked": d["bar_iv"]["events"]["n_events_five_names"]})),
+     "most events of the five names rest on a document's timing label"),
+    ("VX maturity", lambda r: _edit_vx(r, lambda d: d["volatility_history"]["maturity"]["identification"].update(
+        status="UNRESOLVED", horizon=None)), "maturity identified at 21 sessions"),
+    ("VX sample", lambda r: _edit_vx(r, lambda d: d["bar_iv"]["events"].update(n_primary_sample=1)),
+     "VX bar iv's primary sample / meta.json sample size"),
+    ("VX events", lambda r: _edit_vx(r, lambda d: d["inputs"].update(events_sha256="0" * 64)),
+     "VX cross-check events.parquet 000000000000 against the committed"),
+    ("VX secondary name", lambda r: _edit_vx(r, lambda d: d["secondary"]["AAPL"].update(reverse_slope_reciprocal=1.05)),
+     "VX secondary: the pooled slope below 1"),
+    ("VX secondary pooled", lambda r: _edit_vx(r, lambda d: d["secondary"]["pooled"]["block20"][
+        "reverse_slope_reciprocal"].update(lo=0.99)), "VX secondary: the pooled slope below 1"),
+    # The review fixes of 2026-11-09: the ADR's own falsifiers, and the exploratory readings (made-up edits)
+    ("VX ADR slope falsifier", lambda r: _edit_vx(r, lambda d: d["bar_ii"]["per_name"]["GS"].update(slope=0.85)),
+     "ADR 0003's slope falsifier is met"),
+    ("VX ADR correlation falsifier", lambda r: _edit_vx(r, lambda d: [d["bar_i"]["per_name"][nm].update(verdict="fail")
+                                                                      for nm in ("AAPL", "AMZN")]),
+     "ADR 0003's correlation falsifier is not met"),
+    ("VX ADR crush falsifier", lambda r: _edit_vx(r, lambda d: d["bar_iv"].update(ratio=0.7)),
+     "ADR 0003's crush-ratio falsifier is not met"),
+    ("VX sd ratio", lambda r: _edit_vx(r, lambda d: d["bar_ii"]["per_name"]["pooled"].update(slope=0.5)),
+     "the two series' daily changes have nearly the same sd"),
+    ("VX GS step", lambda r: _edit_vx(r, lambda d: d["bar_iii"]["per_name"]["GS"]["years"]["2022"].update(
+        median_spread=2.0)), "GS's yearly medians step"),
+    ("VX Monday", lambda r: _edit_vx(r, lambda d: d["exploratory"]["snapshot_calendar"].update(
+        n_end_monday=d["exploratory"]["snapshot_calendar"]["n"])), "changes ending on a Monday are a minority"),
+    ("VX Tue-Fri", lambda r: _edit_vx(r, lambda d: d["exploratory"]["bar_i_tue_to_fri"]["IBM"].update(r=0.9)),
+     "on Tuesday-to-Friday changes r is above 0.8"),
+    ("VX day 0", lambda r: _edit_vx(r, lambda d: d["exploratory"]["bar_i_without_day0"]["pooled"].update(r=0.9)),
+     "without the changes that end on a day 0"),
+    ("VX stepped", lambda r: _edit_vx(r, lambda d: d["exploratory"]["stepped_changes"]["by_k"]["10"]["IBM"].update(
+        slope=0.99)), "the pooled forward slope of non-overlapping changes rises"),
+    ("VX calendar 30", lambda r: _edit_vx(r, lambda d: d["volatility_history"]["maturity"]["calendar_30"][
+        "median_abs_diff_same_days"].update(calendar_30=0.7)), "iv_current read as 30 calendar days"),
+    ("VX extrapolated", lambda r: _edit_vx(r, lambda d: d["volatility_history"]["maturity"]["extrapolated"][
+        "by_horizon"]["42"].update(n_beyond_last_expiry=10)), "most 42-session values lie beyond the last listed expiry"),
 ]
 
 
@@ -282,9 +407,32 @@ def test_the_pinned_lookup_count_is_compared_with_a_local_stage_report(root, tmp
     stage = vol / "earnings-vol-study/cache/stage" / meta["data"]["provenance"]["params_hash"][:16]
     stage.mkdir(parents=True)
     monkeypatch.setenv("VOL_DATA_DIR", str(vol))
-    (stage / "events_report.json").write_text(json.dumps({"lookup_violations": {"n": 453}}))
+
+    def report(n=42, outcome=None, pending=37, on=True, null_label=23):
+        # A stage report of an EDGAR run, written by hand: 405 confirmed + 6 inferred + 20 press releases, and the
+        # 42 open ones by reason (26 + 11 + 4 + 1).
+        out = {"confirmed": 405, "inferred": 6, "press_release": 20, "no_8k": 26, "edgar_holiday": 11,
+               "other_date": 4, "contradicts": 1} if outcome is None else outcome
+        rep = {"lookup_violations": {"n": n, "by_reason": {"daily_or_mixed_era": 21, "null_label": null_label}},
+               "edgar": {"on": on, "outcome": out, "pending_gap_checks": pending}}
+        (stage / "events_report.json").write_text(json.dumps(rep))
+
+    report()
     assert rn.main(["--check", "--root", str(root)]) == 0
-    assert "453 left + 20 done = 473, as pinned" in capsys.readouterr().out
-    (stage / "events_report.json").write_text(json.dumps({"lookup_violations": {"n": 452}}))  # 452 + 20 = 472
+    assert "42 left + 431 done = 473; open by reason and 37 gap-questioned, as pinned" in capsys.readouterr().out
+    report(n=41)  # 41 + 431 = 472
     assert rn.main(["--check", "--root", str(root)]) == 1
     assert "not 473" in capsys.readouterr().err
+    report(outcome={"confirmed": 405, "inferred": 6, "press_release": 20, "no_8k": 25, "edgar_holiday": 12,
+                    "other_date": 4, "contradicts": 1})  # the same total, another split
+    assert rn.main(["--check", "--root", str(root)]) == 1
+    assert "open look-ups are" in capsys.readouterr().err
+    report(pending=36)
+    assert rn.main(["--check", "--root", str(root)]) == 1
+    assert "gap-questioned EDGAR labels are 36" in capsys.readouterr().err
+    report(null_label=22)
+    assert rn.main(["--check", "--root", str(root)]) == 1
+    assert "22 open look-ups with a NULL label, events.parquet 23" in capsys.readouterr().err
+    report(on=False)
+    assert rn.main(["--check", "--root", str(root)]) == 1
+    assert "no EDGAR run" in capsys.readouterr().err

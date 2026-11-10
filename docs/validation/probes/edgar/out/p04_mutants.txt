@@ -1,0 +1,24 @@
+/tmp/edgar-mutants-0t3clh7b/src/earnings_vol/__init__.py
+baseline: 82 passed, 12 warnings in 0.97s
+M1   rc 1 KILLED  1 failed in 0.54s  restored sha256 ok dcd28cf327aa
+M2   rc 1 KILLED  1 failed in 0.53s  restored sha256 ok dcd28cf327aa
+M3   rc 1 KILLED  1 failed, 4 warnings in 0.61s  restored sha256 ok dcd28cf327aa
+M4   rc 1 KILLED  1 failed in 0.56s  restored sha256 ok dcd28cf327aa
+M5   rc 1 KILLED  1 failed, 4 warnings in 0.64s  restored sha256 ok dcd28cf327aa
+M6   rc 1 KILLED  5 failed, 1 passed in 0.55s  restored sha256 ok dcd28cf327aa
+M7   rc 1 KILLED  1 failed in 0.54s  restored sha256 ok dcd28cf327aa
+M8   rc 1 KILLED  1 failed, 4 warnings in 0.58s  restored sha256 ok dcd28cf327aa
+M9   rc 1 KILLED  1 failed, 4 warnings in 0.59s  restored sha256 ok dcd28cf327aa
+M10  rc 1 KILLED  1 failed, 10 passed, 4 warnings in 0.60s  restored sha256 ok 5175a99d90ed
+M11  rc 1 KILLED  2 failed, 9 passed, 4 warnings in 0.61s  restored sha256 ok 5175a99d90ed
+M12  rc 1 KILLED  1 failed in 0.53s  restored sha256 ok dcd28cf327aa
+M13  rc 1 KILLED  1 failed, 4 warnings in 0.63s  restored sha256 ok d8c733841345
+M14  rc 1 KILLED  1 failed, 4 warnings in 0.66s  restored sha256 ok d8c733841345
+M15  rc 1 KILLED  1 failed in 0.57s  restored sha256 ok dcd28cf327aa
+M16  rc 1 KILLED  1 failed, 4 warnings in 0.63s  restored sha256 ok d8c733841345
+M17  rc 1 KILLED  2 failed in 0.52s  restored sha256 ok dcd28cf327aa
+final src/earnings_vol/ingest/edgar.py same as repo: True dcd28cf327aa
+final src/earnings_vol/events/timing.py same as repo: True 5175a99d90ed
+final src/earnings_vol/events/run.py same as repo: True d8c733841345
+final tests/test_edgar_timing.py same as repo: True 7ef3e9f3aa95
+final tests/test_ingest_sources.py same as repo: True 8cf70f403ab0

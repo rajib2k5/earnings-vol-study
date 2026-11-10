@@ -1,0 +1,15 @@
+mutant:        M8b_no_ua
+file:          src/earnings_vol/ingest/edgar.py
+mutation:      'headers={"User-Agent": ua, "Accept-Encoding": "gzip, deflate"}'  ->  'headers={"Accept-Encoding": "gzip, deflate"}'
+probe:         e8_client_rate_ua.py
+sha256 before: dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe
+sha256 after:  dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe   restored_identical=True
+falsifier_rc:  1
+--- stdout (tail) ---
+requests 150; virtual duration 14.90s; worst count in any half-open 1 s window: 10; min gap 0.1000s
+every request carries the User-Agent header: False ; header names: ['Accept-Encoding']
+second run over the same cache makes 0 requests
+real run 2026-11-09T19:16:22Z..2026-11-09T19:17:16Z: 183 requests in 54s = 3.39/s average
+RESULT: CLIENT HALF REFUTED: a request without the User-Agent
+--- stderr ---
+

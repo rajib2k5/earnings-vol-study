@@ -1,0 +1,5 @@
+requests 150; virtual duration 14.90s; worst count in any half-open 1 s window: 10; min gap 0.1000s
+every request carries the User-Agent header: True ; header names: ['Accept-Encoding', 'User-Agent']
+second run over the same cache makes 0 requests
+real run 2026-11-09T19:16:22Z..2026-11-09T19:17:16Z: 183 requests in 54s = 3.39/s average
+RESULT: CLIENT HALF SURVIVES

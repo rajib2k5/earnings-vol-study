@@ -370,6 +370,8 @@ The app's mutations (55, all killed) were run by the agent that built the app si
 
 **Not done.** `volatility_history` was not extracted, so `iv_daily.vendor_iv_current` is null and ADR 0003's third
 validation check (the maturity of `iv_current`) waits. The CBOE VX\* comparison (validation item 1) needs the local VX\*
-downloads and is milestone 3's `validation.json`. The 3-expiry least-squares E, the half-session and non-session
+downloads and is milestone 3's `validation.json`. *Update 2026-11-09:* both checks ran, as
+`data/derived/vx_crosscheck.json` (aggregates only; milestone 5 §11); `vendor_iv_current` stays null. The 3-expiry
+least-squares E, the half-session and non-session
 weight sensitivities of ADR 0003 are not built. `session_snapshot` is kept (it feeds `iv_daily`); dropping it is left
 for milestone 3.

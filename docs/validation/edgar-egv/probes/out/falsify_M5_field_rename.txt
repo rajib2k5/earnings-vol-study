@@ -1,0 +1,17 @@
+mutant:        M5_field_rename
+file:          src/earnings_vol/ingest/edgar.py
+mutation:      'FILING_KEYS = ("accessionNumber", "filingDate", "acceptanceDateTime", "form", "items")'  ->  'FILING_KEYS = ("accessionNumber", "filingDate", "acceptedDateTime", "form", "items")'
+probe:         e1_recent_shape.py
+sha256 before: dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe
+sha256 after:  dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe   restored_identical=True
+falsifier_rc:  1
+--- stdout (tail) ---
+51 CIK main files; total recent rows 120329
+first file keys of recent: ['acceptanceDateTime', 'accessionNumber', 'act', 'core_type', 'fileNumber', 'filingDate'] ...
+code read failed: KeyError('acceptedDateTime')
+rows read via edgar.merge_filings: 0; non-str form/items: 0
+FAIL ('code read failed', "KeyError('acceptedDateTime')")
+FAIL ('coverage too small', 51, 0)
+RESULT: REFUTED
+--- stderr ---
+

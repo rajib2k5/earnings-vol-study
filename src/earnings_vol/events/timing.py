@@ -17,9 +17,16 @@
 #   triggers a second, blind reading of the release (daily and mixed), or a
 #   look-up (coarse). Every value it returns is class R (suffix _yf).
 #
-# NOT WIRED: SEC EDGAR. The owner approved it on 2026-10-28, but the contact
-# string for its User-Agent has not arrived, so ingest/edgar.py refuses to run
-# and no event has timing_source = "edgar" (ADR 0002 status note).
+# SEC EDGAR (ADR 0002 §3, source 1; approved 2026-10-28, contact string set
+# 2026-11-09): resolve_edgar() reads an event's Item 2.02 8-K. It is used by
+# events/run.py only when params timing.edgar is true, and only for events
+# that need a look-up and have no press-release row; the press release still
+# decides where one was read. An 8-K that agrees with the calendar label
+# confirms it, one on D gives a NULL label its timing; anything else leaves
+# the event not_checked for a press-release look-up. params.yaml sets
+# timing.edgar true since 2026-11-09 (owner decision): 411 of the 473
+# required look-ups are resolved by EDGAR, 20 by press releases, 42 are open
+# (docs/validation/edgar-ledger.md §6).
 # =============================================================================
 
 import csv
@@ -204,6 +211,67 @@ def resolve_timing(announce: date, timing_raw: str | None, readings: list[Readin
         out.update(timing_status="inferred")
     else:
         out.update(timing_status="corrected")
+    return out
+
+
+# --- SEC EDGAR, source 1 (ADR 0002 §3) -------------------------------------------
+#
+# The outcome of reading an event's Item 2.02 8-K. Only "confirmed" and
+# "inferred" set the label; every other outcome leaves the event not_checked
+# with the calendar label, because the ADR sends it to the press release
+# (source 2), which is not read here:
+#   no_8k           no Item 2.02 8-K accepted on D-1, D or D+1
+#   edgar_holiday   EDGAR was closed on D-1, D or D+1: the time is not read
+#   several_8k      two Item 2.02 8-Ks in the window that read differently
+#   other_date      the 8-K falls on D-1 or D+1, not on the calendar's D
+#   during_session  accepted 09:30-16:00 (13:00): hand-checked
+#   contradicts     the 8-K's BMO/AMC contradicts the calendar label; the
+#                   label is `corrected` only once a press release agrees
+EDGAR_OUTCOMES = ("confirmed", "inferred", "no_8k", "edgar_holiday", "several_8k", "other_date",
+                  "during_session", "contradicts")
+
+
+def resolve_edgar(announce: date, timing_raw: str | None, reading: dict | None, sessions: Sessions) -> dict:
+    """resolve_timing()'s columns for an event with no press-release look-up, from
+    its EDGAR reading (ingest.edgar.read_acceptance, or None for no 8-K), plus
+    edgar_accession, edgar_accepted_utc and edgar_outcome (EDGAR_OUTCOMES).
+
+    ADR 0002 §3 under the EDGAR rule: an 8-K on D that agrees with the label
+    confirms it; an 8-K on D gives a NULL label its timing (inferred); for a
+    non-session D only the date is checked (confirmed, the label kept). A
+    contradiction, another date, a time inside the session, no 8-K or an
+    EDGAR holiday need the press release, so the event stays not_checked.
+    """
+    out = {"timing_used": timing_raw, "timing_status": "not_checked",
+           "timing_source": "calendar" if timing_raw else None, "announce_date_used": announce,
+           "gap_check_changed": False, "edgar_accession": None, "edgar_accepted_utc": None, "edgar_outcome": "no_8k"}
+    if reading is None:
+        return out
+    out.update(edgar_accession=reading["accession"], edgar_accepted_utc=reading["accepted_utc"])
+    label = reading["label"]
+    if label in ("edgar_holiday", "several_8k"):
+        outcome = label
+    elif reading["ny_date"] != announce:
+        outcome = "other_date"
+    elif label == "during_session":
+        outcome = "during_session"
+    elif not sessions.is_session(announce):
+        # Accepted on the non-session D itself: day 0 is the next session whatever the label.
+        if label != "outside_hours":
+            raise ValueError(f"an 8-K accepted on the non-session day {announce} reads {label!r}")
+        outcome = "confirmed"
+    elif label not in ("BMO", "AMC"):
+        raise ValueError(f"an 8-K accepted on the session {announce} reads {label!r}")
+    elif timing_raw is None:
+        outcome = "inferred"
+        out["timing_used"] = label
+    elif timing_raw == label:
+        outcome = "confirmed"
+    else:
+        outcome = "contradicts"
+    out["edgar_outcome"] = outcome
+    if outcome in ("confirmed", "inferred"):
+        out.update(timing_status=outcome, timing_source="edgar")
     return out
 
 

@@ -55,10 +55,21 @@ EXPECTED_DATA_SOURCES = [
     },
     {
         "name": "Cboe single-stock volatility indices (VX*)",
-        "uses": "VXAPL, VXAZN, VXGOG, VXGS, VXIBM, to validate our 30-day IV (local only; not run yet)",
+        "uses": "VXAPL, VXAZN, VXGOG, VXGS, VXIBM, to validate our 30-day IV (run 2026-11-09); the index values "
+                "stay local and none reaches the app; the check's aggregate statistics (correlations, slopes, median "
+                "spreads, one crush ratio) are in data/derived/vx_crosscheck.json",
         "url": "https://www.cboe.com/",
         "licence": "Cboe terms of use (see source)",
         "committed": False,
+    },
+    {
+        "name": "SEC EDGAR",
+        "uses": "the acceptance time of each company's Item 2.02 8-K (submissions JSON, read 2026-11-09), the source "
+                "of the timing labels marked edgar; committed: the 8-K accession number and acceptance time "
+                "(events.edgar_accession, events.edgar_accepted_utc) and the labels read from them",
+        "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces",
+        "licence": "public data of the U.S. Securities and Exchange Commission",
+        "committed": True,
     },
     {
         "name": "Yahoo Finance",
@@ -95,7 +106,10 @@ EXPECTED_DATA_LICENCE = {
         "the VIX tercile label event_measures.vix_regime "
         "are computed with FRED VIXCLS (Cboe VIX): Chicago Board Options Exchange, CBOE Volatility Index: VIX "
         "[VIXCLS], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/VIXCLS, "
-        "2026-10-29; they fall under Cboe's terms, not CC BY-SA. No Cboe VX* data is committed."
+        "2026-10-29; they fall under Cboe's terms, not CC BY-SA. No Cboe VX* index value is committed; the aggregate "
+        "statistics of the VX* cross-check (data/derived/vx_crosscheck.json) fall under Cboe's terms, not CC BY-SA. "
+        "The 8-K accession numbers and acceptance times (events.parquet) are public data from SEC EDGAR, "
+        "U.S. Securities and Exchange Commission."
     ),
 }
 

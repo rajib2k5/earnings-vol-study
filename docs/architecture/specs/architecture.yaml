@@ -20,10 +20,9 @@
 # ingest/dolt.py (refresh_mirror) copies each clone to $VOL_DATA_DIR/earnings-vol-study/cache/dolt_mirror/
 # and runs `dolt sql -r parquet` there, SELECT only, AS OF the commits pinned in params.yaml.
 # Timing labels come from documents, never from IV or the price gap (ADR 0002 section 3). SEC EDGAR
-# 8-K acceptance times are accepted (2026-10-28) but gated on the owner's contact string (dashed edge):
-# the client refuses to run until SEC_EDGAR_USER_AGENT is set. The rule in force until then is the
-# press release (hand check, recorded in the committed data/manual/press_release_checks.csv),
-# then the calendar label; the price gap triggers a second reading (daily/mixed) or a look-up
+# 8-K acceptance times are in use since 2026-11-09 (dashed edge: the submissions JSON is cached locally,
+# never committed). The rule in force is the press release (hand check, recorded in the committed
+# data/manual/press_release_checks.csv), then the 8-K acceptance time, then the calendar label; the price gap triggers a second reading (daily/mixed) or a look-up
 # (coarse), never a label.
 # Event tests (ADR 0005): the primary is a two-way cluster-robust t (day-0 date x firm for CRUSH,
 # season x firm for RUNUP / PERSIST, Rademacher p if seasons are unbalanced); BMP and the
@@ -52,7 +51,7 @@ nodes:
   - {id: cboe_vx,  label: CBOE VX* indices,          sublabel: "5 names, local only",     type: external, lane: sources}
   - {id: sp500,    label: S&P 500 list,              sublabel: "sector, sub-industry",    type: external, lane: sources}
   - {id: pr,       label: Press releases,            sublabel: "IR time stamp, press_release_checks.csv", type: external, lane: sources}
-  - {id: edgar,    label: SEC EDGAR 8-K (accepted),  sublabel: "gated on contact string",  type: external, lane: sources}
+  - {id: edgar,    label: SEC EDGAR 8-K,  sublabel: "Item 2.02 acceptance time",  type: external, lane: sources}
 
   # --- Ingest (I/O) --------------------------------------------------------
   - {id: mirror,  label: Dolt mirrors,        sublabel: "private copies, cache/dolt_mirror", type: store, lane: ingest}
@@ -97,7 +96,7 @@ edges:
   - {from: fred,     to: fetch}
   - {from: cboe_vx,  to: fetch, label: local only}
   - {from: sp500,    to: fetch}
-  - {from: edgar,    to: fetch, label: gated on contact string, style: dashed}
+  - {from: edgar,    to: fetch, label: local cache, style: dashed}
   - {from: pr,       to: evt,   label: timing label}
   - {from: dolt,  to: cache, label: monthly extracts}
   - {from: fetch, to: cache, label: raw files}

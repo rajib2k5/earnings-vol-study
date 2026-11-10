@@ -35,7 +35,8 @@
 `earnings-vol-study` answers these with the standard finance method for measuring the effect of a dated event, the **event study**. It applies the method to option-implied volatility instead of stock returns. For each announcement it lines up the IV series in *event time*. Day 0 is the first trading-session close after the news: the announcement day for a before-open report, the next session for an after-close one. It then measures **abnormal IV** against a quiet baseline period well before the event.
 
 <!-- numbers:prfaq-headline -->
-The headline result, measured on 2026-10-29 with provisional timing labels: from day −1 to day 0, 30-day IV falls by
+The headline result, measured on 2026-10-29 and re-measured on 2026-11-09 with SEC EDGAR timing labels (still
+provisional): from day −1 to day 0, 30-day IV falls by
 0.199 log points on average, about 18.1%, net of the market's volatility. That is significant at
 p = 5.8e−23 (Holm 4.1e−22 over the seven declared hypotheses), under a two-way cluster-robust t that allows for
 events sharing calendar dates and for one company's events being alike; its size was checked first on the real event
@@ -51,12 +52,12 @@ comparable across names (ADR 0004). The study also reports:
 "Every options desk has a rule of thumb for earnings. Few of them get tested out loud," said ⟨the author⟩. "We wanted numbers anyone could rerun from public data, line by line."
 
 **How it works.**
-1. A Python pipeline reads earnings dates, before-open/after-close labels and analyst estimates from DoltHub's open `earnings` dataset. It reads daily option chains from DoltHub's open `options` dataset. Some before-open/after-close labels are wrong, so each label is checked against documents, never against the size of the stock's move. By default the document is the company's press release, looked up by hand for every event since daily option data began (September 2024), and the calendar label is kept only when no release is found. *Revised 2026-10-29:* the owner accepted the acceptance time of the company's SEC 8-K earnings filing as the source on 2026-10-28; it runs once the owner sets a contact string, and until then most events keep the calendar's label. The stock's overnight price gap only flags a label for a second reading; it never sets one ([ADR 0002](adr/0002-day-zero-convention.md)).
+1. A Python pipeline reads earnings dates, before-open/after-close labels and analyst estimates from DoltHub's open `earnings` dataset. It reads daily option chains from DoltHub's open `options` dataset. Some before-open/after-close labels are wrong, so each label is checked against documents, never against the size of the stock's move. By default the document is the company's press release, looked up by hand for every event since daily option data began (September 2024), and the calendar label is kept only when no release is found. *Revised 2026-10-29:* the owner accepted the acceptance time of the company's SEC 8-K earnings filing as the source on 2026-10-28; it is in use since 2026-11-09: of the 473 required look-ups, 20 rest on press releases, 411 on the 8-K time and 42 are open, so the labels are still provisional. The stock's overnight price gap only flags a label for a second reading; it never sets one ([ADR 0002](adr/0002-day-zero-convention.md)).
 2. The pipeline recomputes implied volatility from mid prices. It derives three measures:
    - an ATM IV on the first *listed* expiry after the announcement;
    - a 30-day constant-maturity IV that never blends an expiry ending before the news with one ending after it;
    - the *implied move*: the earnings-day variance backed out from the difference between two expiries.
-3. CBOE's single-stock volatility indices for five large names provide an independent check on the IV measures. *Revised 2026-10-29: not built yet; no index file has been downloaded.*
+3. CBOE's single-stock volatility indices for five large names provide an independent check on the IV measures. *Revised 2026-10-29: not built yet; no index file has been downloaded. Revised 2026-11-09: run as a check of the 30-day IV, with a mixed result ("What we measured", item 5); only its aggregate statistics are committed.*
 4. Every test works on log IV, after removing each company's measured sensitivity to market-wide volatility (VIX). The primary event test is a t-test with two-way cluster-robust standard errors on the plain (equal-weighted) mean. For the one-day crush the clusters are the announcement date and the company. For the run-up and the persistence, which span weeks, they are the earnings season and the company, and a randomisation (Rademacher) p-value by season takes over when seasons are unbalanced. The Boehmer-Musumeci-Poulsen test and the Kolari-Pynnönen family, including Kolari, Pape & Pynnönen's adjustment for overlapping windows, are reported as robustness and labelled as tests of the precision-weighted mean. The driver regressions use standard errors clustered two ways, by company and by date ([ADR 0005](adr/0005-statistical-test-suite.md)).
 5. Every number shown is exported to a versioned JSON file and drawn by an interactive app. The app never computes a result itself.
 
@@ -69,8 +70,8 @@ comparable across names (ADR 0004). The study also reports:
 <!-- numbers:prfaq-measured -->
 ## What we measured (2026-10-29)
 
-Measured at milestones 1–4 and collected here at milestone 5, with **provisional timing labels**
-(20 of 473 required look-ups done). Day 0 from 2024-12-10 to
+Measured at milestones 1–4, collected here at milestone 5 and re-measured on 2026-11-09 with SEC EDGAR timing labels,
+which are still **provisional** (431 of 473 required look-ups done, 42 open). Day 0 from 2024-12-10 to
 2026-10-22; 347 primary events of 50 companies. The full account is the
 [report](report/earnings-vol-report.md) (a draft the owner has not reviewed yet).
 
@@ -89,9 +90,10 @@ where marked "revised 2026-10-29". These are the places the results contradict i
 
 1. **Timing look-ups.** The draft said every event since daily option data began would be looked up by hand (How it
    works, step 1; Internal FAQ, "Timing labels"), and that quiet events would be checked as thoroughly as big movers.
-   Only 20 of the 473 required look-ups are done, so neither holds yet. The owner
-   accepted SEC EDGAR 8-K filing times as the source on 2026-10-28, but no request has been made: the client needs the
-   owner's contact string. Every number here is provisional until then.
+   Instead, since 2026-11-09 the SEC EDGAR 8-K filing time decides where no press release was looked up:
+   20 required look-ups rest on press releases and 411 on EDGAR, and
+   42 are open. Neither claim holds fully yet: the open look-ups and the 50-event audit of
+   the EDGAR labels remain, so every number here is provisional.
 2. **The size check of the driver tests.** The draft planned regressions with two-way clustered errors and no size
    check of their own. Gate G1, extended to them at milestone 4 and run before their results run, found their
    statistics liberal: 9.55% (H5), 8.10% (H6) and 16.15% (H7) under a true null at 5%. They stay in the
@@ -104,11 +106,18 @@ where marked "revised 2026-10-29". These are the places the results contradict i
    does not survive other surprise measures.
 5. **The Cboe cross-check and subsample.** The draft named Cboe's single-stock volatility indices for five names as
    an independent check on the IV measures, as a second daily subsample ("How far back does it go?") and as a source of
-   extra events (Internal FAQ, "Feasibility"). None of it has been built: no index file has been downloaded.
+   extra events (Internal FAQ, "Feasibility"). *Revised 2026-11-09:* the check ran, with its bars fixed before the
+   download, and its result is mixed (report §3.2). The level spread passes its pre-registered rule for all five names
+   (a rule with little power) and the day-0 crush ratio is 0.92, inside 1 ± 0.2 (provisional). The
+   correlation of daily changes is below the planned 0.8 for GOOGL (0.778), IBM (0.668) and the pooled
+   sample (0.790), and every slope is below 1 (pooled 0.77). The pre-registration wrongly said
+   ADR 0003 set no tolerance for the slope; by the ADR's own reading its slope falsifier is met (3 of 5
+   slopes are below 0.8). The second subsample and the extra events are not built.
 6. **What is committed.** The draft said no Cboe or Yahoo data would be committed. Under the owner's decision of
    2026-10-29 the repository commits the data the app and the docs need: aggregates of VIX-adjusted values, a VIX
    tercile label, two Yahoo-derived labels and the size coefficients (DATA.md). The VIX series, per-event VIX-adjusted
-   values and raw downloads stay local.
+   values and raw downloads stay local. *Revised 2026-11-09:* the Cboe VX\* index values stay local too; only the
+   cross-check's aggregate statistics are committed (`data/derived/vx_crosscheck.json`).
 7. **The robustness tests.** The draft (How it works, step 4) said the Boehmer-Musumeci-Poulsen test and the
    Kolari-Pynnönen family are reported as robustness. They are computed, but for the crush (H1) gate G1 found them
    oversized, so their p-values are withheld and only their estimates are shown (14 robustness rows in all
@@ -175,8 +184,8 @@ The plan handles these in four ways:
 - Record every quote filter and interpolation as a flag in `iv_daily`.
 
 **Timing labels.** The calendar's before-open/after-close label defines day 0, so a wrong label puts the crush on the wrong day. The milestone-0 checks found two already. GOOGL on 2024-10-29 and NFLX on 2024-10-17 are labelled before-open, but their price gaps show after-close reports ([ADR 0002](adr/0002-day-zero-convention.md)). The first plan let the price gap correct labels. The adversarial review showed in simulation that such a rule corrects big movers' labels and leaves quiet events' errors (ADR 0002 §3), so the label now comes from documents and never from the size of the move.
-- **Proposed at milestone 0; accepted by the owner on 2026-10-28 (revised 2026-10-29):** the architect's rule takes the timing from the acceptance time of the company's SEC 8-K earnings filing (Item 2.02). SEC's fair-access policy requires a real contact in every request, so the client makes no request until the owner sets one.
-- **The default if the owner declines, and the rule until then:** the company's press release, looked up by hand for every event in the daily and mixed samples (about 365 + 50) and for every event with no label; the calendar label is kept only where no release is found. Each look-up is recorded with its URL in a committed file.
+- **Proposed at milestone 0; accepted by the owner on 2026-10-28 (revised 2026-10-29); in use since 2026-11-09:** the architect's rule takes the timing from the acceptance time of the company's SEC 8-K earnings filing (Item 2.02). SEC's fair-access policy requires a real contact in every request, so the client makes no request until one is set; the owner set it for the 2026-11-09 fetch, in the command only.
+- **The default rule, which still decides who is looked up:** the company's press release, looked up by hand for every event in the daily and mixed samples (about 365 + 50) and for every event with no label; the calendar label is kept only where no release is found. Each look-up is recorded with its URL in a committed file. Since 2026-11-09 the 8-K acceptance time answers the look-ups that have no release read (411 of 473; 20 rest on releases, 42 are open), and the default applies alone if EDGAR fails its 50-event audit, which has not run.
 - **The price gap stays a local diagnostic.** It never sets a label. A gap that contradicts the label only triggers a second reading of the release (in the older 2020–2024 robustness sample, the look-up itself).
 - **Quiet events are checked as thoroughly as big movers.** The delta review simulated the previous default, which looked up only the events a gap flagged plus a 50-event audit: quiet events kept a wrong day 0 in 2.1–2.6% of cases against 0.3–0.6% for big movers, and the audit could not see it. Looking up every release removes the calendar's errors from that comparison. The sample funnel reports the crush by tercile of a move measure that does not depend on the label ([ADR 0002 §3](adr/0002-day-zero-convention.md)).
 

@@ -78,7 +78,8 @@ def iv_measures_data(primary: pd.DataFrame, event_iv: pd.DataFrame, provenance: 
             "The 30-day IV is event-aware: before day 0 it is interpolated between expiries that span the event "
             "only, so the crush is the event variance leaving the 30-day horizon plus any change in ordinary "
             "volatility (ADR 0004 §3).",
-            "Timing labels are provisional (20 press releases checked), so a few events may sit on the wrong day 0.",
+            "Timing labels are provisional (press releases and SEC EDGAR filing times, with some required look-ups "
+            "still open), so a few events may sit on the wrong day 0.",
         ],
         "provenance": dict(provenance),
     }

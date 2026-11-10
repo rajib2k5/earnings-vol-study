@@ -1,0 +1,15 @@
+mutant:        M8a_no_sleep
+file:          src/earnings_vol/ingest/edgar.py
+mutation:      'sleep(1.0 / MAX_PER_SECOND)'  ->  'sleep(0.0)'
+probe:         e8_client_rate_ua.py
+sha256 before: dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe
+sha256 after:  dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe   restored_identical=True
+falsifier_rc:  1
+--- stdout (tail) ---
+requests 150; virtual duration 0.00s; worst count in any half-open 1 s window: 150; min gap 0.0000s
+every request carries the User-Agent header: True ; header names: ['Accept-Encoding', 'User-Agent']
+second run over the same cache makes 0 requests
+real run 2026-11-09T19:16:22Z..2026-11-09T19:17:16Z: 183 requests in 54s = 3.39/s average
+RESULT: CLIENT HALF REFUTED: over 10 requests in a 1 s window
+--- stderr ---
+

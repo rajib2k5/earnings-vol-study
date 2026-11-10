@@ -235,6 +235,7 @@ def test_edgar_sends_the_owners_user_agent_once_and_caches(monkeypatch, tmp_path
 # numbers. The first filing's time mirrors the GOOGL time quoted in ADR 0002 §3
 # (20:01:46 UTC = 16:01:46 EDT).
 FIXTURE = {"filings": {"recent": {
+    "filingDate": ["2024-10-29", "2024-10-30", "2024-11-01", "2025-10-14", "2025-04-24"],
     "form": ["8-K", "10-Q", "8-K", "8-K", "8-K"],
     "items": ["2.02,9.01", "", "5.02", "2.02,9.01", "2.02"],
     "accessionNumber": ["9999999999-24-999999", "q", "x", "y", "z"],
@@ -274,6 +275,8 @@ def test_edgar_reading_of_acceptance_times(sess):
 
 def test_edgar_holidays():
     # Columbus Day = second Monday of October; Veterans Day 11-11 (2023: Saturday -> Friday 11-10).
-    assert edgar.edgar_holidays(2025) == {date(2025, 10, 13), date(2025, 11, 11)}
-    assert edgar.edgar_holidays(2024) == {date(2024, 10, 14), date(2024, 11, 11)}
+    # 2024 and 2025 also hold the Christmas closures measured in the data (edgar-ledger.md §4).
+    assert edgar.edgar_holidays(2025) == {date(2025, 10, 13), date(2025, 11, 11), date(2025, 12, 24),
+                                          date(2025, 12, 26)}
+    assert edgar.edgar_holidays(2024) == {date(2024, 10, 14), date(2024, 11, 11), date(2024, 12, 24)}
     assert edgar.edgar_holidays(2023) == {date(2023, 10, 9), date(2023, 11, 10)}

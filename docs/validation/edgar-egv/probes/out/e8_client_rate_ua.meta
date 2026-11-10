@@ -1,0 +1,3 @@
+cmd: probes/run_probe.sh e8_client_rate_ua.py <fresh-pycache-prefix>
+rc: 0
+wall_time: .122392729s

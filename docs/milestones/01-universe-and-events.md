@@ -3,7 +3,10 @@
 - **Status:** done, pending owner review; **revised 2026-10-29 after the milestone-1 adversarial review**
   ([ledger](../validation/m1-ledger.md); the fixes are listed at its end), **and again the same day after its delta
   review** ([delta ledger](../validation/m1-delta-ledger.md); the fixes are listed at its end). **The timing labels are provisional**: 20
-  press releases were looked up and timed, and the rest wait for SEC EDGAR (owner default, 2026-10-29).
+  press releases were looked up and timed, and the rest waited for SEC EDGAR (owner default, 2026-10-29). *Update
+  2026-11-09:* EDGAR now runs (`timing.edgar: true`, [EDGAR ledger](../validation/edgar-ledger.md)). Of the 473
+  required look-ups, 411 are resolved by an 8-K time and 42 stay open. The 50-event audit has not run, so the
+  labels are still provisional.
 - **Date:** 2026-10-29
 - **Scope:** [milestone 0 §8](00-scaffold-and-design.md#8-whats-next-milestone-1-universe-and-events), items 1 to 5.
 - **Source of truth:** the ADRs (milestone-1 notes in [0001](../adr/0001-overall-architecture.md) and
@@ -33,7 +36,8 @@ announcements, and on which session each announcement reached the option market.
    licence class, and a writer refuses anything that does not match.
 4. **Timing from documents.** The default rule of ADR 0002 needs a press-release look-up for 473 events. The first 20
    were done and timed; the owner chose to let the rest wait for EDGAR (approved 2026-10-28, contact string pending).
-   An EDGAR client exists and refuses to run without that string.
+   An EDGAR client exists and refuses to run without that string. *Since 2026-11-09:* the owner set it for the fetch
+   and switched EDGAR on; 411 more look-ups are answered by 8-K times and 42 are open ([milestone 5](05-report-and-polish.md) §12).
 5. **Evidence checks**: "the snapshot is the close" widened to every after-close event of the daily era, the
    holiday-copy rule checked on all 50 companies, and the orphan rate measured.
 6. **The sample funnel** (contract 0.2.0): Python counts how many events survive each rule and writes
@@ -369,7 +373,9 @@ Wire notice that the results were out, not of the PDF, which shows none.
 
 - The calendar's label error rate (needs the remaining look-ups or EDGAR).
 - The blind re-read error rate: no re-read was triggered among the 20.
-- EDGAR coverage and accuracy: no request may be made until the owner's contact string is set.
+- EDGAR coverage and accuracy: no request may be made until the owner's contact string is set. *Measured
+  2026-11-09* ([EDGAR ledger](../validation/edgar-ledger.md) §3): coverage 98.1% of `daily` events (361 of 368);
+  accuracy (the 50-event audit) still not measured.
 - The status counts, gap contradictions and mean crush **by tercile of `abs_move_cand_max`**: that measure needs the
   option forwards of milestone 2. The funnel says so (`by_move_tercile_status`).
 - P3 after removing sessions without a usable IV (milestone 2).

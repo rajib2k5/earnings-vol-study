@@ -1,6 +1,6 @@
 # Milestone 3 delta review: the fixes of §9, attacked
 
-- **Reviewed:** the uncommitted working tree on top of `fca9972` after the fix round described in
+- **Reviewed:** the uncommitted working tree on top of `9441774` after the fix round described in
   [`docs/milestones/03-event-study.md`](../milestones/03-event-study.md) §9, against the first review
   ([`m3-ledger.md`](m3-ledger.md)) and the fixer's scratch outputs. 2026-10-29. Default verdict for every claim: broken.
 - **Isolation.** Probes read the stage cache (`cache/stage/94065662cd46610c/`) and the committed files. No CLI that writes

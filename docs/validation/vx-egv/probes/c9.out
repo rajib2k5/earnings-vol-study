@@ -1,0 +1,71 @@
+$ .venv/bin/python -I probes/probe_c9.py src/earnings_vol/stats/vx_crosscheck.py
+ok   start support n=10 l=4: draws on [0, n-l] inclusive integers(0,7,size=(3, 3))
+ok     number of blocks = ceil(n/l) size=(3, 3)
+ok   start support n=12 l=3: draws on [0, n-l] inclusive integers(0,10,size=(2, 4))
+ok     number of blocks = ceil(n/l) size=(2, 4)
+ok   start support n=7 l=7: draws on [0, n-l] inclusive integers(0,1,size=(2, 1))
+ok     number of blocks = ceil(n/l) size=(2, 1)
+ok   start support n=9 l=1: draws on [0, n-l] inclusive integers(0,9,size=(2, 9))
+ok     number of blocks = ceil(n/l) size=(2, 9)
+ok   counts == contiguous fixed-length blocks, cut to n (n=10, l=4, starts=[[0, 6, 3], [2, 2, 2]]) got=[[1, 1, 1, 2, 1, 0, 1, 1, 1, 1], [0, 0, 3, 3, 2, 2, 0, 0, 0, 0]] want=[[1, 1, 1, 2, 1, 0, 1, 1, 1, 1], [0, 0, 3, 3, 2, 2, 0, 0, 0, 0]]
+ok     every row sums to n 
+ok   counts == contiguous fixed-length blocks, cut to n (n=12, l=3, starts=[[0, 1, 2, 9], [9, 9, 0, 0]]) got=[[1, 2, 3, 2, 1, 0, 0, 0, 0, 1, 1, 1], [2, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2]] want=[[1, 2, 3, 2, 1, 0, 0, 0, 0, 1, 1, 1], [2, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2]]
+ok     every row sums to n 
+ok   counts == contiguous fixed-length blocks, cut to n (n=7, l=7, starts=[[0], [0]]) got=[[1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1]] want=[[1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1]]
+ok     every row sums to n 
+ok   counts == contiguous fixed-length blocks, cut to n (n=9, l=1, starts=[[8, 8, 0, 0, 3, 3, 3, 1, 8]]) got=[[2, 1, 0, 3, 0, 0, 0, 0, 3]] want=[[2, 1, 0, 3, 0, 0, 0, 0, 3]]
+ok     every row sums to n 
+ok   no wrap: starts at n-l never feed session 0.. [0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4]
+ok   real rng: row sums == n 
+ok   real rng: mean count per session matches moving-block (non-circular) expectation mean=[0.398, 0.799, 1.201, 1.204, 1.202, 1.202, 1.199, 1.2, 1.199, 1.199, 0.799, 0.399] exp=[0.4, 0.8, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.8, 0.4]
+ok   l=1 reduces to iid draws with replacement (some session drawn twice) 
+ok   same seed same counts 
+PASS []
+rc=0
+### FALSIFIER m1_highbound (/tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/vxb/m1_highbound.py)
+ok   counts == contiguous fixed-length blocks, cut to n (n=9, l=1, starts=[[8, 8, 0, 0, 3, 3, 3, 1, 8]]) got=[[2, 1, 0, 3, 0, 0, 0, 0, 3]] want=[[2, 1, 0, 3, 0, 0, 0, 0, 3]]
+ok     every row sums to n 
+ok   no wrap: starts at n-l never feed session 0.. [0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4]
+ok   real rng: row sums == n 
+FAIL real rng: mean count per session matches moving-block (non-circular) expectation mean=[0.443, 0.889, 1.335, 1.336, 1.336, 1.334, 1.333, 1.332, 1.331, 0.889, 0.443, 0.0] exp=[0.4, 0.8, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.8, 0.4]
+ok   l=1 reduces to iid draws with replacement (some session drawn twice) 
+ok   same seed same counts 
+FAIL ['start support n=10 l=4: draws on [0, n-l] inclusive', 'start support n=12 l=3: draws on [0, n-l] inclusive', 'start support n=7 l=7: draws on [0, n-l] inclusive', 'start support n=9 l=1: draws on [0, n-l] inclusive', 'real rng: mean count per session ma
+falsifier_rc=1
+### FALSIFIER m2_circular (/tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/vxb/m2_circular.py)
+ok   counts == contiguous fixed-length blocks, cut to n (n=9, l=1, starts=[[8, 8, 0, 0, 3, 3, 3, 1, 8]]) got=[[2, 1, 0, 3, 0, 0, 0, 0, 3]] want=[[2, 1, 0, 3, 0, 0, 0, 0, 3]]
+ok     every row sums to n 
+ok   no wrap: starts at n-l never feed session 0.. [0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4]
+ok   real rng: row sums == n 
+FAIL real rng: mean count per session matches moving-block (non-circular) expectation mean=[0.996, 0.998, 0.999, 1.003, 1.002, 1.002, 1.001, 1.001, 0.998, 1.0, 0.999, 1.001] exp=[0.4, 0.8, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 0.8, 0.4]
+ok   l=1 reduces to iid draws with replacement (some session drawn twice) 
+ok   same seed same counts 
+FAIL ['start support n=10 l=4: draws on [0, n-l] inclusive', 'start support n=12 l=3: draws on [0, n-l] inclusive', 'start support n=7 l=7: draws on [0, n-l] inclusive', 'real rng: mean count per session matches moving-block (non-circular) expectation']
+falsifier_rc=1
+### FALSIFIER m3_floor (/tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/vxb/m3_floor.py)
+Traceback (most recent call last):
+  File "/home/rajib2k5/dev/earnings-vol-study/docs/validation/vx-egv/probes/probe_c9.py", line 27, in <module>
+    nb = -(-n // l); f = FakeRng(np.zeros((reps, nb), dtype=int)); m.block_counts(n, l, reps, f)
+                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/vxb/m3_floor.py", line 130, in block_counts
+    idx = (s[:, :, None] + np.arange(block)).reshape(len(s), nb * block)[:, :n]
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: cannot reshape array of size 36 into shape (3,8)
+falsifier_rc=1
+### FALSIFIER m4_extra_block (/tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/vxb/m4_extra_block.py)
+Traceback (most recent call last):
+  File "/home/rajib2k5/dev/earnings-vol-study/docs/validation/vx-egv/probes/probe_c9.py", line 27, in <module>
+    nb = -(-n // l); f = FakeRng(np.zeros((reps, nb), dtype=int)); m.block_counts(n, l, reps, f)
+                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/vxb/m4_extra_block.py", line 130, in block_counts
+    idx = (s[:, :, None] + np.arange(block)).reshape(len(s), nb * block)[:, :n]
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: cannot reshape array of size 36 into shape (3,16)
+falsifier_rc=1
+### FALSIFIER m5_nonoverlap (/tmp/claude-1000/-home-rajib2k5-dev/9fcceee1-9f95-4cb4-9f87-030ec5521894/scratchpad/vxb/m5_nonoverlap.py)
+Traceback (most recent call last):
+  File "/home/rajib2k5/dev/earnings-vol-study/docs/validation/vx-egv/probes/probe_c9.py", line 28, in <module>
+    low, high, size = f.calls[0]
+                      ~~~~~~~^^^
+IndexError: list index out of range
+falsifier_rc=1

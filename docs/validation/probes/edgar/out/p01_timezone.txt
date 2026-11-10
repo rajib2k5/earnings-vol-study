@@ -1,0 +1,50 @@
+filings read: 390105 (51 CIKs); Item 2.02 8-Ks: 2312
+
+A. the 20 press-release look-ups (ground truth): does the 8-K give the release's date and label?
+   CRWD  2024-08-28  PR 08-28 nan AMC  utc 08-28 16:07 AMC             ny 08-28 20:07 AMC           
+   NVDA  2024-08-28  PR 08-28 16:20 AMC  utc 08-28 16:21 AMC             ny 08-28 20:21 AMC           
+   DELL  2024-08-29  PR 08-29 nan AMC  utc 08-29 16:14 AMC             ny 08-29 20:14 AMC           
+   AVGO  2024-09-05  PR 09-05 nan AMC  utc 09-05 16:21 AMC             ny 09-05 20:21 AMC           
+   ORCL  2024-09-09  PR 09-09 16:05 AMC  utc 09-09 16:17 AMC             ny 09-09 20:17 AMC           
+   MU    2024-09-25  PR 09-25 16:07 AMC  utc 09-25 16:00 AMC             ny 09-25 20:00 AMC           
+   COST  2024-09-26  PR 09-26 nan AMC  utc 09-26 16:17 AMC             ny 09-26 20:17 AMC           
+   JPM   2024-10-11  PR 10-11 06:55 BMO  utc 10-11 06:46 BMO             ny 10-11 10:46 during_session
+   WFC   2024-10-11  PR 10-11 07:03 BMO  utc 10-11 06:45 BMO             ny 10-11 10:45 during_session
+   BAC   2024-10-15  PR 10-15 06:45 BMO  utc 10-15 06:46 BMO             ny 10-15 10:46 during_session
+   GS    2024-10-15  PR 10-15 nan BMO  utc 10-15 07:32 BMO             ny 10-15 11:32 during_session
+   JNJ   2024-10-15  PR 10-15 nan BMO  utc 10-15 07:37 BMO             ny 10-15 11:37 during_session
+   UNH   2024-10-15  PR 10-15 05:55 BMO  utc 10-15 06:03 BMO             ny 10-15 10:03 during_session
+   MS    2024-10-17  PR 10-16 07:29 BMO  utc 10-16 07:28 BMO             ny 10-16 11:28 during_session
+   NFLX  2024-10-17  PR 10-17 16:00 AMC  utc 10-17 16:01 AMC             ny 10-17 20:01 AMC           
+   PG    2024-10-18  PR 10-18 06:55 BMO  utc 10-18 07:02 BMO             ny 10-18 11:02 during_session
+   GE    2024-10-22  PR 10-22 nan BMO  utc 10-22 06:34 BMO             ny 10-22 10:34 during_session
+   PM    2024-10-22  PR 10-22 06:59 BMO  utc 10-22 07:01 BMO             ny 10-22 11:01 during_session
+   RTX   2024-10-22  PR 10-22 nan BMO  utc 10-22 07:00 BMO             ny 10-22 11:00 during_session
+   GOOGL 2024-10-29  PR 10-29 nan AMC  utc 10-29 16:01 AMC             ny 10-29 20:01 AMC           
+   utc: {'agree': 20}
+   ny: {'agree': 9, 'during_session': 11}
+
+B. calendar labels: labelled events on a session D (all 1,353 events of the committed stage)
+   utc: n 1306 {'agree': 1273, 'contradict': 4, 'during_session': 1, 'edgar_holiday': 20, 'no 8-K': 5, 'other date': 3}
+   ny: n 1306 {'agree': 665, 'contradict': 3, 'during_session': 610, 'edgar_holiday': 20, 'no 8-K': 5, 'other date': 3}
+
+C. the gap diagnostic on the 8-K's own label (session D, 8-K on D, z on both candidates)
+   utc: {'contradicts': 18, 'during_session': 1, 'edgar_holiday': 19, 'quiet': 527, 'supports': 722}
+   ny: {'contradicts': 8, 'during_session': 603, 'edgar_holiday': 19, 'quiet': 208, 'supports': 449}
+
+D. EDGAR's filing date against the acceptance time, 8-K and 8-K/A from 2020
+   utc: {('before 17:30', 'same date'): 4444, ('from 17:30', 'later date'): 123, ('from 17:30', 'same date'): 14}
+   ny: {('before 17:30', 'later date'): 5, ('before 17:30', 'same date'): 1572, ('from 17:30', 'later date'): 72, ('from 17:30', 'same date'): 2932}
+
+E. acceptances outside EDGAR's 06:00-22:00 New York hours, all filings
+   utc: 312 of 390105 (0.08%)
+   ny: 79068 of 390105 (20.27%)
+
+F. daylight saving: each company's median Item 2.02 time (New York), EDT months minus EST months, 2020 on
+   utc: companies 50; median shift +0 min; |shift| >= 45 min: 2 ['BRK.B', 'MS']
+   ny: companies 50; median shift -60 min; |shift| >= 45 min: 50 
+
+G. NYSE sessions 2020-01-02..2026-11-06 with no acceptance in any of the 51 CIKs (UTC reading)
+    ['2020-10-12 Mon', '2020-11-11 Wed', '2020-12-24 Thu', '2021-06-18 Fri', '2021-10-11 Mon', '2021-11-11 Thu', '2021-12-31 Fri', '2022-10-10 Mon', '2022-11-11 Fri', '2023-10-09 Mon', '2023-11-10 Fri', '2024-10-14 Mon', '2024-11-11 Mon', '2024-12-24 Tue', '2025-10-13 Mon', '2025-11-11 Tue', '2025-12-24 Wed', '2025-12-26 Fri', '2026-10-12 Mon']
+    all in edgar_holidays(): True ; coded days that had acceptances: []
+    weekend acceptances: 0

@@ -9,12 +9,17 @@ Inputs, all committed:
 - ``data/derived/results.parquet`` (the primary, robustness and exploratory rows, Holm, the post-gate sensitivity);
 - ``app/public/data/{meta,sample_funnel,iv_measures,tests,event_paths,drivers,implied_vs_realised}.json``;
 - ``research/prototypes/rhobar_crush.out.txt``, the kept output of the milestone-4 ρ̄ prototype (its inputs are
-  per-event VIX-adjusted values, which stay local, so ρ̄ cannot be recomputed from committed data).
+  per-event VIX-adjusted values, which stay local, so ρ̄ cannot be recomputed from committed data);
+- ``data/derived/vx_crosscheck.json``, the aggregates of the Cboe VX* cross-check (``tools/vx_crosscheck.py``; its
+  inputs, the VX* files and ``volatility_history``, stay local, so it is read here, not recomputed).
 
-One number is not in the committed data: **the 473 press-release look-ups that ADR 0002 §3 requires**
-(``LOOKUPS_REQUIRED``). The events run counts them with the Yahoo gap flags, and one of those flags
-(``outside_flag_yf``) stays local. It is pinned here with its source (milestone 1 §6, ``events_report.json``: 453
-still to do after the 20 done) and, when the local stage report exists, ``--check`` compares it with that report.
+Some look-up counts are not in the committed data. ADR 0002 §3 requires 473 look-ups (``LOOKUPS_REQUIRED``); the
+events run counts them with the Yahoo gap flags, and one of those flags (``outside_flag_yf``) stays local. So do the
+reasons the 42 still-open look-ups are open (``LOOKUPS_OPEN_BY_REASON``) and the 37 EDGAR labels that the price gap
+questions (``LOOKUPS_GAP_QUESTIONED``). They are pinned here with their source (docs/validation/edgar-ledger.md §10,
+``events_report.json`` of the EDGAR run) and, when the local stage report exists, ``--check`` compares each of them
+with that report. How many look-ups each document resolved (``timing_source`` = ``press_release`` or ``edgar``) is
+counted from the committed ``data/derived/events.parquet``.
 
 Templates and outputs:
 
@@ -47,9 +52,16 @@ REPO = Path(__file__).resolve().parents[1]
 MINUS = "−"
 
 # ADR 0002 §3's required look-ups (milestone 1 §6: 422 by date, 30 null labels, 43 gap triggers, some with two
-# reasons). Not derivable from committed data: the gap trigger also reads the local outside_flag_yf.
+# reasons) and, since SEC EDGAR is the timing source (params timing.edgar, 2026-11-09), why the open ones are open
+# and how many EDGAR labels the price gap questions. Not derivable from committed data: the gap trigger also reads the
+# local outside_flag_yf. Measured by `python -m earnings_vol.events.run` with timing.edgar true (events_report.json:
+# lookup_violations.n = 42, edgar.outcome, edgar.pending_gap_checks); docs/validation/edgar-ledger.md §6 and §10.
 LOOKUPS_REQUIRED = 473
-LOOKUPS_SOURCE = "docs/milestones/01-universe-and-events.md §6 (events_report.json in the local stage)"
+LOOKUPS_OPEN_BY_REASON = {"no_8k": 26, "edgar_holiday": 11, "other_date": 4, "contradicts": 1}
+LOOKUPS_GAP_QUESTIONED = 37
+LOOKUPS_AUDIT = 50  # ADR 0002 §3, milestone 1: confirmed EDGAR labels to check against press releases (not run)
+LOOKUPS_SOURCE = "docs/validation/edgar-ledger.md §6 (events_report.json in the local stage, EDGAR run)"
+VX_FILE = "data/derived/vx_crosscheck.json"
 
 TEMPLATES = "docs/report/templates"
 REPORT_TEMPLATE = f"{TEMPLATES}/earnings-vol-report.md"
@@ -63,6 +75,7 @@ BLOCKS: list[tuple[str, str]] = [
     ("docs/prfaq.md", "prfaq-headline"),
     ("docs/prfaq.md", "prfaq-measured"),
     ("docs/milestones/05-report-and-polish.md", "milestone5-results"),
+    ("docs/milestones/05-report-and-polish.md", "milestone5-vx"),
 ]
 PLACEHOLDER = re.compile(r"\{\{\s*([^{}]*?)\s*\}\}")  # any key; an unknown one is an error
 
@@ -134,7 +147,25 @@ def load(root: Path) -> dict:
         **{k: js(k)["data"] for k in ("sample_funnel", "iv_measures", "tests", "event_paths", "drivers",
                                       "implied_vs_realised")},
         "rhobar_out": (root / "research/prototypes/rhobar_crush.out.txt").read_text(),
+        "vx": json.loads((root / VX_FILE).read_text()),
+        "events_sha256": hashlib.sha256((root / "data/derived/events.parquet").read_bytes()).hexdigest(),
+        **events_timing(pd.read_parquet(root / "data/derived/events.parquet",
+                                        columns=["timing_source", "timing_status", "timing_raw", "sample"])),
     }
+
+
+def events_timing(ev: pd.DataFrame) -> dict:
+    """What events.parquet says about the timing labels: where they came from, and what is left `not_checked`.
+
+    `not_checked_open_unlabelled` is the open required look-ups (ADR 0002 §3) that have no calendar label: a
+    `not_checked` event with a NULL label that can enter a sample (`sample` is not `none`). The other open
+    look-ups have a label, so they are `lookups.left` less this count.
+    """
+    nc = ev[ev["timing_status"] == "not_checked"]
+    unlabelled = nc["timing_raw"].isna()
+    return {"timing_source": ev["timing_source"].value_counts().to_dict(),
+            "not_checked": int(len(nc)), "not_checked_unlabelled": int(unlabelled.sum()),
+            "not_checked_open_unlabelled": int((unlabelled & (nc["sample"] != "none")).sum())}
 
 
 def one(df: pd.DataFrame, what: str) -> pd.Series:
@@ -237,10 +268,34 @@ def numbers(d: dict) -> dict[str, tuple[str, str]]:
     tsc = fun["timing_status_counts"]
     for k in ("confirmed", "corrected", "date_corrected", "inferred", "not_checked"):
         put(f"timing.{k}", fint(tsc[k]), f"sample_funnel.json timing_status_counts.{k}")
+    if d["not_checked"] != tsc["not_checked"]:
+        raise ValueError(f"events.parquet has {d['not_checked']} not_checked events, sample_funnel.json "
+                         f"{tsc['not_checked']}")
+    put("timing.not_checked_unlabelled", fint(d["not_checked_unlabelled"]),
+        "events.parquet: not_checked events with a NULL timing_raw")
+    put("timing.not_checked_labelled", fint(d["not_checked"] - d["not_checked_unlabelled"]),
+        "events.parquet: not_checked events with a timing_raw (they keep the calendar's label)")
     done = fun["lookups"]["n_done"]
     put("lookups.done", fint(done), "sample_funnel.json lookups.n_done")
     put("lookups.required", fint(LOOKUPS_REQUIRED), LOOKUPS_SOURCE)
     put("lookups.left", fint(LOOKUPS_REQUIRED - done), "lookups.required − lookups.done")
+    put("lookups.left_unlabelled", fint(d["not_checked_open_unlabelled"]),
+        "events.parquet: not_checked, NULL timing_raw, sample not none (open look-ups with no calendar label)")
+    put("lookups.left_labelled", fint(LOOKUPS_REQUIRED - done - d["not_checked_open_unlabelled"]),
+        "lookups.left − lookups.left_unlabelled (open look-ups that keep the calendar's label)")
+    daily_open = {x["tercile"]: x["timing_status_counts"]["not_checked"] for x in fun["by_move_tercile"]
+                  if x["sample"] == "daily"}
+    if sorted(daily_open) != [1, 2, 3]:
+        raise ValueError(f"sample_funnel.json by_move_tercile: daily terciles {sorted(daily_open)}")
+    for t, n in sorted(daily_open.items()):
+        put(f"funnel.daily_open.t{t}", fint(n), f"sample_funnel.json by_move_tercile[daily, {t}] not_checked")
+    put("funnel.daily_open", fint(sum(daily_open.values())), "sample_funnel.json by_move_tercile[daily] not_checked")
+    for src in ("press_release", "edgar"):
+        put(f"lookups.{src}", fint(d["timing_source"].get(src, 0)), f"events.parquet timing_source == {src}")
+    for why, n in LOOKUPS_OPEN_BY_REASON.items():
+        put(f"lookups.open.{why}", fint(n), LOOKUPS_SOURCE)
+    put("lookups.gap_questioned", fint(LOOKUPS_GAP_QUESTIONED), LOOKUPS_SOURCE)
+    put("lookups.audit", fint(LOOKUPS_AUDIT), "ADR 0002 §3 (milestone 1 EDGAR check; not run)")
     ev = fun["evar_nonpositive"]
     put("evar.nonpositive", fint(ev["n"]), "sample_funnel.json evar_nonpositive.n")
 
@@ -434,6 +489,8 @@ def numbers(d: dict) -> dict[str, tuple[str, str]]:
 
     put("results.rows", fint(len(r)), "results.parquet row count")
 
+    vx_numbers(d["vx"], put)
+
     # Verdicts the tables print, from the data
     for h in ("H1", "H2", "H3", "H4", "H5", "H6", "H7"):
         ok = [x for x in tests["g1"]["calibrated"] if x["hypothesis"] == h][0]["pass"]
@@ -443,7 +500,308 @@ def numbers(d: dict) -> dict[str, tuple[str, str]]:
         "results.parquet primary rows with p_holm ≤ 0.05")
     cross_check(d, rows)
     prose_check(d, rows)
+    vx_prose_check(d["vx"], cm30_sessions=int(par["cm30_horizon_sessions"]))
     return out
+
+
+def _verdict(v: str) -> str:
+    """A bar's verdict as the tables print it: a fail in bold."""
+    if v not in ("pass", "fail"):
+        raise ValueError(f"a verdict must be pass or fail, got {v!r}")
+    return "pass" if v == "pass" else "**fail**"
+
+
+def _join(items: list[str]) -> str:
+    """'A', 'A and B', 'A, B and C'."""
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+
+
+def _sd_ratio(y: dict) -> float:
+    """sd(dln VX) / sd(dln ours) from bar ii's two slopes: forward × (1 / reverse) = (sd ratio)²."""
+    return math.sqrt(y["slope"] * y["reverse_slope_reciprocal"])
+
+
+def _vx_rows(vxd: dict) -> tuple[list[str], dict, dict, dict]:
+    names = [x["security_id"] for x in vxd["names"]]
+    b1 = {**vxd["bar_i"]["per_name"], "pooled": vxd["bar_i"]["pooled"]}
+    return names, b1, vxd["bar_ii"]["per_name"], vxd["bar_iii"]["per_name"]
+
+
+def vx_numbers(vxd: dict, put) -> None:
+    """The Cboe VX* cross-check (data/derived/vx_crosscheck.json): bars i-iv, the lags, §5."""
+    src = VX_FILE
+    names, b1, b2, b3 = _vx_rows(vxd)
+    index = {x["security_id"]: x["vx_index"] for x in vxd["names"]}
+    for nm in names + ["pooled"]:
+        k = nm.lower()
+        if nm != "pooled":
+            put(f"vx.{k}.index", index[nm], f"{src} names")
+        x = b1[nm]
+        put(f"vx.{k}.n", fint(x["n"]), f"{src} bar_i {nm} n")
+        put(f"vx.{k}.r", fnum(x["r"], 3), f"{src} bar_i {nm} r")
+        put(f"vx.{k}.r_ci", fci(x["block20"]["lo"], x["block20"]["hi"], 3), f"{src} bar_i {nm} block20")
+        put(f"vx.{k}.i", _verdict(x["verdict"]), f"{src} bar_i {nm} verdict")
+        y = b2[nm]
+        put(f"vx.{k}.slope", fnum(y["slope"], 2), f"{src} bar_ii {nm} slope")
+        put(f"vx.{k}.slope_ci", fci(y["block20"]["slope"]["lo"], y["block20"]["slope"]["hi"], 2),
+            f"{src} bar_ii {nm} block20 slope")
+        put(f"vx.{k}.rev", fnum(y["reverse_slope_reciprocal"], 2), f"{src} bar_ii {nm} 1 / reverse slope")
+        if nm != "pooled":
+            z = b3[nm]
+            put(f"vx.{k}.spread", fnum(z["median_spread"], 2), f"{src} bar_iii {nm} median_spread")
+            put(f"vx.{k}.maxdev", fnum(z["max_abs_dev"], 2), f"{src} bar_iii {nm} max_abs_dev")
+            put(f"vx.{k}.iii", _verdict(z["verdict"]), f"{src} bar_iii {nm} verdict")
+    put("vx.pooled.r_ci60", fci(b1["pooled"]["block60"]["lo"], b1["pooled"]["block60"]["hi"], 3),
+        f"{src} bar_i pooled block60")
+    shares = [b3[nm]["share_above"] for nm in names]
+    put("vx.above_min", fpct(min(shares), 0), f"{src} bar_iii share_above, smallest")
+    put("vx.above_max", fpct(max(shares), 0), f"{src} bar_iii share_above, largest")
+    put("vx.maxdev_max", fnum(max(b3[nm]["max_abs_dev"] for nm in names), 2), f"{src} bar_iii max_abs_dev, largest")
+    put("vx.rev_min", fnum(min(b2[nm]["reverse_slope_reciprocal"] for nm in names), 2),
+        f"{src} bar_ii 1 / reverse slope, smallest name")
+    put("vx.rev_max", fnum(max(b2[nm]["reverse_slope_reciprocal"] for nm in names), 2),
+        f"{src} bar_ii 1 / reverse slope, largest name")
+    put("vx.tolerance", fnum(vxd["bar_iii"]["tolerance_vol_points"], 1), f"{src} bar_iii tolerance_vol_points")
+    put("vx.window_from", vxd["window"]["first"], f"{src} window.first")
+    put("vx.window_to", vxd["window"]["last"], f"{src} window.last")
+    put("vx.reps", fint(vxd["bootstrap"]["reps"]), f"{src} bootstrap.reps")
+    put("vx.block", fint(vxd["bootstrap"]["primary_block"]), f"{src} bootstrap.primary_block")
+    put("vx.block60", fint(vxd["bootstrap"]["blocks"][1]), f"{src} bootstrap.blocks[1]")
+    fetched = sorted({m["fetched_utc"][:10] for m in vxd["inputs"]["cboe"].values()})
+    if len(fetched) != 1:
+        raise ValueError(f"the VX* files were fetched on several days: {fetched}")
+    put("vx.fetched", fetched[0], f"{src} inputs.cboe fetched_utc (date)")
+    iv = vxd["bar_iv"]
+    put("vx.iv.n", fint(iv["n"]), f"{src} bar_iv n")
+    put("vx.iv.ratio", fnum(iv["ratio"], 2), f"{src} bar_iv ratio")
+    put("vx.iv.ci", fci(iv["events_bootstrap"]["lo"], iv["events_bootstrap"]["hi"], 2), f"{src} bar_iv events_bootstrap")
+    put("vx.iv.verdict", _verdict(iv["verdict"]), f"{src} bar_iv verdict")
+    tsc_iv = iv["events"]["timing_status_counts"]
+    put("vx.iv.not_checked", fint(tsc_iv.get("not_checked", 0)), f"{src} bar_iv events timing_status_counts.not_checked")
+    put("vx.iv.documented", fint(iv["events"]["n_events_five_names"] - tsc_iv.get("not_checked", 0)),
+        f"{src} bar_iv events n_events_five_names − timing_status_counts.not_checked")
+    per_name = iv["events"]["n_by_name"].values()
+    put("vx.iv.per_name_min", fint(min(per_name)), f"{src} bar_iv events n_by_name, smallest")
+    put("vx.iv.per_name_max", fint(max(per_name)), f"{src} bar_iv events n_by_name, largest")
+    put("vx.i_fails", fint(sum(b1[nm]["verdict"] == "fail" for nm in names)), f"{src} bar_i names failing")
+    put("vx.ii_below", fint(sum(b2[nm]["slope"] < vxd["bar_ii"]["exploratory_adr_band"]["band"][0] for nm in names)),
+        f"{src} bar_ii names with a slope below the ADR band (exploratory)")
+    lags = vxd["alignment_falsifier"]["lags"]
+    put("vx.lag.m1", fsigned(lags["-1"]["r"], 3), f"{src} alignment_falsifier lag -1 r")
+    put("vx.lag.p1", fsigned(lags["+1"]["r"], 3), f"{src} alignment_falsifier lag +1 r")
+    sec = vxd["secondary"]["pooled"]
+    put("vx.sec.r", fnum(sec["r"], 3), f"{src} secondary pooled r")
+    put("vx.sec.r_ci", fci(sec["block20"]["r"]["lo"], sec["block20"]["r"]["hi"], 3), f"{src} secondary pooled block20 r")
+    put("vx.sec.n", fint(sec["n"]), f"{src} secondary pooled n")
+    put("vx.sec.slope", fnum(sec["slope"], 2), f"{src} secondary pooled slope")
+    put("vx.sec.rev", fnum(sec["reverse_slope_reciprocal"], 2), f"{src} secondary pooled 1 / reverse slope")
+    put("vx.sec.rev_ci", fci(sec["block20"]["reverse_slope_reciprocal"]["lo"],
+                             sec["block20"]["reverse_slope_reciprocal"]["hi"], 2),
+        f"{src} secondary pooled block20 1 / reverse slope")
+    vh = vxd["volatility_history"]
+    rv, ro = vh["iv_current_vs_vx"]["r_primary_changes"]["pooled"], vh["iv_current_vs_ours"]["r_primary_changes"]["pooled"]
+    put("vh.r_vx", fnum(rv["r"], 3), f"{src} volatility_history iv_current_vs_vx pooled r")
+    put("vh.r_vx_ci", fci(rv["block20"]["lo"], rv["block20"]["hi"], 3), f"{src} volatility_history iv_current_vs_vx")
+    put("vh.r_ours", fnum(ro["r"], 3), f"{src} volatility_history iv_current_vs_ours pooled r")
+    sv = vh["iv_current_vs_vx"]["spread_vx_minus_iv_current"]["pooled"]
+    so = vh["iv_current_vs_ours"]["spread_iv_current_minus_ours"]["pooled"]
+    put("vh.spread_vx", fnum(sv["median_spread"], 2), f"{src} volatility_history spread VX − iv_current pooled")
+    put("vh.spread_ours", fnum(so["median_spread"], 2), f"{src} volatility_history spread iv_current − ours pooled")
+    mat = vh["maturity"]
+    ident = mat["identification"]
+    put("vh.maturity", fint(ident["horizon"]) if ident["status"] == "identified" else "UNRESOLVED",
+        f"{src} volatility_history maturity identification")
+    put("vh.maturity_med", fnum(mat["median_abs_diff_vol_points"][str(ident["argmin"])], 2),
+        f"{src} volatility_history maturity median_abs_diff at the argmin")
+    put("vh.maturity_days", fint(mat["n_common_days"]), f"{src} volatility_history maturity n_common_days")
+    put("vh.horizons", ", ".join(str(h) for h in mat["horizons"]), f"{src} volatility_history maturity horizons")
+    put("vh.longest", ", ".join(str(h) for h in mat["not_measurable"]), f"{src} maturity not_measurable")
+
+    # Bar ii read against ADR 0003's own band, and why [forward, 1 / reverse] cannot test the slope
+    band = vxd["bar_ii"]["exploratory_adr_band"]["band"]
+    below = [nm for nm in names if b2[nm]["slope"] < band[0]]
+    put("vx.ii_below_names", _join(below), f"{src} bar_ii names with a slope below the ADR band")
+    put("vx.ii_band", f"[{fnum(band[0], 1)}, {fnum(band[1], 1)}]", f"{src} bar_ii exploratory_adr_band.band")
+    put("vx.ii_band_lo", fnum(band[0], 1), f"{src} bar_ii exploratory_adr_band.band[0]")
+    put("vx.pooled.sd", fnum(_sd_ratio(b2["pooled"]), 2),
+        f"{src} bar_ii pooled sqrt(slope × 1 / reverse slope) = sd(dln VX) / sd(dln ours)")
+    sds = [_sd_ratio(b2[nm]) for nm in names]
+    put("vx.sd_min", fnum(min(sds), 2), f"{src} bar_ii sd ratio, smallest name")
+    put("vx.sd_max", fnum(max(sds), 2), f"{src} bar_ii sd ratio, largest name")
+
+    # Bar iii: the yearly medians of GS (the step the rule's all-years median hides)
+    yrs = b3["GS"]["years"]
+    early = [yrs[y]["median_spread"] for y in ("2020", "2021", "2022")]
+    late = [yrs[y]["median_spread"] for y in ("2023", "2024", "2025", "2026")]
+    put("vx.gs.early_lo", fnum(min(early), 1), f"{src} bar_iii GS years 2020-2022 median_spread, smallest")
+    put("vx.gs.early_hi", fnum(max(early), 1), f"{src} bar_iii GS years 2020-2022 median_spread, largest")
+    put("vx.gs.late_lo", fnum(min(late), 1), f"{src} bar_iii GS years 2023-2026 median_spread, smallest")
+    put("vx.gs.late_hi", fnum(max(late), 1), f"{src} bar_iii GS years 2023-2026 median_spread, largest")
+    put("vx.gs.step", fnum(sum(early) / len(early) - sum(late) / len(late), 1),
+        f"{src} bar_iii GS mean of the 2020-2022 medians less the mean of the 2023-2026 medians")
+
+    # Exploratory, not pre-registered (ledger §9)
+    ex = vxd["exploratory"]
+    cal = ex["snapshot_calendar"]
+    put("vx.cal.era_from", cal["daily_era_from"], f"{src} exploratory snapshot_calendar.daily_era_from")
+    put("vx.cal.end_monday", fint(cal["n_end_monday"]), f"{src} exploratory snapshot_calendar n_end_monday")
+    put("vx.cal.end_monday_share", fpct(cal["n_end_monday"] / cal["n"], 0),
+        f"{src} exploratory snapshot_calendar n_end_monday / n")
+    put("vx.cal.early", fint(cal["n_before_era"]), f"{src} exploratory snapshot_calendar n_before_era")
+    put("vx.cal.early_monday", fint(cal["n_before_era_end_monday"]),
+        f"{src} exploratory snapshot_calendar n_before_era_end_monday")
+    for key, what in (("mon_vx", "mean_dln_vx_end_monday"), ("mon_ours", "mean_dln_ours_end_monday"),
+                      ("oth_vx", "mean_dln_vx_other"), ("oth_ours", "mean_dln_ours_other")):
+        put(f"vx.cal.{key}", fsigned(cal[what], 4), f"{src} exploratory snapshot_calendar {what}")
+    for part, label in (("bar_i_tue_to_fri", "tf"), ("bar_i_without_day0", "d0")):
+        for nm in names + ["pooled"]:
+            x = ex[part][nm]
+            put(f"vx.{label}.{nm.lower()}.n", fint(x["n"]), f"{src} exploratory {part} {nm} n")
+            put(f"vx.{label}.{nm.lower()}.r", fnum(x["r"], 3), f"{src} exploratory {part} {nm} r")
+            put(f"vx.{label}.{nm.lower()}.r_ci", fci(x["r_block20"]["lo"], x["r_block20"]["hi"], 3),
+                f"{src} exploratory {part} {nm} r_block20")
+    put("vx.d0.dropped", fint(ex["bar_i_without_day0"]["n_dropped"]), f"{src} exploratory bar_i_without_day0 n_dropped")
+    for k, by in ex["stepped_changes"]["by_k"].items():
+        for nm in names + ["pooled"]:
+            put(f"vx.step{k}.{nm.lower()}.n", fint(by[nm]["n"]), f"{src} exploratory stepped_changes k={k} {nm} n")
+            put(f"vx.step{k}.{nm.lower()}.slope", fnum(by[nm]["slope"], 3),
+                f"{src} exploratory stepped_changes k={k} {nm} slope")
+            put(f"vx.step{k}.{nm.lower()}.rev", fnum(by[nm]["reverse_slope_reciprocal"], 3),
+                f"{src} exploratory stepped_changes k={k} {nm} 1 / reverse slope")
+
+    # iv_current read as 30 calendar days, and how far the horizons were extrapolated (exploratory)
+    c30 = mat["calendar_30"]
+    put("vh.cal.n", fint(c30["n_days_same"]), f"{src} maturity calendar_30 n_days_same")
+    put("vh.cal.med", fnum(c30["median_abs_diff_same_days"]["calendar_30"], 3),
+        f"{src} maturity calendar_30 median_abs_diff_same_days.calendar_30")
+    put("vh.cal.med21", fnum(c30["median_abs_diff_same_days"]["sessions_21"], 3),
+        f"{src} maturity calendar_30 median_abs_diff_same_days.sessions_21")
+    put("vh.cal.r", fnum(c30["change_correlation"]["calendar_30"]["r"], 3),
+        f"{src} maturity calendar_30 change_correlation.calendar_30")
+    put("vh.cal.r21", fnum(c30["change_correlation"]["sessions_21"]["r"], 3),
+        f"{src} maturity calendar_30 change_correlation.sessions_21")
+    ext = mat["extrapolated"]["by_horizon"]
+    put("vh.extrap.max", fint(mat["max_extrap_sessions"]), f"{src} maturity max_extrap_sessions")
+    put("vh.extrap.h42", fint(ext["42"]["n_beyond_last_expiry"]), f"{src} maturity extrapolated 42 n_beyond_last_expiry")
+    put("vh.extrap.h42_n", fint(ext["42"]["n_days"]), f"{src} maturity extrapolated 42 n_days")
+    put("vh.extrap.h10", fint(ext["10"]["n_before_first_expiry"]),
+        f"{src} maturity extrapolated 10 n_before_first_expiry")
+    put("vh.extrap.h10_n", fint(ext["10"]["n_days"]), f"{src} maturity extrapolated 10 n_days")
+
+
+def vx_prose_check(vxd: dict, cm30_sessions: int) -> None:
+    """The hand-written sentences about the VX* cross-check (report §3.2 and §7, README, PR/FAQ, milestone 5)."""
+    names, b1, b2, b3 = _vx_rows(vxd)
+    fails_i = sorted(nm for nm in names + ["pooled"] if b1[nm]["verdict"] == "fail")
+    iv, lags = vxd["bar_iv"], vxd["alignment_falsifier"]
+    vh = vxd["volatility_history"]
+    r_vx = vh["iv_current_vs_vx"]["r_primary_changes"]["pooled"]
+    ex, steps, c30, ext = vxd["exploratory"], vxd["exploratory"]["stepped_changes"]["by_k"], vh["maturity"]["calendar_30"], \
+        vh["maturity"]["extrapolated"]["by_horizon"]
+    below_slope = sorted(nm for nm in names if b2[nm]["slope"] < vxd["bar_ii"]["exploratory_adr_band"]["band"][0])
+    claims = [
+        ("VX bar i fails for GOOGL, IBM and the pooled sample, passes for AAPL, AMZN and GS",
+         fails_i == ["GOOGL", "IBM", "pooled"]),
+        ("VX bar ii: every slope below 1 and no 95% interval (block 20) holds 1",
+         all(b2[nm]["slope"] < 1 and not b2[nm]["bar_ii_interval_holds_1"]["block20"] for nm in names + ["pooled"])),
+        ("VX bar ii: the reverse regression's reciprocal is above 1 for every name and pooled",
+         all(b2[nm]["reverse_slope_reciprocal"] > 1 for nm in names + ["pooled"])),
+        ("VX bar i: only IBM's interval lies wholly below 0.8; the other names' and the pooled interval hold 0.8",
+         [nm for nm in names + ["pooled"] if b1[nm]["block20"]["hi"] < vxd["bar_i"]["bar"]] == ["IBM"]
+         and all(b1[nm]["block20"]["lo"] <= vxd["bar_i"]["bar"] <= b1[nm]["block20"]["hi"]
+                 for nm in names + ["pooled"] if nm != "IBM")),
+        ("VX bar ii (exploratory ADR band): AAPL and AMZN inside [0.8, 1.2], GOOGL, GS and IBM below it",
+         vxd["bar_ii"]["exploratory_adr_band"]["band"] == [0.8, 1.2]
+         and {nm for nm in names if vxd["bar_ii"]["exploratory_adr_band"]["slope_in_band"][nm]} == {"AAPL", "AMZN"}
+         and all(b2[nm]["slope"] < 0.8 for nm in ("GOOGL", "GS", "IBM"))),
+        ("VX bar iii passes for all five names, with Cboe above ours on most days and in the median",
+         all(b3[nm]["verdict"] == "pass" and b3[nm]["share_above"] > 0.5 and b3[nm]["median_spread"] > 0
+             for nm in names)),
+        ("VX bar iv: the event-bootstrap interval lies below 1", iv["events_bootstrap"]["hi"] < 1),
+        ("VX bar iv passes (provisional)", iv["verdict"] == "pass"),
+        ("VX bar iv: most events of the five names rest on a document's timing label, a few on the "
+         "calendar's",
+         0 < iv["events"]["timing_status_counts"].get("not_checked", 0) < iv["events"]["n_events_five_names"] / 2),
+        ("VX lags: lag 0 has the highest pooled correlation", lags["lags_above_lag0"] == []
+         and lags["highest_lag"] == 0),
+        ("VX lags: one session either side is near 0 (|r| < 0.1)",
+         abs(lags["lags"]["-1"]["r"]) < 0.1 and abs(lags["lags"]["+1"]["r"]) < 0.1),
+        ("VX secondary changes correlate more than the one-session changes (pooled)",
+         vxd["secondary"]["pooled"]["r"] > b1["pooled"]["r"]),
+        ("VX secondary: the pooled slope below 1 and its 1 / reverse slope above 1 (its interval too), a narrower pair "
+         "than the one-session changes'; for AAPL and "
+         "AMZN alone the 1 / reverse slope is below 1 with an interval that holds 1",
+         vxd["secondary"]["pooled"]["slope"] < 1 < vxd["secondary"]["pooled"]["block20"]["reverse_slope_reciprocal"]["lo"]
+         and (vxd["secondary"]["pooled"]["reverse_slope_reciprocal"] - vxd["secondary"]["pooled"]["slope"]
+              < b2["pooled"]["reverse_slope_reciprocal"] - b2["pooled"]["slope"])
+         and {nm for nm in names if vxd["secondary"][nm]["reverse_slope_reciprocal"] < 1} == {"AAPL", "AMZN"}
+         and all(vxd["secondary"][nm]["block20"]["reverse_slope_reciprocal"]["lo"] <= 1
+                 <= vxd["secondary"][nm]["block20"]["reverse_slope_reciprocal"]["hi"] for nm in ("AAPL", "AMZN"))),
+        ("volatility_history: maturity identified at 21 sessions, the 30-day IV's horizon",
+         vh["maturity"]["identification"]["status"] == "identified"
+         and vh["maturity"]["identification"]["horizon"] == 21 == cm30_sessions),
+        ("VX ADR 0003's slope falsifier is met: GOOGL, GS and IBM (3 of 5, most) have a slope below 0.8",
+         below_slope == ["GOOGL", "GS", "IBM"] and 2 * len(below_slope) > len(names)),
+        ("VX ADR 0003's correlation falsifier is not met: only 2 of 5 names have r below 0.8",
+         2 * sum(b1[nm]["verdict"] == "fail" for nm in names) < len(names)),
+        ("VX ADR 0003's crush-ratio falsifier is not met: the ratio lies inside [0.8, 1.2]",
+         vxd["bar_ii"]["exploratory_adr_band"]["band"][0] <= iv["ratio"] <= vxd["bar_ii"]["exploratory_adr_band"]["band"][1]),
+        ("VX bar ii: the two series' daily changes have nearly the same sd (ratio 0.9 to 1.0 for every name and "
+         "pooled), so [forward, 1 / reverse] brackets 1 by construction",
+         all(0.9 <= _sd_ratio(b2[nm]) <= 1.0 and b2[nm]["slope"] <= _sd_ratio(b2[nm]) <= b2[nm]["reverse_slope_reciprocal"]
+             for nm in names + ["pooled"])),
+        ("VX bar iii: GS's yearly medians step from 3.5-4.2 (2020-22) to 1.6-2.2 (2023-26); the all-days median "
+         "lies between the two levels, so the rule (within 2.0) passes",
+         all(3.5 < b3["GS"]["years"][y]["median_spread"] < 4.2 for y in ("2020", "2021", "2022"))
+         and all(1.6 < b3["GS"]["years"][y]["median_spread"] < 2.2 for y in ("2023", "2024", "2025", "2026"))
+         and max(b3["GS"]["years"][y]["median_spread"] for y in ("2023", "2024", "2025", "2026"))
+         < b3["GS"]["median_spread"]
+         < min(b3["GS"]["years"][y]["median_spread"] for y in ("2020", "2021", "2022"))
+         and b3["GS"]["verdict"] == "pass"),
+        ("VX exploratory: changes ending on a Monday are a minority overall but nearly all (over 85%) before the "
+         "daily era, and the index rises on them while ours falls",
+         2 * ex["snapshot_calendar"]["n_end_monday"] < ex["snapshot_calendar"]["n"]
+         and ex["snapshot_calendar"]["n_before_era_end_monday"] > 0.85 * ex["snapshot_calendar"]["n_before_era"]
+         and ex["snapshot_calendar"]["mean_dln_vx_end_monday"] > 0 > ex["snapshot_calendar"]["mean_dln_ours_end_monday"]),
+        ("VX exploratory: on Tuesday-to-Friday changes r is above 0.8 for GOOGL and the pooled sample, below it for "
+         "IBM; the pooled and GOOGL's r are above their all-changes r",
+         ex["bar_i_tue_to_fri"]["GOOGL"]["r"] > 0.8 and ex["bar_i_tue_to_fri"]["pooled"]["r"] > 0.8
+         and ex["bar_i_tue_to_fri"]["IBM"]["r"] < 0.8
+         and all(ex["bar_i_tue_to_fri"][nm]["r"] > b1[nm]["r"] for nm in ("GOOGL", "pooled"))),
+        ("VX exploratory: without the changes that end on a day 0, r falls for every name and the pooled sample is "
+         "below 0.8; IBM's is the lowest",
+         all(ex["bar_i_without_day0"][nm]["r"] < b1[nm]["r"] for nm in names + ["pooled"])
+         and ex["bar_i_without_day0"]["pooled"]["r"] < 0.8
+         and min(names, key=lambda nm: ex["bar_i_without_day0"][nm]["r"]) == "IBM"),
+        ("VX exploratory: the pooled forward slope of non-overlapping changes rises with the horizon "
+         "(k = 1, 10, 21) to above 0.9; IBM's stays below 0.95 and is the lowest at k = 10 and 21, every other "
+         "name is at 0.94 or more",
+         steps["1"]["pooled"]["slope"] < steps["10"]["pooled"]["slope"] < steps["21"]["pooled"]["slope"]
+         and steps["10"]["pooled"]["slope"] > 0.9
+         and all(steps[k]["IBM"]["slope"] < 0.95 and min(names, key=lambda nm: steps[k][nm]["slope"]) == "IBM"
+                 and all(steps[k][nm]["slope"] >= 0.94 for nm in names if nm != "IBM") for k in ("10", "21"))),
+        ("VX exploratory: with iv_current read as 30 calendar days the median |difference| is smaller and the "
+         "change correlation higher than at 21 sessions (same days)",
+         c30["median_abs_diff_same_days"]["calendar_30"] < c30["median_abs_diff_same_days"]["sessions_21"]
+         and c30["change_correlation"]["calendar_30"]["r"] > c30["change_correlation"]["sessions_21"]["r"]),
+        ("volatility_history: most 42-session values lie beyond the last listed expiry, about 4 in 10 10-session "
+         "values before the first, and under 1% of the 21-session values are extrapolated",
+         ext["42"]["n_beyond_last_expiry"] > 0.5 * ext["42"]["n_days"]
+         and ext["10"]["n_before_first_expiry"] > 0.3 * ext["10"]["n_days"]
+         and (ext["21"]["n_beyond_last_expiry"] + ext["21"]["n_before_first_expiry"]) < 0.01 * ext["21"]["n_days"]),
+        ("volatility_history: no value at 63 sessions on any day", vh["maturity"]["not_measurable"] == [63]),
+        ("volatility_history: the minimum is not at an edge of the measurable horizons",
+         min(vh["maturity"]["identification"]["measurable"]) < vh["maturity"]["identification"]["argmin"]
+         < max(vh["maturity"]["identification"]["measurable"])),
+        ("volatility_history: iv_current's pooled r with VX above ours, the intervals overlapping",
+         r_vx["r"] > b1["pooled"]["r"] and r_vx["block20"]["lo"] < b1["pooled"]["block20"]["hi"]),
+        ("volatility_history: iv_current sits above ours in the median, VX above iv_current",
+         vh["iv_current_vs_ours"]["spread_iv_current_minus_ours"]["pooled"]["median_spread"] > 0
+         and vh["iv_current_vs_vx"]["spread_vx_minus_iv_current"]["pooled"]["median_spread"] > 0),
+    ]
+    wrong = [what for what, ok in claims if not ok]
+    if wrong:
+        raise ValueError("the data now contradict sentences in the templates; revise them:\n  " + "\n  ".join(wrong))
 
 
 def prose_check(d: dict, rows: dict) -> None:
@@ -568,6 +926,10 @@ def cross_check(d: dict, rows: dict) -> None:
     tsc = fun["timing_status_counts"]
     same("look-ups done / timing statuses", fun["lookups"]["n_done"],
          sum(tsc[k] for k in ("confirmed", "corrected", "date_corrected", "inferred", "ambiguous", "no_document")), 0)
+    same("look-ups done / press releases + EDGAR (events.parquet)", fun["lookups"]["n_done"],
+         d["timing_source"].get("press_release", 0) + d["timing_source"].get("edgar", 0), 0)
+    same("look-ups open / pinned reasons", LOOKUPS_REQUIRED - fun["lookups"]["n_done"],
+         sum(LOOKUPS_OPEN_BY_REASON.values()), 0)
     # Gate G1: the export's rates and pass flags against results.parquet's calibrated rows and the band.
     hi = tests["g1"]["band"][1]
     for x in tests["g1"]["calibrated"]:
@@ -578,6 +940,18 @@ def cross_check(d: dict, rows: dict) -> None:
             problems.append(f"{h} G1 statistic: {g.statistic} against {x['statistic']}")
         if x["pass"] != (x["rejection_rate"] <= hi):
             problems.append(f"{h} G1 pass flag {x['pass']} against rate {x['rejection_rate']} and bar {hi}")
+    # The VX* cross-check was computed from the same committed data and the same pinned commits.
+    vxd = d["vx"]
+    same("VX bar iv's primary sample / meta.json sample size", vxd["bar_iv"]["events"]["n_primary_sample"],
+         meta["sample"]["n_events"], 0)
+    for what, a, b in (("options commit", vxd["inputs"]["options_commit"], meta["provenance"]["dolt_commits"]["options"]),
+                       ("params hash", vxd["inputs"]["params_hash"][:16], meta["provenance"]["params_hash"][:16])):
+        if a != b:
+            problems.append(f"VX cross-check {what} {a} against meta.json {b}")
+    # Bar iv rests on the events' day 0: new timing labels (a new events.parquet) need a re-run of the cross-check.
+    if vxd["inputs"]["events_sha256"] != d["events_sha256"]:
+        problems.append(f"VX cross-check events.parquet {vxd['inputs']['events_sha256'][:12]} against the committed "
+                        f"{d['events_sha256'][:12]}: re-run tools/vx_crosscheck.py")
     if problems:
         raise ValueError("the inputs disagree:\n  " + "\n  ".join(problems))
 
@@ -648,18 +1022,33 @@ def check_exports(root: Path, report_text: str) -> list[str]:
 
 
 def check_lookups_against_stage(root: Path) -> str:
-    """Compare LOOKUPS_REQUIRED with the local stage report, when there is one (never in CI)."""
+    """Compare the pinned look-up counts with the local stage report, when there is one (never in CI)."""
     base = Path(os.environ.get("VOL_DATA_DIR", Path.home() / "data/vol-projects")) / "earnings-vol-study/cache/stage"
     params_hash = load(root)["meta"]["provenance"]["params_hash"][:16]
     rep = base / params_hash / "events_report.json"
     if not rep.exists():
         return f"look-ups: {LOOKUPS_REQUIRED} pinned, not re-measured (no local {rep.name})"
-    left = json.loads(rep.read_text())["lookup_violations"]["n"]
+    stage = json.loads(rep.read_text())
+    left = stage["lookup_violations"]["n"]
     done = load(root)["sample_funnel"]["lookups"]["n_done"]
     if left + done != LOOKUPS_REQUIRED:
         raise ValueError(f"look-ups: the stage report says {left} left + {done} done = {left + done}, "
                          f"not {LOOKUPS_REQUIRED}")
-    return f"look-ups: {left} left + {done} done = {LOOKUPS_REQUIRED}, as pinned (local {rep.name})"
+    ed = stage.get("edgar") or {}
+    if not ed.get("on"):
+        raise ValueError("look-ups: the stage report has no EDGAR run (params timing.edgar), but the pins are from one")
+    open_by = {k: v for k, v in ed["outcome"].items() if k not in ("confirmed", "inferred", "press_release")}
+    if open_by != LOOKUPS_OPEN_BY_REASON:
+        raise ValueError(f"look-ups: the stage report's open look-ups are {open_by}, not {LOOKUPS_OPEN_BY_REASON}")
+    null_open = stage["lookup_violations"]["by_reason"].get("null_label", 0)
+    if null_open != load(root)["not_checked_open_unlabelled"]:
+        raise ValueError(f"look-ups: the stage report has {null_open} open look-ups with a NULL label, "
+                         f"events.parquet {load(root)['not_checked_open_unlabelled']}")
+    if ed["pending_gap_checks"] != LOOKUPS_GAP_QUESTIONED:
+        raise ValueError(f"look-ups: the stage report's gap-questioned EDGAR labels are {ed['pending_gap_checks']}, "
+                         f"not {LOOKUPS_GAP_QUESTIONED}")
+    return (f"look-ups: {left} left + {done} done = {LOOKUPS_REQUIRED}; open by reason and "
+            f"{LOOKUPS_GAP_QUESTIONED} gap-questioned, as pinned (local {rep.name})")
 
 
 def main(argv: list[str] | None = None) -> int:

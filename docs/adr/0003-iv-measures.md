@@ -53,7 +53,9 @@
 >   said "the FRED rate (3.83% …)" as if DTB3 itself were 3.83%.)*
 > - **Validation item 2 (the vendor `vol`)**: on 53,135 front-expiry days away from events, the vendor is 0.16 vol
 >   points below ours on the calendar clock (median 0.11, median |difference| 0.17, p95 0.94): under the 0.5-point
->   line. Items 1 (VX\*) and 3 (`iv_current`) are not run yet.
+>   line. Items 1 (VX\*) and 3 (`iv_current`) are not run yet. *Update 2026-11-09:* both ran, under a
+>   pre-registration ([plan](../validation/vx-preregistration.md), [ledger](../validation/vx-ledger.md)); the
+>   results are in `data/derived/vx_crosscheck.json` and the report's §3.2.
 > - **"How we'll know it's wrong"**: the blind 30-day IV sits 0.23 vol points above the event-aware one in the
 >   sessions 22–60 before an event, above the 0.1 line, so the event-aware series stays. E ≤ 0 on day −1 for 1.15% of
 >   the primary sample, far below 25%.

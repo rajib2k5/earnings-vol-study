@@ -44,8 +44,10 @@ from earnings_vol.schema import SAMPLES, TIMING_STATUS
 CAVEATS = [
     "Survivorship: the 50 companies are today's largest S&P 500 members by market cap, so firms that shrank or "
     "left the index since 2020 are missing and firms that grew are over-represented.",
-    "Timing labels are provisional: only 20 press releases were looked up (owner default, 2026-10-29); every other "
-    "event keeps the calendar label as not_checked until SEC EDGAR is set up.",
+    "Timing labels are provisional: the events that ADR 0002 requires to be looked up take their label from a "
+    "company press release or, since 2026-11-09, from the SEC EDGAR 8-K filing time; some of them are still open "
+    "(no 8-K, an EDGAR holiday, an 8-K on another day or against the calendar), keep the calendar label as "
+    "not_checked, and the ADR's 50-event audit of the EDGAR labels has not run.",
     "A baseline session counts only with an observed option snapshot and a 30-day IV (cm30_iv), so the last count "
     "is the primary sample before the milestone-3 eligibility rules of each measure.",
     "Implied moves are read on day -1, from the two shortest option expiries that span day 0; when that day's "

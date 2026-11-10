@@ -9,15 +9,22 @@
 >
 > **Every result here is provisional.** The session that each announcement reached the option market ("day 0")
 > depends on a before-open or after-close label. ADR 0002 requires 473 of these labels to be checked
-> against a document. 20 are checked. The other 453 wait for SEC EDGAR filing times, which
-> need the owner's contact string before the first request. Until then, those events keep the earnings calendar's
-> label, and a few of them may sit on the wrong day 0.
+> against a document. 431 are checked: 20 against the company's press release and,
+> since 2026-11-09, 411 against the time SEC EDGAR accepted the company's earnings filing (Form 8-K,
+> Item 2.02). The other 42 are open: 26 have no such filing near the date,
+> 11 fall next to a day EDGAR was closed, 4 have the filing on
+> another day and 1 has a filing against the calendar's label. Of these 42,
+> 19 keep the earnings calendar's label and 23 have no label at all. The audit that the ADR asks for (50 EDGAR labels checked against press releases) has
+> not run, and 37 EDGAR labels that the stock's price gap questions wait for a press-release
+> check. So a few events may still sit on the wrong day 0.
 
 Data: DoltHub `post-no-preference/earnings` at `fjrb6h5le9h1qiif2j4pl6cpaas7pnee` and `post-no-preference/options` at
-`msfqpodh24viv7prdqdan8517rkjp861`; parameters hash `74bed6f4b1281810`; app data contract 0.5.0, exported from
-commit `75948b3`. Every measured number in this report is filled in by `tools/report_numbers.py` from
-`data/derived/results.parquet`, the app's JSON files and the kept ρ̄ output (section 8); one count, the
-473 required look-ups, is pinned in that script. Design parameters quoted from the ADRs (window
+`msfqpodh24viv7prdqdan8517rkjp861`; parameters hash `d23d18972bf0c8d4`; app data contract 0.5.0, exported from
+commit `6b8453f`. Every measured number in this report is filled in by `tools/report_numbers.py` from
+`data/derived/results.parquet`, `data/derived/vx_crosscheck.json`, the app's JSON files and the kept ρ̄ output
+(section 8); the look-up counts that need a local Yahoo flag (the
+473 required look-ups, why 42 are open, and the 37
+gap-questioned EDGAR labels) are pinned in that script. Design parameters quoted from the ADRs (window
 lengths, minimum counts) are written by hand.
 
 ---
@@ -78,8 +85,8 @@ and Friday, before that). The baseline needs 60 sessions before day 0, so the pr
 | Step | Events left | Removed | Why |
 |---|---:|---:|---|
 | Calendar events of the 50 companies | 1,353 | – | |
-| One row per release, and day 0 can be placed | 1,320 | 33 | duplicate rows, timing not placeable |
-| Day 0 in the daily range | 366 | 954 | outside 2024-12-05 to 2026-10-26 |
+| One row per release, and day 0 can be placed | 1,326 | 27 | duplicate rows, timing not placeable |
+| Day 0 in the daily range | 366 | 960 | outside 2024-12-05 to 2026-10-26 |
 | Option snapshots on day −1 and day 0 | 356 | 10 | a missing snapshot |
 | A 30-day IV on day −1 and day 0 | 353 | 3 | no 30-day IV |
 | At least 20 clean baseline sessions and 15 changes | **347** | 6 | short baseline |
@@ -90,9 +97,14 @@ rules, so its event count (the `n` in section 4) differs a little from 347.
 
 ![The sample funnel, as the app draws it from sample_funnel.json](../images/fig-funnel.png)
 
-**Timing labels.** 20 labels were checked against press releases (16 confirmed,
-2 corrected, 1 with a corrected date and 1 inferred).
-1,333 events keep the calendar's label. A wrong label puts the crush on the wrong day, which makes a
+**Timing labels.** 431 labels rest on a document, 20 on a press release and
+411 on an SEC EDGAR filing time (421 confirmed, 2 corrected,
+1 with a corrected date and 7 inferred). 922 events stay
+`not_checked`: 892 keep the calendar's label and 30 have none.
+42 of the 922 are required look-ups that are still open, the others are `coarse` events
+that the rule does not require to be looked up, or events outside every sample. EDGAR's acceptance time is a UTC instant: read that way
+it agrees with each of the 20 press releases looked up on date and label; read as New York time
+it would put each before-open one inside the trading session (docs/validation/edgar-ledger.md §2). A wrong label puts the crush on the wrong day, which makes a
 crush look smaller and a run-up look longer.
 
 ## 3. Method
@@ -110,10 +122,108 @@ Every IV is recomputed from bid/ask mid prices with Black-76 on the forward pric
 spot price, dividend or snapshot time is needed ([ADR 0003](../adr/0003-iv-measures.md)). The stored quantity is the
 at-the-money total variance w = σ²T of each expiry. From it:
 
-- **The 30-day IV** (the primary series): constant maturity of 21 sessions, interpolated only
-  between expiries on the same side of the event, so it never borrows event variance from an expiry on the wrong side.
+- **The 30-day IV** (the primary series): constant maturity of 21 sessions, interpolated between
+  expiries on the same side of the event (extrapolated by at most 10 sessions when none brackets the
+  horizon), so it never borrows event variance from an expiry on the wrong side.
   The vendor's chain lists only a few expiries, so the weekly expiry right after an announcement is usually absent.
 - **The front-expiry IV**: the first listed expiry after the event, followed through the window (exploratory).
+
+**Checked against Cboe's single-stock volatility indices (run 2026-11-09).** Cboe publishes a daily 30-day index
+for five of our companies. ADR 0003 describes these indices as built with the VIX method from the whole out-of-the-money
+strip, so they should sit above an at-the-money IV. The check compares our blind 30-day IV (`cm30_blind_iv`) with
+each index from 2020-01-02 to 2026-10-26. Its four bars come from ADR 0003 and were fixed in a
+pre-registration before any download ([pre-registration](../validation/vx-preregistration.md),
+[ledger](../validation/vx-ledger.md)). The correlation and the slope use changes in ln IV between two consecutive
+sessions where both series have a value. The 95% intervals come from a moving-block bootstrap over sessions
+(10,000 draws, blocks of 20 sessions; the five names share the draws). Only these aggregates are
+committed (`data/derived/vx_crosscheck.json`); the index values stay on the build machine.
+
+| Company (index) | Changes | Correlation r [95% interval] | Bar i: r > 0.8 | Slope [95% interval] | 1 / reverse slope | Median spread, vol points | Largest yearly drift | Bar iii |
+|---|---:|---:|:-:|---:|---:|---:|---:|:-:|
+| AAPL (VXAPL) | 747 | 0.858 [0.794, 0.906] | pass | 0.83 [0.78, 0.88] | 1.13 | 3.13 | 1.67 | pass |
+| AMZN (VXAZN) | 745 | 0.838 [0.756, 0.897] | pass | 0.81 [0.73, 0.88] | 1.16 | 2.87 | 0.95 | pass |
+| GOOGL (VXGOG, on GOOG) | 735 | 0.778 [0.691, 0.843] | **fail** | 0.77 [0.67, 0.85] | 1.28 | 2.64 | 0.52 | pass |
+| GS (VXGS) | 740 | 0.848 [0.789, 0.894] | pass | 0.79 [0.71, 0.85] | 1.09 | 2.38 | 1.73 | pass |
+| IBM (VXIBM) | 730 | 0.668 [0.549, 0.754] | **fail** | 0.66 [0.54, 0.75] | 1.48 | 2.09 | 1.14 | pass |
+| Pooled | 3,697 | 0.790 [0.721, 0.842] | **fail** | 0.77 [0.70, 0.83] | 1.23 | | | |
+
+"Median spread" is the index minus our IV over all days. "Largest yearly drift" is the largest distance of one calendar
+year's median spread from that all-days median; bar iii passes when it is at most 2.0 vol points.
+
+- **Bar i (correlation of daily changes above 0.8) passes for AAPL, AMZN and GS and fails for GOOGL, IBM and the pooled
+  sample.** The verdict uses the point estimate, as pre-registered. Only IBM's interval lies wholly below 0.8. The
+  intervals of the other four names and of the pooled sample hold 0.8, so for them the split between pass and fail is
+  not sharp. With blocks of 60 sessions the pooled interval is [0.723, 0.839].
+- **Bar ii (slope ≈ 1): the pre-registration called it descriptive because it said the ADR set no tolerance, and that
+  was wrong; by ADR 0003's own reading its slope falsifier is met.** ADR 0003's "How we'll know it's wrong" says the
+  VX\* checks fail if the correlation is below 0.8, the slope is outside [0.8, 1.2] or the day-0 crush ratio is
+  outside [0.8, 1.2] "for most of the five names" (erratum in [the ledger](../validation/vx-ledger.md)). The slope
+  is below 0.8 for 3 of the 5 names (GOOGL, GS and IBM), which is most, so the slope
+  falsifier is met. The correlation is below 0.8 for 2 of the 5, so that falsifier is not met, and the
+  crush ratio (0.92, pooled, provisional) is inside its band, so that one is not met either. AAPL and AMZN
+  are inside the slope band. Every slope is below 1 and no interval holds 1. Noise in our daily changes pulls this
+  slope toward 0, and noise in the index's daily changes pulls the reciprocal of the reverse slope (our change on the
+  index's) above the true slope; here that reciprocal is above 1 for every name (1.09 to 1.48), so
+  the pair [slope, 1 / reverse slope] holds 1. That is not a test of a slope of 1 plus daily noise. The slope times the
+  reverse slope is r², so the pair always contains the ratio of the two series' standard deviations, and here that
+  ratio is 0.93 to 0.99 for the names (0.97 pooled). The pair sits around 1 because the
+  two series move by similar amounts, whatever the true slope is, and this check cannot say which series holds the
+  noise.
+- **Bar iii (a stable level spread) passes for all five names by the pre-registered rule, but the rule has little
+  power.** The index sits above our IV on 91% to 99% of days, as ADR 0003 expects. No year's
+  median moves more than 1.73 vol points from its name's all-days median. That does not show the spread
+  holds still: GS's yearly medians step from about 3.8–4.1 vol points (2020–22) to about
+  1.7–2.1 (2023–26), a step of about 2.1 vol points, and GS passes only because
+  its all-years median (2.38) sits between the two levels.
+- **Bar iv (day-0 crush ratio in [0.8, 1.2]) passes, provisionally.** Over the 34 primary-sample events of the
+  five names, the mean day-0 change in ln VX is 0.92 times ours (event bootstrap [0.87, 0.97]). The
+  interval lies below 1: in log terms the index falls a little less on day 0 than our IV. The ratio is pooled only
+  (6 to 8 events per name). Since 2026-11-09, 32 of these
+  events have a label that an SEC EDGAR filing confirms; 2 (GS on the day after Columbus Day, when
+  EDGAR's time is not read) keep the calendar's. The ratio did not change when EDGAR confirmed the labels, because no
+  day 0 moved; it stays provisional with the timing labels.
+- **Alignment.** Moving the index one session either way leaves almost no correlation (lag −1: +0.035; lag +1:
+  −0.038; lag 0: 0.790), so the two series are on the same dates.
+- **Changes over longer gaps** (between two shared values more than one session apart; pre-registered, no bar)
+  correlate more: pooled r = 0.879 [0.843, 0.909] over 2,351 changes. Noise in the daily levels
+  weighs less in a change over several sessions, so this is consistent with daily noise; but these changes come from
+  other days (days where one series has no value), so the two correlations are not like for like. On these changes
+  the pooled slope is 0.80 and the reciprocal of the reverse slope 1.04 [1.00, 1.07], a
+  narrower pair, as the correlation is higher. For AAPL and AMZN alone that reciprocal is just below 1 (its interval
+  holds 1).
+- **Why the daily slopes are low (exploratory, not pre-registered).** Cboe's index counts calendar days and ours counts
+  sessions, so a change across a weekend moves the two differently. Four checks, each exploratory and not
+  pre-registered, are consistent with a clock effect. (1) 1,515 of the 3,697 one-session
+  changes (41%) end on a Monday; before 2024-09-03, when our snapshots were taken on
+  Mondays, Wednesdays and Fridays only, 1,005 of the 1,111 changes end on a Monday. On Monday changes the mean change in ln
+  VX is +0.0173 and in ours −0.0053 (other days −0.0037 and +0.0016).
+  (2) On Tuesday-to-Friday changes alone, r is 0.826 [0.749, 0.879] pooled (2,182
+  changes; GOOGL 0.814, IBM 0.765). (3) Without the 43 changes that end on a day 0,
+  the pooled r is 0.747 [0.668, 0.811] (AMZN 0.768, IBM 0.558), so the
+  correlation leans on the largest days. (4) Over non-overlapping changes of k sessions in the daily-snapshot era (from
+  2024-09-03), the pooled slope and 1 / reverse slope are 0.742 and
+  1.168 at k = 1 (2,586 changes), 0.939 and
+  1.011 at k = 10 (263) and 0.954 and
+  0.990 at k = 21 (125); IBM stays below 1 (0.854 and
+  0.978 at k = 10, 0.895 and 0.941 at k = 21). So the low daily
+  slopes are consistent with being largely a clock effect that shrinks at longer horizons, except for IBM. That is a
+  reading of exploratory numbers, with no intervals, and not proof.
+- **The vendor's `iv_current` (third check, changes no verdict).** In DoltHub's `volatility_history` table,
+  `iv_current` has no documented maturity. Our blind at-the-money IV at 10, 15, 21, 30, 42, 63 sessions (interpolated between the
+  listed expiries, or extrapolated by up to 10 sessions beyond them) comes closest to it at
+  **21 sessions** (median |difference| 0.62 vol points over 5,383
+  company-days), the horizon of our 30-day IV (21 sessions); the minimum is not at an edge of the
+  grid. Many of the values at the ends of the grid are extrapolated: 4,160 of the 5,413 values
+  at 42 sessions lie beyond the last listed expiry, and 2,334 of the 5,964 at 10 sessions
+  before the first. *Exploratory, not pre-registered:* interpolating total variance on calendar days at 30 days fits
+  better, with a median |difference| of 0.327 vol points against 0.606 at 21 sessions on the same
+  5,959 company-days, and a change correlation with `iv_current` of 0.818 against 0.786. So
+  `iv_current` reads as a 30-calendar-day IV, which shows up as about 21 sessions on our grid. This part of the check
+  was not blind: ADR 0003 already held the hypothesis of about 30 days, annualised on calendar days. The
+  63-session horizon has no value on any day, because no listed expiry is that long. The daily changes of
+  `iv_current` correlate with the index at r = 0.839 [0.763, 0.892] (pooled), a little above ours, and the two
+  intervals overlap. In the median, `iv_current` sits 0.26 vol points above our IV and the index
+  2.30 above `iv_current`.
 
 ### 3.3 Event variance and the implied move
 
@@ -260,8 +370,8 @@ The crush regression has R² 0.427 on 347 events. A positive coefficient means a
 - **H5, the surprise:** +0.0132 per sd (interval [0.003, 0.023], p 0.0102, Holm 0.0511): a bigger surprise
   goes with a slightly smaller crush. The statistic rejects 9.55% of the time under the null, so the p is weaker
   than it looks, and Holm does not reject. The effect does not survive other surprise measures: with the surprise
-  scaled by its own history it is +0.002 (q 0.750), with analyst dispersion +0.003
-  (q 0.773), and with company fixed effects +0.008 (q 0.587).
+  scaled by its own history it is +0.002 (q 0.803), with analyst dispersion +0.003
+  (q 0.798), and with company fixed effects +0.008 (q 0.587).
 - **H6, the prior volatility level:** −0.0014 per sd (interval [−0.023, 0.020], p 0.895): no measurable effect.
 - **The slope (exploratory):** a steeper term structure at day −1 goes with a larger crush, −0.032 per sd
   (p 3.9e−5, q 0.0006). That is expected and partly mechanical: the slope proxies the event's share of the
@@ -334,7 +444,11 @@ measured numbers describe about the past, and what they cannot say.
   moves on the way.
 - **A narrow, survivor sample.** 50 of today's largest S&P 500 companies, day 0 from
   2024-12-10 to 2026-10-22. Smaller, less liquid names and other periods may behave differently.
-- **Provisional timing labels.** 453 of 473 required look-ups are not done.
+- **Provisional timing labels.** 42 of 473 required look-ups are open, and the
+  50-event audit of the EDGAR labels has not run. The 13 events of the daily sample
+  that still have the calendar's label fall 8 / 5 /
+  0 across the terciles of move size, smallest first, so the unresolved timing sits in the
+  smaller-move events.
 - **Liberal driver statistics.** H5–H7's tests reject 9.55%, 8.10% and 16.15% of the time under a true
   null at 5%.
 - **The averages hide the spread.** The heaviest-tailed events drive the squared-move regression, and a single event
@@ -342,9 +456,11 @@ measured numbers describe about the past, and what they cannot say.
 
 ## 7. Caveats, in one place
 
-1. **Provisional timing labels:** 20 of 473 required look-ups are done; 453
-   wait for SEC EDGAR (accepted as the timing source on 2026-10-28; no request has been made, because the client needs
-   the owner's contact string).
+1. **Provisional timing labels:** 431 of 473 required look-ups are done
+   (20 by press release, 411 by SEC EDGAR filing time since 2026-11-09);
+   42 are open: 19 keep the calendar's label and 23
+   have none. The 50-event audit of the EDGAR labels and the
+   press-release checks of the 37 EDGAR labels that the price gap questions have not been done.
 2. **H2 depends on the season count:** rejected with 8 seasons (Holm 0.0469), not rejected with the
    7 that ADR 0005 expected (Holm 0.0781).
 3. **H5–H7's statistics are liberal:** G1 sizes 9.55%, 8.10% and 16.15% at 5% (one-way versions
@@ -360,9 +476,19 @@ measured numbers describe about the past, and what they cannot say.
    the crush. Adding a second market factor would change every market-adjusted number and is an owner decision.
 6. **Which Holm family binds** (H1–H7 declared, or H1–H4 after the gate) is an owner decision (section 4.1).
 7. **Survivorship:** the universe is today's largest companies.
-8. **Not built:** the Cboe single-stock volatility index cross-check (VXAPL and others), the coarse-sample scale
-   correction, the SPY placebo and the drop-the-largest-companies check of ADR 0004.
-9. **No 3D hero render:** Blender was unreachable on 2026-10-29, so the Blender script
+8. **The Cboe check is mixed (section 3.2).** Against Cboe's 30-day indices for five names, the correlation of daily
+   changes is below the pre-registered 0.8 for GOOGL (0.778), IBM (0.668) and the pooled sample
+   (0.790), and every slope is below 1 (0.77 pooled). By ADR 0003's own
+   reading, which the pre-registration missed, the slope falsifier is met: 3 of the 5 slopes
+   (GOOGL, GS and IBM) are below 0.8. The correlation falsifier (2 of 5) and the
+   crush-ratio falsifier are not met. The level spread passes its pre-registered rule, which has little power (GS's
+   yearly medians step by about 2.1 vol points). The day-0 crush ratio is 0.92 (pass,
+   provisional like the timing labels: 2 of its events keep the calendar's label). Exploratory
+   checks are consistent with the low daily slopes being largely a clock effect, but do not prove it. Whether this
+   meets ADR 0003's "How we'll know it's wrong" is an owner question (section 9).
+9. **Not built:** the coarse-sample scale correction, the SPY placebo and the drop-the-largest-companies check of
+   ADR 0004.
+10. **No 3D hero render:** Blender was unreachable on 2026-10-29, so the Blender script
    (`tools/blender/event_terrain.py`) has not run. The 3D figures are three.js stills of the app's terrain view.
 
 ![The 3D terrain: each company's mean abnormal log IV (mean-adjusted) by event day, a three.js still from the app](../images/terrain-default.png)
@@ -370,10 +496,12 @@ measured numbers describe about the past, and what they cannot say.
 ## 8. How this report is built
 
 The report is written in `docs/report/templates/earnings-vol-report.md`. `tools/report_numbers.py` fills every
-placeholder in it (a key in double braces) from `data/derived/results.parquet`, the app's JSON files and the kept output
-`research/prototypes/rhobar_crush.out.txt`, and writes this file. One number is pinned instead of read: the
-473 required look-ups, which need a Yahoo flag that stays local (`--check` compares it with the local
-stage report when one exists). The same script fills the results blocks of the README and the PR/FAQ.
+placeholder in it (a key in double braces) from `data/derived/results.parquet`, the Cboe cross-check's aggregates
+`data/derived/vx_crosscheck.json` (written by `tools/vx_crosscheck.py`), the app's JSON files and the kept output
+`research/prototypes/rhobar_crush.out.txt`, and writes this file. A few counts are pinned instead of read: the
+473 required look-ups, why 42 of them are open and the 37
+gap-questioned EDGAR labels, which need a Yahoo flag that stays local (`--check` compares them with the local stage
+report when one exists). The same script fills the results blocks of the README and the PR/FAQ.
 
 ```bash
 uv sync --frozen --group report                                      # once: python-docx and markdown-it-py
@@ -398,8 +526,23 @@ uv run --frozen --group report --with playwright==1.64.1 python tools/build_repo
    with 8 seasons, not with 7), or adopt the post-gate family H1–H4 (H2 rejected either way)?
 5. **Trading implications.** Keep section 6 as observations with their limits, shorten it to the "cannot say" list,
    or drop it? Should it point to `vol-strategy-backtester` for a cost-aware test?
-6. **Timing labels.** Publish with 20 of 473 labels checked, or wait until SEC EDGAR has
-   run (it needs your contact string in `SEC_EDGAR_USER_AGENT`)?
+6. **Timing labels.** Publish with 42 of 473 required look-ups open and the
+   50-event audit of the EDGAR labels not run, or wait for both? Two of the open choices are yours:
+   - **BRK.B.** Berkshire releases on Saturdays and files its 8-K days later, so most of the
+     26 open look-ups without an 8-K are BRK.B's. Look up its press releases by hand, or leave
+     them open?
+   - **EDGAR in `coarse`.** EDGAR now labels only the look-ups ADR 0002 requires. Should it also label the `coarse`
+     events that the rule leaves `not_checked`? That would remove the gap-triggered selection of that sample, and is
+     an ADR change.
 7. **The common date component.** Add an equal-weighted single-stock IV factor next to VIX in the market model? It would
    change every market-adjusted number.
 8. **Exports.** Are a PDF and a DOCX the right formats, and is the app's dark theme right for the printed figures?
+9. **The Cboe check (section 3.2).** ADR 0003 reads a correlation of daily changes below 0.8, a slope outside
+   [0.8, 1.2] or a day-0 crush ratio outside [0.8, 1.2], "for most of the five names", as a sign that the IV
+   calculation is wrong. The pre-registration wrongly said the ADR set no tolerance for the slope. The slope is below
+   0.8 for 3 of the 5 names (GOOGL, GS and IBM), which is most: that falsifier is met.
+   The correlation is below 0.8 for 2 of the 5 and the crush ratio is 0.92 (pooled,
+   provisional): neither is met. Does the ADR's response (re-examine the forward, the filters and the interpolation)
+   apply, or do the exploratory checks, which are consistent with the low daily slopes being largely a clock effect
+   (slopes of 0.939 at 10 sessions and 0.954 at 21, except IBM), justify
+   leaving the IV calculation as it is?

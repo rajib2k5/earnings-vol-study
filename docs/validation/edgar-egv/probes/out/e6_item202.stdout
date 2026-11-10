@@ -1,0 +1,23 @@
+CRWD  2024-08-28 8-Ks that day: ['2.02,9.01']  has 2.02: True
+NVDA  2024-08-28 8-Ks that day: ['2.02,9.01']  has 2.02: True
+DELL  2024-08-29 8-Ks that day: ['2.02,9.01']  has 2.02: True
+AVGO  2024-09-05 8-Ks that day: ['2.02,8.01,9.01']  has 2.02: True
+ORCL  2024-09-09 8-Ks that day: ['2.02,8.01,9.01']  has 2.02: True
+MU    2024-09-25 8-Ks that day: ['2.02,9.01']  has 2.02: True
+COST  2024-09-26 8-Ks that day: ['2.02,9.01']  has 2.02: True
+JPM   2024-10-11 8-Ks that day: ['7.01,9.01', '2.02,9.01']  has 2.02: True
+WFC   2024-10-11 8-Ks that day: ['2.02,7.01,9.01']  has 2.02: True
+BAC   2024-10-15 8-Ks that day: ['2.02,7.01,9.01']  has 2.02: True
+GS    2024-10-15 8-Ks that day: ['2.02,7.01,9.01']  has 2.02: True
+JNJ   2024-10-15 8-Ks that day: ['2.02,9.01']  has 2.02: True
+UNH   2024-10-15 8-Ks that day: ['2.02,9.01']  has 2.02: True
+MS    2024-10-16 8-Ks that day: ['2.02,9.01']  has 2.02: True
+NFLX  2024-10-17 8-Ks that day: ['2.02,9.01']  has 2.02: True
+PG    2024-10-18 8-Ks that day: ['7.01,9.01', '2.02,9.01']  has 2.02: True
+GE    2024-10-22 8-Ks that day: ['2.02,9.01']  has 2.02: True
+PM    2024-10-22 8-Ks that day: ['2.02,9.01']  has 2.02: True
+RTX   2024-10-22 8-Ks that day: ['2.02,9.01']  has 2.02: True
+GOOGL 2024-10-29 8-Ks that day: ['2.02,8.01,9.01']  has 2.02: True
+ground-truth releases with a 2.02 8-K on the release date: 20/20
+events 1353: Item 2.02 8-K within +-1 day of announce_date 1311 (0.9690); at announce_date+45d (placebo) 0 (0.0000)
+RESULT: SURVIVES

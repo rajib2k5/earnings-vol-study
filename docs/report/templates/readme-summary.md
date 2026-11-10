@@ -6,5 +6,5 @@ test's size on the real event structure. **Measured:** from the last close befor
 the 30-day IV falls by {{h1.fall}} log points (about {{h1.pct_fall}}; p = {{h1.p}}, Holm {{h1.p_holm}}), ordinary
 volatility does not change ({{h4.est}}, p = {{h4.p}}), IV is back at its baseline ten sessions later, and the options
 priced the earnings-day move about right on average (realised squared move {{h7.b}} × the implied variance, interval
-{{h7.b_ci}}). **Provisional:** only {{lookups.done}} of the {{lookups.required}} required before-open/after-close labels
-have been checked against a document. A React app draws the exported results, and a written report sums them up.
+{{h7.b_ci}}). **Provisional:** {{lookups.done}} of the {{lookups.required}} required before-open/after-close labels rest
+on a document ({{lookups.edgar}} on SEC EDGAR filing times); {{lookups.left}} are open. A React app draws the exported results, and a written report sums them up.

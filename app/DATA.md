@@ -326,7 +326,7 @@ source's own files.
 | Wikipedia List of S&P 500 companies | company names, GICS sectors and CIKs | CC BY-SA 4.0 | derived rows only |
 | FRED DTB3 | the 3-month Treasury bill rate: the discount factor and the carry inside the committed IVs and moves | public domain (FRED asks for a citation) | derived rows only (no rate value) |
 | FRED VIXCLS (Cboe VIX) | the VIX close, for the market adjustment and (milestone 4) the VIX tercile label at day −1 | Cboe copyright (see source) | aggregates of VIX-adjusted values (`results.parquet`, `tests.json`, `event_paths.json` and `drivers.json`, including gate G1's calibration parameters) and the tercile label `event_measures.vix_regime`; **never** the VIX series or a per-event VIX-adjusted value |
-| Cboe single-stock volatility indices (VX\*) | validation of our 30-day IV (not run yet) | Cboe terms of use (see source) | **never** (local only) |
+| Cboe single-stock volatility indices (VX\*) | validation of our 30-day IV (run 2026-11-09) | Cboe terms of use (see source) | **never** in the app (the About page says "never"); the index values stay local. The check's aggregate statistics are in the repository, in `data/derived/vx_crosscheck.json`, not in `public/data/` |
 | Yahoo Finance | daily prices and market caps, read with `yfinance`; two labels made from them are committed, and since milestone 4 the regression coefficients of SIZE (ln market cap at day −1) | Yahoo terms of service (see source) | derived rows only: `security.in_universe`, `timing_check.gap_verdict_yf`, and the SIZE coefficients in `results.parquet` and `drivers.json` |
 
 - **CC BY-SA 4.0 (DoltHub, confirmed).** Both DoltHub repositories contain a `LICENSE.md` reading
@@ -346,7 +346,10 @@ source's own files.
   Yahoo's terms, not CC BY-SA. The Yahoo prices and market caps themselves are downloaded locally into
   `$VOL_DATA_DIR/earnings-vol-study/raw` by the Python side (parquet caches go in
   `$VOL_DATA_DIR/earnings-vol-study/cache`) and are never committed, exported, or put in `dist/`.
-- **Cboe (owner decision of 2026-10-29).** No Cboe single-stock (VX\*) value is committed, exported, or put in `dist/`. The
+- **Cboe (owner decision of 2026-10-29).** No Cboe single-stock (VX\*) value is committed, exported, or put in `dist/`.
+  Since 2026-11-09 the VX\* cross-check's aggregate statistics are committed in `data/derived/vx_crosscheck.json`
+  (Cboe's terms, not CC BY-SA); none is exported to the app, and the About page's VX\* row still reads "never" (an owner
+  decision, `docs/validation/vx-ledger.md` D13). The
   VIX close (via FRED `VIXCLS`) is used for the market adjustment, and **aggregates of VIX-adjusted values** are committed
   and exported: the market-adjusted rows of `results.parquet`, `tests.json`, `event_paths.json` and `drivers.json` (means, bands, test
   statistics and regression coefficients). They fall under Cboe's terms, not CC BY-SA, and the attribution in `meta.json` says so and cites FRED. The

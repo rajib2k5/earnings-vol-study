@@ -3,6 +3,9 @@
 - **Status:** built; adversarially reviewed ([ledger](../validation/m4-ledger.md)) and fixed (§9; a delta review of
   the fixes has not run); pending the owner's review. **The timing labels are provisional**: 20 of the 473 required press-release look-ups are done, and every other event keeps the calendar's
   label until SEC EDGAR runs. Every result on this page, in `results.parquet` and in the app depends on those labels.
+  *Since 2026-11-09* SEC EDGAR is in use: 431 of the 473 look-ups are done (20 press releases, 411 EDGAR 8-K
+  times), 42 are open and the 50-event audit has not run, so the labels are still provisional. H1–H7, G1 and the
+  sample counts did not change; 13 exploratory rows moved slightly ([milestone 5](05-report-and-polish.md) §12).
 - **Date:** 2026-10-29
 - **Scope:** the regressor columns of `event_measures` that milestone 3 left null; OLS with two-way clustered
   inference (`stats/regression.py`); the crush regression of H5 and H6 and the implied-against-realised test of H7
@@ -539,9 +542,10 @@ Explain it back (interview questions):
   t(4.5) 20.50%) and every one fails.
 - Not built: the market-conditions variant's VIX-tercile *dummy* coefficients (never exported, §2.1), firm-clustered
   ramp regressions (none declared), `crush_two_session`, the Cboe VX\* cross-check, the coarse/mixed scale correction.
-- **Provenance:** the JSON files name `source_commit` 8c3221b and `results.code_commit` ends in `-dirty`, because this
+- **Provenance:** the JSON files name `source_commit` 4e79f61 and `results.code_commit` ends in `-dirty`, because this
   work is uncommitted; re-export after the milestone commit.
-- **The timing look-ups** (453 to go) wait for SEC EDGAR; every number here is provisional until they are done.
+- **The timing look-ups:** 42 of 473 are still open and the 50-event audit has not run (SEC EDGAR in use since
+  2026-11-09, milestone 5 §12); every number here is provisional until they are done.
 
 ---
 
@@ -555,7 +559,7 @@ wrong, the change, and before → after. The gate outputs are in §6.10; no delt
 
 - *Claim* (§1, §2 row 21, §6.2): dropping H5–H7 from Holm after their failed G1 size check is what ADR 0005 §5
   declared in advance.
-- *What was wrong:* ADR 0005 at `8c3221b` says G1's size designs "cover only the intercept-only H1–H4", and that for
+- *What was wrong:* ADR 0005 at `4e79f61` says G1's size designs "cover only the intercept-only H1–H4", and that for
   the regressions a failed reference-distribution check "is a code bug … not a reason to drop a hypothesis". Sizing
   H5–H7, and dropping them on a failed size check, was a choice made at milestone 4, missing from the decisions table.
   A failed gate can only remove hypotheses, so it could only lower H1–H4's Holm p. It moved H2's G = 7 counterfactual

@@ -8,6 +8,11 @@ Mutations this module must catch (applied by hand, each seen to fail; added afte
   - rule 6 by content comparing column sets loosely (a table with an extra column passes)
   - suffixes and folders compared case-sensitively again (Raw/DTB3.CSV passes)
   - an app file's `kind` field not checked (iv_measures.json holding another kind passes)
+Added with the Cboe VX* cross-check (2026-11-09; docs/validation/vx-ledger.md §4):
+  - L01 the aggregate JSON's shape not checked at all (a per-day series in vx_crosscheck.json passes)
+  - L02 the list-length limit removed (a 1,200-item list passes)
+  - L03 keys shaped like dates allowed (a series keyed by date passes)
+  - L04 the number count not checked (2,001 numbers in small objects pass)
 """
 
 import importlib.util
@@ -41,6 +46,7 @@ def test_allowed_paths_pass():
         ("data/derived/README.md", 5_000),
         ("data/derived/LICENSE", 2_000),
         ("data/derived/earnings_calendar_30_large_caps.json", 40_000),
+        ("data/derived/vx_crosscheck.json", 50_000),                 # the VX* aggregates (shape: rule 6 by content)
         ("data/manual/press_release_checks.csv", 10_000),
         ("app/public/data/sample_funnel.json", 9 * MB),  # under the 10 MB data limit
         ("app/public/data/meta.json", 4_000),
@@ -233,3 +239,48 @@ def test_the_allow_lists_follow_the_registry_and_the_contract():
                                       "timing_check")
     assert check.contract.KINDS == ("meta", "sample_funnel", "iv_measures", "tests", "event_paths", "terrain",
                                     "heatmap", "drivers", "implied_vs_realised")
+
+
+# --- rule 6 by content for the aggregate JSON (the Cboe VX* cross-check, 2026-11-09) -------------------------
+
+def _agg(**extra):
+    # A made-up document of the committed shape: per-name rows of a few numbers each.
+    doc = {"kind": "vx_crosscheck", "bar_i": {"per_name": {n: {"n": 700, "r": 0.5, "ci": [0.4, 0.6]}
+                                                           for n in ("AAA", "BBB")}}}
+    doc.update(extra)
+    return doc
+
+
+@pytest.mark.parametrize("doc, problem", [
+    (_agg(), None),
+    (_agg(kind="iv_measures"), "its kind is 'iv_measures', not 'vx_crosscheck'"),
+    (_agg(series=[0.25] * 17), "a list of 17 items (at most 16)"),
+    (_agg(series={"2030-01-02": 0.25}), "keys shaped like dates (2030-01-02, ...): a per-day series"),
+    (_agg(series={f"k{i}": 0.25 for i in range(33)}), "an object with 33 keys (at most 32)"),
+    (_agg(series={f"g{j}": {f"k{i}": [0.25] * 3 for i in range(30)} for j in range(25)}),
+     "2258 numbers (at most 2000)"),
+    ([1, 2, 3], "not a JSON object"),
+])
+def test_the_aggregate_json_keeps_an_aggregate_shape(doc, problem):
+    # 2258 = 25 x 30 x 3 = 2,250 made-up values in "series" + 8 in bar_i (two names: n, r and two interval bounds)
+    got = check.aggregate_shape_problems(doc, "vx_crosscheck")
+    assert got == ([] if problem is None else [problem])
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
+def test_a_per_day_series_in_the_aggregate_json_is_refused_through_the_index(tmp_path):
+    # One made-up name with 1,200 daily values, the size of one real name: refused as a list, and as a dict keyed by
+    # date. The committed shape (the control) passes.
+    _git(tmp_path, "init", "-q")
+    (tmp_path / "data/derived").mkdir(parents=True)
+    path = tmp_path / "data/derived/vx_crosscheck.json"
+    path.write_text(json.dumps(_agg(series=[0.25] * 1200)))
+    _git(tmp_path, "add", "-A")
+    assert check.check(tmp_path, None) == ["data/derived/vx_crosscheck.json: a list of 1200 items (at most 16)"]
+    path.write_text(json.dumps(_agg(series={f"2030-01-{d:02d}": 0.25 for d in range(1, 29)})))
+    _git(tmp_path, "add", "-A")
+    assert check.check(tmp_path, None) == [
+        "data/derived/vx_crosscheck.json: keys shaped like dates (2030-01-01, ...): a per-day series"]
+    path.write_text(json.dumps(_agg()))
+    _git(tmp_path, "add", "-A")
+    assert check.check(tmp_path, None) == []

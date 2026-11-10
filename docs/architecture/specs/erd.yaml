@@ -40,9 +40,9 @@
 # Milestone 4 fills event_measures' regressor columns (price_ref ... vix_regime; the _yf ones stay
 # local), adds results rows of family regression (and the enum value adjustment = none for H7) and
 # writes drivers.json and implied_vs_realised.json at schema 0.5.0 with the keys drawn here.
-# events.edgar_accession / edgar_accepted_utc: SEC EDGAR is accepted (2026-10-28), gated on the
-# owner's contact string. The client refuses to run until SEC_EDGAR_USER_AGENT is set, so both columns
-# stay null until then. A column cannot carry a note in the kit, so the events entity label says it.
+# events.edgar_accession / edgar_accepted_utc: SEC EDGAR is in use since 2026-11-09. Both columns are
+# set where an Item 2.02 8-K was found in the D-1..D+1 window (447 events) and null elsewhere.
+# A column cannot carry a note in the kit, so the events entity label says it.
 kind: erd
 title: Earnings vol study schema
 subtitle: Stored tables (Parquet) and the JSON contract files exported from them
@@ -173,7 +173,7 @@ entities:
       - {name: snapshot_date, type: date32, nullable: true}
       - {name: snapshot_status, type: enum}
   - id: events
-    label: "events (edgar_*: gated on the owner's contact string)"
+    label: "events (edgar_*: null where no 8-K was found)"
     columns:
       - {name: event_id, type: string, pk: true}
       - {name: security_id, type: string, fk: security.security_id}

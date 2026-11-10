@@ -1,0 +1,14 @@
+mutant:        M4_split_semicolon
+file:          src/earnings_vol/ingest/edgar.py
+mutation:      '(items or "").split(",")'  ->  '(items or "").split(";")'
+probe:         e5_items_format.py
+sha256 before: dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe
+sha256 after:  dcd28cf327aa4c78b0b4d79380b18332b030d64881cb16117e422299007db5fe   restored_identical=True
+falsifier_rc:  1
+--- stdout (tail) ---
+8-K rows 7183; empty items 0; items not matching comma-separated item numbers 0 []
+rows with a comma 5120; rows with '2.02,9.01' exactly 1594; rows with ; | / or space 0
+8-K rows carrying item 2.02 (independent split on ','): 2312; selected by edgar.item_202_filings: 104; sets equal: False
+RESULT: REFUTED: code selection != independent census
+--- stderr ---
+

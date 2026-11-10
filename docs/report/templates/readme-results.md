@@ -1,6 +1,7 @@
 Daily sample (day-0 window {{sample.day0_from}} to {{sample.day0_to}}; the {{sample.n_events}} primary events have day 0
 from {{sample.first_day0}} to {{sample.last_day0}}), market-adjusted (VIX, β per company). **Timing labels
-provisional: {{lookups.done}} of {{lookups.required}} required look-ups done.** H1–H4 are equal-weighted means of
+provisional: {{lookups.done}} of {{lookups.required}} required look-ups done ({{lookups.edgar}} by SEC EDGAR),
+{{lookups.left}} open.** H1–H4 are equal-weighted means of
 abnormal log IV in log points; H5 and H6 are log points of crush per standard deviation of the regressor (positive: a
 smaller fall); H7 is the joint test that the implied variance is unbiased for the realised squared move. "G1 size" is
 how often the primary statistic rejects a true null at 5% in gate G1's calibrated simulation ({{g1.reps}}
@@ -30,7 +31,18 @@ replications; pass at most {{g1.band_hi}}). Holm runs over the declared family H
 - {{withheld.n}} robustness rows keep their estimate but not their p-value, because G1 found them oversized. The
   crush's same-date correlation after the VIX adjustment is ρ̄ = {{rhobar}}: one common date component, which H1's
   two-way statistic is robust to.
+- **Checked against Cboe's 30-day indices for five names** (VXAPL and four others; bars fixed before the download;
+  report §3.2). The level spread passes its pre-registered rule for all five names (a rule with little power: GS's
+  yearly medians step by about {{vx.gs.step}} vol points), and the day-0 crush ratio is {{vx.iv.ratio}}
+  {{vx.iv.ci}}, inside 1 ± 0.2 (provisional, like the timing labels). The correlation of daily changes is below the
+  planned 0.8 for GOOGL ({{vx.googl.r}}), IBM ({{vx.ibm.r}}) and the pooled sample ({{vx.pooled.r}}), and every slope
+  is below 1 (pooled {{vx.pooled.slope}}). The pre-registration wrongly said ADR 0003 set no tolerance for the slope:
+  by the ADR's own reading its slope falsifier is met ({{vx.ii_below}} of 5 slopes, {{vx.ii_below_names}}, are below
+  {{vx.ii_band_lo}}), while its correlation and crush-ratio falsifiers are not. Exploratory checks are consistent with
+  the low daily slopes being largely a clock effect (pooled slope {{vx.step21.pooled.slope}} over 21 sessions; IBM
+  stays below 1), without proving it. The vendor's undocumented `iv_current` is closest to our ATM IV at
+  {{vh.maturity}} sessions, and reads as a 30-calendar-day IV.
 
 Every measured number in this block is filled in by `tools/report_numbers.py` from `data/derived/results.parquet`,
-`app/public/data/*.json` and, for ρ̄, the kept output `research/prototypes/rhobar_crush.out.txt`; the {{lookups.required}} required
-look-ups are pinned in the script. `--check` fails when a number is stale or the data contradict a sentence here.
+`data/derived/vx_crosscheck.json`, `app/public/data/*.json` and, for ρ̄, the kept output `research/prototypes/rhobar_crush.out.txt`; the look-up counts
+that need a local Yahoo flag are pinned in the script. `--check` fails when a number is stale or the data contradict a sentence here.

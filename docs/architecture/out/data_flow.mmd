@@ -14,7 +14,7 @@ flowchart TB
     s_yf{{"yfinance\nOpen, Close, shares (local only)"}}
     s_vx{{"CBOE VX*\nVXAPL ... VXIBM closes"}}
     s_pr{{"press releases\nIR time stamp, in press_release_checks.csv"}}
-    s_edgar{{"SEC EDGAR 8-K (accepted)\nacceptanceDateTime; gated on contact string"}}
+    s_edgar{{"SEC EDGAR 8-K\nacceptanceDateTime; in use since 2026-11-09"}}
     t_security[("security\nPK security_id")]
     t_alias[("ticker_alias\nPK ticker, valid_from")]
     t_session[("session\nPK session_date, session_index")]

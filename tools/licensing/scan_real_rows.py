@@ -1,7 +1,7 @@
 """Look for licensed raw data (Yahoo, FRED/Cboe VIX) copied into the repository. Local only.
 
     uv run python tools/licensing/scan_real_rows.py              # the working tree
-    uv run python tools/licensing/scan_real_rows.py --rev 3636e98  # a commit, read with git show
+    uv run python tools/licensing/scan_real_rows.py --rev e49a560  # a commit, read with git show
 
 Adapted from implied-vol-forecasting's scanner of the same name. It reads every raw file under
 ``$VOL_DATA_DIR/earnings-vol-study/raw/`` (yfinance Parquet, FRED CSVs, the market-cap CSV) and

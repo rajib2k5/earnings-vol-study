@@ -1,0 +1,192 @@
+events 1353; need a look-up under the default rule: 453; press-release rows: 20
+
+1. outcome of the 453 look-ups
+outcome
+confirmed        405
+contradicts        1
+edgar_holiday     11
+inferred           6
+no_8k             26
+other_date         4
+
+   by sample
+sample         coarse  daily  mixed  All
+outcome                                 
+confirmed          24    351     30  405
+contradicts         0      0      1    1
+edgar_holiday       0     10      1   11
+inferred            6      0      0    6
+no_8k              17      7      2   26
+other_date          4      0      0    4
+All                51    368     34  453
+
+   by look-up reason
+reasons        daily_or_mixed_era  daily_or_mixed_era+gap_trigger  daily_or_mixed_era+null_label  gap_trigger  null_label  All
+outcome                                                                                                                       
+confirmed                     368                              13                              0           24           0  405
+contradicts                     0                               1                              0            0           0    1
+edgar_holiday                  10                               1                              0            0           0   11
+inferred                        0                               0                              0            0           6    6
+no_8k                           6                               0                              3            0          17   26
+other_date                      0                               0                              0            1           3    4
+All                           384                              15                              3           25          26  453
+
+2. resolved: 411 by label used: {'AMC': 224, 'BMO': 187} by status: {'confirmed': 405, 'inferred': 6}
+
+3. day 0 against the current (calendar-label) build, all 1353 events
+   events whose day 0 differs: 6 {'newly defined (NULL label inferred)': 6}
+     IBM:2021-04-19: None -> 2021-04-20 (inferred, AMC)
+     INTC:2021-04-22: None -> 2021-04-23 (inferred, AMC)
+     ORCL:2020-06-16: None -> 2020-06-17 (inferred, AMC)
+     ORCL:2020-12-10: None -> 2020-12-11 (inferred, AMC)
+     ORCL:2021-12-09: None -> 2021-12-10 (inferred, AMC)
+     ORCL:2023-03-09: None -> 2023-03-10 (inferred, AMC)
+   exclusion reasons before: {'(none)': 1259, 'outside_samples': 61, 'timing_not_checked': 32, 'duplicate_row': 1}
+   exclusion reasons after:  {'(none)': 1265, 'outside_samples': 61, 'timing_not_checked': 26, 'duplicate_row': 1}
+   sample before: {'coarse': 868, 'daily': 368, 'none': 68, 'mixed': 49}  after: {'coarse': 868, 'daily': 368, 'none': 68, 'mixed': 49}
+
+4. unresolved events: what the 8-K would give if it were taken (not applied)
+   contradicts     TXN:2024-10-22     mixed   cal BMO   8-K 2024-10-22 16:03  AMC             day0 now 2024-10-22  8-K day0 2024-10-23
+   edgar_holiday   CSCO:2025-11-12    daily   cal AMC   8-K 2025-11-12 16:15  edgar_holiday   day0 now 2025-11-13  8-K day0 None
+   edgar_holiday   GS:2025-10-14      daily   cal BMO   8-K 2025-10-14 07:37  edgar_holiday   day0 now 2025-10-14  8-K day0 None
+   edgar_holiday   GS:2026-10-13      daily   cal BMO   8-K 2026-10-13 07:32  edgar_holiday   day0 now 2026-10-13  8-K day0 None
+   edgar_holiday   HD:2024-11-12      mixed   cal BMO   8-K 2024-11-12 06:10  edgar_holiday   day0 now 2024-11-12  8-K day0 None
+   edgar_holiday   JNJ:2025-10-14     daily   cal BMO   8-K 2025-10-14 07:22  edgar_holiday   day0 now 2025-10-14  8-K day0 None
+   edgar_holiday   JNJ:2026-10-13     daily   cal BMO   8-K 2026-10-13 08:12  edgar_holiday   day0 now 2026-10-13  8-K day0 None
+   edgar_holiday   JPM:2025-10-14     daily   cal BMO   8-K 2025-10-14 06:30  edgar_holiday   day0 now 2025-10-14  8-K day0 None
+   edgar_holiday   JPM:2026-10-13     daily   cal BMO   8-K 2026-10-13 06:30  edgar_holiday   day0 now 2026-10-13  8-K day0 None
+   edgar_holiday   UNH:2026-10-13     daily   cal BMO   8-K 2026-10-13 06:14  edgar_holiday   day0 now 2026-10-13  8-K day0 None
+   edgar_holiday   WFC:2025-10-14     daily   cal BMO   8-K 2025-10-14 06:28  edgar_holiday   day0 now 2025-10-14  8-K day0 None
+   edgar_holiday   WFC:2026-10-13     daily   cal BMO   8-K 2026-10-13 06:28  edgar_holiday   day0 now 2026-10-13  8-K day0 None
+   no_8k           AMAT:2021-02-10    coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2020-08-07   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2020-11-06   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2021-08-13   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2021-11-05   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2022-02-25   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2022-08-05   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2022-11-04   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2023-02-25   coarse  cal nan   8-K -                 -               day0 now 2023-02-27  8-K day0 None
+   no_8k           BRK.B:2023-05-06   coarse  cal nan   8-K -                 -               day0 now 2023-05-08  8-K day0 None
+   no_8k           BRK.B:2023-08-05   coarse  cal nan   8-K -                 -               day0 now 2023-08-07  8-K day0 None
+   no_8k           BRK.B:2023-11-03   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2024-02-23   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2024-05-03   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2024-08-02   coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2024-11-01   mixed   cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2024-11-02   mixed   cal BMO   8-K -                 -               day0 now 2024-11-04  8-K day0 None
+   no_8k           BRK.B:2025-02-28   daily   cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2025-05-03   daily   cal BMO   8-K -                 -               day0 now 2025-05-05  8-K day0 None
+   no_8k           BRK.B:2025-08-02   daily   cal BMO   8-K -                 -               day0 now 2025-08-04  8-K day0 None
+   no_8k           BRK.B:2025-11-01   daily   cal BMO   8-K -                 -               day0 now 2025-11-03  8-K day0 None
+   no_8k           BRK.B:2026-02-27   daily   cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           BRK.B:2026-05-02   daily   cal BMO   8-K -                 -               day0 now 2026-05-04  8-K day0 None
+   no_8k           BRK.B:2026-08-08   daily   cal BMO   8-K -                 -               day0 now 2026-08-10  8-K day0 None
+   no_8k           GS:2021-10-13      coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   no_8k           GS:2022-10-21      coarse  cal nan   8-K -                 -               day0 now None  8-K day0 None
+   other_date      META:2020-07-29    coarse  cal AMC   8-K 2020-07-30 19:18  AMC             day0 now 2020-07-30  8-K day0 2020-07-31
+   other_date      MS:2020-04-15      coarse  cal nan   8-K 2020-04-16 07:16  BMO             day0 now None  8-K day0 2020-04-16
+   other_date      ORCL:2020-09-09    coarse  cal nan   8-K 2020-09-10 16:16  AMC             day0 now None  8-K day0 2020-09-11
+   other_date      WFC:2022-10-13     coarse  cal nan   8-K 2022-10-14 06:45  BMO             day0 now None  8-K day0 2022-10-14
+
+4b. no_8k events: the nearest Item 2.02 8-K within 14 days of D (for the hand check; not applied)
+   AMAT:2021-02-10    2021-02-18 Thu 16:05
+   BRK.B:2020-08-07   2020-08-17 Mon 16:05
+   BRK.B:2020-11-06   2020-11-09 Mon 15:34
+   BRK.B:2021-08-13   2021-08-09 Mon 12:46
+   BRK.B:2021-11-05   2021-11-08 Mon 06:08
+   BRK.B:2022-02-25   2022-03-01 Tue 10:47
+   BRK.B:2022-08-05   none within 14 days
+   BRK.B:2022-11-04   2022-11-08 Tue 17:21
+   BRK.B:2023-02-25   2023-03-01 Wed 15:57
+   BRK.B:2023-05-06   2023-05-10 Wed 17:09
+   BRK.B:2023-08-05   2023-08-07 Mon 13:13
+   BRK.B:2023-11-03   2023-11-07 Tue 13:07
+   BRK.B:2024-02-23   2024-02-26 Mon 13:53
+   BRK.B:2024-05-03   2024-05-07 Tue 15:42
+   BRK.B:2024-08-02   2024-08-05 Mon 14:44
+   BRK.B:2024-11-01   2024-11-04 Mon 06:03
+   BRK.B:2024-11-02   2024-11-04 Mon 06:03
+   BRK.B:2025-02-28   2025-02-24 Mon 16:15
+   BRK.B:2025-05-03   2025-05-06 Tue 17:11
+   BRK.B:2025-08-02   2025-08-04 Mon 15:55
+   BRK.B:2025-11-01   2025-11-03 Mon 13:48
+   BRK.B:2026-02-27   2026-03-02 Mon 17:27
+   BRK.B:2026-05-02   2026-05-07 Thu 16:33
+   BRK.B:2026-08-08   2026-08-11 Tue 15:52
+   GS:2021-10-13      2021-10-15 Fri 08:34
+   GS:2022-10-21      2022-10-18 Tue 07:29
+
+5. the 20 press-release look-ups against EDGAR
+   CRWD:2024-08-28    PR 2024-08-28 --:-- AMC  8-K 2024-08-28 16:07 AMC             agrees; status kept confirmed (press_release), accession recorded True
+   NVDA:2024-08-28    PR 2024-08-28 16:20 AMC  8-K 2024-08-28 16:21 AMC             agrees; status kept confirmed (press_release), accession recorded True
+   DELL:2024-08-29    PR 2024-08-29 --:-- AMC  8-K 2024-08-29 16:14 AMC             agrees; status kept confirmed (press_release), accession recorded True
+   AVGO:2024-09-05    PR 2024-09-05 --:-- AMC  8-K 2024-09-05 16:21 AMC             agrees; status kept confirmed (press_release), accession recorded True
+   ORCL:2024-09-09    PR 2024-09-09 16:05 AMC  8-K 2024-09-09 16:17 AMC             agrees; status kept confirmed (press_release), accession recorded True
+   MU:2024-09-25      PR 2024-09-25 16:07 AMC  8-K 2024-09-25 16:00 AMC             agrees; status kept confirmed (press_release), accession recorded True
+   COST:2024-09-26    PR 2024-09-26 --:-- AMC  8-K 2024-09-26 16:17 AMC             agrees; status kept confirmed (press_release), accession recorded True
+   JPM:2024-10-11     PR 2024-10-11 06:55 BMO  8-K 2024-10-11 06:46 BMO             agrees; status kept confirmed (press_release), accession recorded True
+   WFC:2024-10-11     PR 2024-10-11 07:03 BMO  8-K 2024-10-11 06:45 BMO             agrees; status kept inferred (press_release), accession recorded True
+   BAC:2024-10-15     PR 2024-10-15 06:45 BMO  8-K 2024-10-15 06:46 BMO             agrees (holiday window: not read as timing); status kept confirmed (press_release), accession recorded True
+   GS:2024-10-15      PR 2024-10-15 --:-- BMO  8-K 2024-10-15 07:32 BMO             agrees (holiday window: not read as timing); status kept confirmed (press_release), accession recorded True
+   JNJ:2024-10-15     PR 2024-10-15 --:-- BMO  8-K 2024-10-15 07:37 BMO             agrees (holiday window: not read as timing); status kept confirmed (press_release), accession recorded True
+   UNH:2024-10-15     PR 2024-10-15 05:55 BMO  8-K 2024-10-15 06:03 BMO             agrees (holiday window: not read as timing); status kept confirmed (press_release), accession recorded True
+   MS:2024-10-17      PR 2024-10-16 07:29 BMO  8-K 2024-10-16 07:28 BMO             agrees; status kept date_corrected (press_release), accession recorded True
+   NFLX:2024-10-17    PR 2024-10-17 16:00 AMC  8-K 2024-10-17 16:01 AMC             agrees; status kept corrected (press_release), accession recorded True
+   PG:2024-10-18      PR 2024-10-18 06:55 BMO  8-K 2024-10-18 07:02 BMO             agrees; status kept confirmed (press_release), accession recorded True
+   GE:2024-10-22      PR 2024-10-22 --:-- BMO  8-K 2024-10-22 06:34 BMO             agrees; status kept confirmed (press_release), accession recorded True
+   PM:2024-10-22      PR 2024-10-22 06:59 BMO  8-K 2024-10-22 07:01 BMO             agrees; status kept confirmed (press_release), accession recorded True
+   RTX:2024-10-22     PR 2024-10-22 --:-- BMO  8-K 2024-10-22 07:00 BMO             agrees; status kept confirmed (press_release), accession recorded True
+   GOOGL:2024-10-29   PR 2024-10-29 --:-- AMC  8-K 2024-10-29 16:01 AMC             agrees; status kept corrected (press_release), accession recorded True
+   {'agrees': 16, 'agrees (holiday window: not read as timing)': 4}
+
+6. coverage (milestone-1 EDGAR check): an Item 2.02 8-K on D-1..D+1
+   daily: 361 of 368 (98.1%)
+   mixed: 47 of 48 (97.9%)
+   coarse: 845 of 868 (97.4%)
+
+7. after EDGAR: the build invariant and job 1
+   not_checked events still needing a look-up: 42 {'coarse': 21, 'daily': 17, 'mixed': 4} {'null_label': 23, 'daily_or_mixed_era': 21, 'gap_trigger': 3}
+   EDGAR labels the gap contradicts or the outside flag questions (job 1, press-release check): 37 by sample {'coarse': 24, 'daily': 11, 'mixed': 2} contradicts 18 outside flag 19 of them in the 453: 37
+   of the 37 both contradicted and flagged: 0
+     AAPL:2024-08-01    coarse  AMC verdict quiet outside flag True reasons gap_trigger
+     AMGN:2026-08-04    daily   AMC verdict quiet outside flag True reasons daily_or_mixed_era+gap_trigger
+     AMZN:2025-05-01    daily   AMC verdict contradicts outside flag False reasons daily_or_mixed_era+gap_trigger
+     ANET:2022-10-31    coarse  AMC verdict quiet outside flag True reasons gap_trigger
+     BAC:2023-01-13     coarse  BMO verdict contradicts outside flag False reasons gap_trigger
+     BAC:2025-07-16     daily   BMO verdict contradicts outside flag False reasons daily_or_mixed_era+gap_trigger
+     CAT:2020-04-28     coarse  BMO verdict quiet outside flag True reasons gap_trigger
+     CAT:2021-10-28     coarse  BMO verdict contradicts outside flag False reasons gap_trigger
+     COST:2023-05-25    coarse  AMC verdict contradicts outside flag False reasons gap_trigger
+     CSCO:2024-11-13    mixed   AMC verdict contradicts outside flag False reasons daily_or_mixed_era+gap_trigger
+     CVX:2024-08-02     coarse  BMO verdict contradicts outside flag False reasons gap_trigger
+     DELL:2023-06-01    coarse  AMC verdict quiet outside flag True reasons gap_trigger
+     GOOGL:2021-10-26   coarse  AMC verdict contradicts outside flag False reasons gap_trigger
+     GS:2021-07-13      coarse  BMO verdict quiet outside flag True reasons gap_trigger
+     JPM:2026-01-13     daily   BMO verdict quiet outside flag True reasons daily_or_mixed_era+gap_trigger
+     KO:2025-04-29      daily   BMO verdict contradicts outside flag False reasons daily_or_mixed_era+gap_trigger
+     LIN:2024-08-02     coarse  BMO verdict contradicts outside flag False reasons gap_trigger
+     LIN:2025-08-01     daily   BMO verdict quiet outside flag True reasons daily_or_mixed_era+gap_trigger
+     MA:2022-04-28      coarse  BMO verdict quiet outside flag True reasons gap_trigger
+     MA:2023-01-26      coarse  BMO verdict quiet outside flag True reasons gap_trigger
+     MA:2025-10-30      daily   BMO verdict contradicts outside flag False reasons daily_or_mixed_era+gap_trigger
+     META:2021-10-25    coarse  AMC verdict contradicts outside flag False reasons gap_trigger
+     META:2024-10-30    mixed   AMC verdict contradicts outside flag False reasons daily_or_mixed_era+gap_trigger
+     MRK:2026-08-04     daily   BMO verdict quiet outside flag True reasons daily_or_mixed_era+gap_trigger
+     MU:2025-09-23      daily   AMC verdict quiet outside flag True reasons daily_or_mixed_era+gap_trigger
+     NVDA:2021-05-26    coarse  AMC verdict quiet outside flag True reasons gap_trigger
+     NVDA:2022-11-16    coarse  AMC verdict contradicts outside flag False reasons gap_trigger
+     RTX:2026-10-20     daily   BMO verdict quiet outside flag True reasons daily_or_mixed_era+gap_trigger
+     TMO:2024-01-31     coarse  BMO verdict quiet outside flag True reasons gap_trigger
+     TMO:2024-04-24     coarse  BMO verdict contradicts outside flag False reasons gap_trigger
+     TMO:2024-07-24     coarse  BMO verdict quiet outside flag True reasons gap_trigger
+     TSLA:2021-10-20    coarse  AMC verdict quiet outside flag True reasons gap_trigger
+     V:2021-01-28       coarse  AMC verdict contradicts outside flag False reasons gap_trigger
+     V:2025-10-28       daily   AMC verdict quiet outside flag True reasons daily_or_mixed_era+gap_trigger
+     WFC:2020-04-14     coarse  BMO verdict contradicts outside flag False reasons gap_trigger
+     WFC:2021-07-14     coarse  BMO verdict quiet outside flag True reasons gap_trigger
+     XOM:2024-08-02     coarse  BMO verdict contradicts outside flag False reasons gap_trigger
+   lookups_complete could be set true without the build stopping: False
+   eps table identical in both builds: True
+
+written: ['events_edgar.parquet', 'outcomes.csv', 'params.yaml', 'report.json']

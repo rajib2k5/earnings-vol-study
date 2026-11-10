@@ -6,7 +6,7 @@
         "DoltHub post-no-preference/options",
         "Wikipedia List of S&P 500 companies"
       ],
-      "attribution": "Contains data from the DoltHub repositories post-no-preference/earnings and post-no-preference/options, and from the Wikipedia List of S&P 500 companies (revision 1382178819), licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0). Changes: selected, filtered and computed on by this project. The IVs and moves are computed with the rate FRED DTB3: Board of Governors of the Federal Reserve System (US), 3-Month Treasury Bill Secondary Market Rate, Discount Basis [DTB3], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/DTB3, 2026-10-29 (public domain). Not under CC BY-SA: the labels made from Yahoo Finance prices (security.in_universe and timing_check.gap_verdict_yf, and the share of gap contradictions built from it) and the regression coefficients of ln market cap (SIZE, results.parquet and drivers.json) fall under Yahoo's terms of service. The market-adjusted aggregates (results.parquet, tests.json, event_paths.json, drivers.json) and the VIX tercile label event_measures.vix_regime are computed with FRED VIXCLS (Cboe VIX): Chicago Board Options Exchange, CBOE Volatility Index: VIX [VIXCLS], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/VIXCLS, 2026-10-29; they fall under Cboe's terms, not CC BY-SA. No Cboe VX* data is committed.",
+      "attribution": "Contains data from the DoltHub repositories post-no-preference/earnings and post-no-preference/options, and from the Wikipedia List of S&P 500 companies (revision 1382178819), licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0). Changes: selected, filtered and computed on by this project. The IVs and moves are computed with the rate FRED DTB3: Board of Governors of the Federal Reserve System (US), 3-Month Treasury Bill Secondary Market Rate, Discount Basis [DTB3], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/DTB3, 2026-10-29 (public domain). Not under CC BY-SA: the labels made from Yahoo Finance prices (security.in_universe and timing_check.gap_verdict_yf, and the share of gap contradictions built from it) and the regression coefficients of ln market cap (SIZE, results.parquet and drivers.json) fall under Yahoo's terms of service. The market-adjusted aggregates (results.parquet, tests.json, event_paths.json, drivers.json) and the VIX tercile label event_measures.vix_regime are computed with FRED VIXCLS (Cboe VIX): Chicago Board Options Exchange, CBOE Volatility Index: VIX [VIXCLS], retrieved from FRED, Federal Reserve Bank of St. Louis, https://fred.stlouisfed.org/series/VIXCLS, 2026-10-29; they fall under Cboe's terms, not CC BY-SA. No Cboe VX* index value is committed; the aggregate statistics of the VX* cross-check (data/derived/vx_crosscheck.json) fall under Cboe's terms, not CC BY-SA. The 8-K accession numbers and acceptance times (events.parquet) are public data from SEC EDGAR, U.S. Securities and Exchange Commission.",
       "name": "CC BY-SA 4.0",
       "url": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
@@ -51,7 +51,14 @@
         "licence": "Cboe terms of use (see source)",
         "name": "Cboe single-stock volatility indices (VX*)",
         "url": "https://www.cboe.com/",
-        "uses": "VXAPL, VXAZN, VXGOG, VXGS, VXIBM, to validate our 30-day IV (local only; not run yet)"
+        "uses": "VXAPL, VXAZN, VXGOG, VXGS, VXIBM, to validate our 30-day IV (run 2026-11-09); the index values stay local and none reaches the app; the check's aggregate statistics (correlations, slopes, median spreads, one crush ratio) are in data/derived/vx_crosscheck.json"
+      },
+      {
+        "committed": true,
+        "licence": "public data of the U.S. Securities and Exchange Commission",
+        "name": "SEC EDGAR",
+        "url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces",
+        "uses": "the acceptance time of each company's Item 2.02 8-K (submissions JSON, read 2026-11-09), the source of the timing labels marked edgar; committed: the 8-K accession number and acceptance time (events.edgar_accession, events.edgar_accepted_utc) and the labels read from them"
       },
       {
         "committed": true,
@@ -91,12 +98,12 @@
     },
     "project": "earnings-vol-study",
     "provenance": {
-      "code_commit": "75948b3",
+      "code_commit": "6b8453f",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "74bed6f4b1281810d09f7bf6bc90addd10e20be263c3ea7005369b9ebb6e288e",
+      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
       "sample_label": "daily"
     },
     "sample": {
@@ -108,8 +115,8 @@
     },
     "title": "Earnings and implied volatility: an event study"
   },
-  "generated_at": "2026-10-30T04:34:55Z",
+  "generated_at": "2026-11-09T21:45:42Z",
   "kind": "meta",
   "schema_version": "0.5.0",
-  "source_commit": "75948b3"
+  "source_commit": "6b8453f"
 }

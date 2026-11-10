@@ -1,0 +1,69 @@
+OLD params_hash 74bed6f4b1281810; NEW d23d18972bf0c8d4
+
+1. H1-H7, primary rows (verdict: rejected when Holm p < 0.05)
+    statistic         estimate old -> new               SE old -> new                 p old -> new                  Holm p old -> new             verdict old -> new
+H1  twoway_date_t     -0.199377 -> -0.199377            0.0112433 -> 0.0112433        5.8e-23 -> 5.8e-23            4.06e-22 -> 4.06e-22          rejected -> rejected
+H2  rad_season_p      0.231896 -> 0.231896              nan -> nan                    0.007812 -> 0.007812          0.04688 -> 0.04688            rejected -> rejected
+H3  twoway_season_t   0.00802043 -> 0.00802043          0.0233378 -> 0.0233378        0.7428 -> 0.7428              1 -> 1                        not rejected -> not rejected
+H4  twoway_date_t     0.00310774 -> 0.00310774          0.0111723 -> 0.0111723        0.7821 -> 0.7821              1 -> 1                        not rejected -> not rejected
+H5  twoway_date_t     0.0132357 -> 0.0132357            0.00495392 -> 0.00495392      0.01022 -> 0.01022            0.05108 -> 0.05108            not rejected -> not rejected
+H6  twoway_date_t     -0.00142782 -> -0.00142782        0.0107539 -> 0.0107539        0.8949 -> 0.8949              1 -> 1                        not rejected -> not rejected
+H7  twoway_date_wald  nan -> nan                        nan -> nan                    0.2751 -> 0.2751              1 -> 1                        not rejected -> not rejected
+
+2. Gate G1: calibrated rejection rate of the primary statistic at 5% (band [0.038, 0.063]), and whether the hypothesis passes the gate
+   H1: 0.0460 -> 0.0460   pass True -> True
+   H2: 0.0040 -> 0.0040   pass True -> True
+   H3: 0.0050 -> 0.0050   pass True -> True
+   H4: 0.0460 -> 0.0460   pass True -> True
+   H5: 0.0955 -> 0.0955   pass False -> False
+   H6: 0.0810 -> 0.0810   pass False -> False
+   H7: 0.1615 -> 0.1615   pass False -> False
+   reps 2000 -> 2000
+
+3. Sample
+   events in daily: 368 -> 368
+   events in mixed: 49 -> 49
+   events in coarse: 868 -> 868
+   events in none: 68 -> 68
+   funnel calendar_events: 1353 -> 1353
+   funnel timing_known: 1320 -> 1326
+   funnel daily_range: 366 -> 366
+   funnel crush_observed: 356 -> 356
+   funnel iv_usable: 353 -> 353
+   funnel baseline_minimum: 347 -> 347
+   primary sample (meta): 347 -> 347
+   exclusion reasons: {'(none)': 1259, 'outside_samples': 61, 'timing_not_checked': 32, 'duplicate_row': 1} -> {'(none)': 1265, 'outside_samples': 61, 'timing_not_checked': 26, 'duplicate_row': 1}
+   day 0: moved 0, newly defined 6 ['IBM:2021-04-19', 'INTC:2021-04-22', 'ORCL:2020-06-16', 'ORCL:2020-12-10', 'ORCL:2021-12-09', 'ORCL:2023-03-09'], lost 0
+
+4. Timing
+   statuses: {'ambiguous': 0, 'confirmed': 16, 'corrected': 2, 'date_corrected': 1, 'inferred': 1, 'no_document': 0, 'not_checked': 1333} -> {'ambiguous': 0, 'confirmed': 421, 'corrected': 2, 'date_corrected': 1, 'inferred': 7, 'no_document': 0, 'not_checked': 922}
+   timing_source: {'calendar': 1297, nan: 36, 'press_release': 20} -> {'calendar': 892, 'edgar': 411, nan: 30, 'press_release': 20}
+   lookups: {'complete': False, 'n_done': 20} -> {'complete': False, 'n_done': 431}
+
+5. VX* bar iv
+   n: 34 -> 34
+   ratio: 0.9181 -> 0.9181
+   verdict: pass -> pass
+   interval: {'lo': 0.8688, 'hi': 0.9728, 'undefined_reps': 0} -> {'lo': 0.8688, 'hi': 0.9728, 'undefined_reps': 0}
+   timing statuses of its events: {'not_checked': 34} -> {'confirmed': 32, 'not_checked': 2}
+   bar_i: identical
+   bar_ii: identical
+   bar_iii: identical
+   alignment_falsifier: identical
+   secondary: identical
+
+6. results.parquet rows whose estimate, SE, p, Holm p, q or n changed (keyed by result_id)
+   13 of 927 rows; by family/role: {('regression', 'exploratory'): 13}
+   regression exploratory coarse crush_drivers         nan           r2               est 0.600226 -> 0.600227; p nan -> nan
+   regression exploratory coarse crush_drivers         abs_surprise  twoway_date_t    est -0.00608144 -> -0.0060824; p 0.5324 -> 0.5324
+   regression exploratory coarse crush_drivers         ln_sigma_d    twoway_date_t    est -0.0196643 -> -0.0196643; p 0.5119 -> 0.5119
+   regression exploratory coarse crush_drivers         slope         twoway_date_t    est -0.0847965 -> -0.0847965; p 6.384e-07 -> 6.384e-07
+   regression exploratory coarse crush_drivers         size          twoway_date_t    est 0.0185838 -> 0.0185838; p 0.1127 -> 0.1127
+   regression exploratory daily  crush_sue             nan           r2               est 0.407153 -> 0.407023; p nan -> nan
+   regression exploratory daily  crush_sue             abs_sue       twoway_date_t    est 0.00208801 -> 0.00165874; p 0.5766 -> 0.6591
+   regression exploratory daily  crush_sue             ln_sigma_d    twoway_date_t    est 0.00216145 -> 0.00222292; p 0.8438 -> 0.8396
+   regression exploratory daily  crush_sue             slope         twoway_date_t    est -0.0295212 -> -0.0294301; p 0.0002732 -> 0.0002832
+   regression exploratory daily  crush_sue             size          twoway_date_t    est 0.0118764 -> 0.0118933; p 0.1009 -> 0.1005
+   regression exploratory daily  crush_disp            abs_disp      twoway_date_t    est 0.00293483 -> 0.00293483; p 0.6245 -> 0.6245
+   regression exploratory daily  dsigma_d_drivers      size          twoway_date_t    est -0.00540568 -> -0.00540568; p 0.6341 -> 0.6341
+   regression exploratory daily  implied_realised_m2   a=0,b=1       twoway_date_wald est nan -> nan; p 0.8216 -> 0.8216

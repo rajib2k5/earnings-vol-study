@@ -2,7 +2,7 @@
 
 PRE-REGISTRATION (written before any Channel B probe below was run; verdicts are appended in §3 after both channels).
 
-- Reviewed: the uncommitted working tree on top of commit `3636e98`, restricted to the fixes listed in
+- Reviewed: the uncommitted working tree on top of commit `e49a560`, restricted to the fixes listed in
   `m1-ledger.md` §6. Not a full re-review.
 - Protocol: `evidence-gated-validation`, Tier 2 for every numeric claim. **Mode: single-context sequential fallback**
   (one reviewer context; a separate researcher sub-agent does the web look-ups for claim 8 and sees only the claimed
@@ -141,7 +141,7 @@ code was broken, the named tests were seen to fail, and the bytes were restored 
 | 5 | EDGAR contact filter | Reserved: `home.arpa`, `.onion`, `.alt`, `.internal` added; local part may not start/end with a dot or contain `..`; label ≤ 63, domain ≤ 253. Fail-closed cases (trailing full stop, punycode TLD, Unicode) documented in the docstring and pinned as refused. `pd09` re-run: all required cases refused; still accepted: `%+-@realdomain.net` and the two non-RFC placeholders (out of scope) | 12 new refuse cases, 3 new accept cases (63-char label, 253-char domain) |
 | 6 | Press-release provenance | NFLX `url` → the Q3 2024 letter to shareholders (dated 2024-10-17; Netflix issued no separate results release, its 2024 list has none between Sep 13 and Dec 9). JPM `url` → the earnings release PDF ("…net income of $12.9 billion ($4.37 per share)", read from the PDF). New column **`time_source`** (required with a time, only with one, `https://`): the `url` itself for ORCL, BAC, MU, PG; re-hosts showing date + time + EDT for NVDA (StockTitan), JPM, UNH, MS, PM (FinancialContent re-hosts of the Business Wire items) and WFC (Observer-Reporter re-host); for NFLX the pre-announcement (1:00 p.m. PT → 16:00 ET is our conversion). Business Wire and GlobeNewswire returned 403; done with WebSearch/WebFetch by a researcher sub-agent, no sec.gov, no personal data; the two PDFs were read by the implementer. JPM's 06:55 is the wire notice that results were out, not a time on the PDF | `parse_checks` tests (4 new refusals); `pd11` re-run: 20 rows parse, all 6 mutants refused |
 | 7 | Verifier corrections | 2025-10 `option_chain` = **159,604** (parquet, its manifest and both `ingest_log.json` entries); 160,584's origin could not be traced (no ticker or date accounts for 980 rows); also corrected in data model §8. SKYD/VYLR: no `volatility_history` row at all at the pinned commit (queried on the private mirror), Yahoo caps present. The 50 companies' calendar ends 2026-12-01 (CRWD); the whole table 2026-12-04 (mirror query). Orphan partition and every `#L` link fixed (below). `LEARNING_LOG.md` L9 and L46 | — |
-| 8 | Rebuild | `events.run`, `measures.run`, `export_app_data.py` (source_commit left `3636e98`), notebooks, sensitivity table; diagrams: specs unchanged, build `0 file(s) changed`, render gate passed | — |
+| 8 | Rebuild | `events.run`, `measures.run`, `export_app_data.py` (source_commit left `e49a560`), notebooks, sensitivity table; diagrams: specs unchanged, build `0 file(s) changed`, render gate passed | — |
 
 **Measured after the fixes**
 

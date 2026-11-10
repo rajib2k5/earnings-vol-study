@@ -1,4 +1,5 @@
-The headline result, measured on 2026-10-29 with provisional timing labels: from day −1 to day 0, 30-day IV falls by
+The headline result, measured on 2026-10-29 and re-measured on 2026-11-09 with SEC EDGAR timing labels (still
+provisional): from day −1 to day 0, 30-day IV falls by
 {{h1.fall}} log points on average, about {{h1.pct_fall}}, net of the market's volatility. That is significant at
 p = {{h1.p}} (Holm {{h1.p_holm}} over the seven declared hypotheses), under a two-way cluster-robust t that allows for
 events sharing calendar dates and for one company's events being alike; its size was checked first on the real event

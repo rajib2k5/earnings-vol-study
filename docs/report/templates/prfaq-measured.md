@@ -1,7 +1,7 @@
 ## What we measured (2026-10-29)
 
-Measured at milestones 1–4 and collected here at milestone 5, with **provisional timing labels**
-({{lookups.done}} of {{lookups.required}} required look-ups done). Day 0 from {{sample.first_day0}} to
+Measured at milestones 1–4, collected here at milestone 5 and re-measured on 2026-11-09 with SEC EDGAR timing labels,
+which are still **provisional** ({{lookups.done}} of {{lookups.required}} required look-ups done, {{lookups.left}} open). Day 0 from {{sample.first_day0}} to
 {{sample.last_day0}}; {{sample.n_events}} primary events of {{sample.n_companies}} companies. The full account is the
 [report](report/earnings-vol-report.md) (a draft the owner has not reviewed yet).
 
@@ -20,9 +20,10 @@ where marked "revised 2026-10-29". These are the places the results contradict i
 
 1. **Timing look-ups.** The draft said every event since daily option data began would be looked up by hand (How it
    works, step 1; Internal FAQ, "Timing labels"), and that quiet events would be checked as thoroughly as big movers.
-   Only {{lookups.done}} of the {{lookups.required}} required look-ups are done, so neither holds yet. The owner
-   accepted SEC EDGAR 8-K filing times as the source on 2026-10-28, but no request has been made: the client needs the
-   owner's contact string. Every number here is provisional until then.
+   Instead, since 2026-11-09 the SEC EDGAR 8-K filing time decides where no press release was looked up:
+   {{lookups.press_release}} required look-ups rest on press releases and {{lookups.edgar}} on EDGAR, and
+   {{lookups.left}} are open. Neither claim holds fully yet: the open look-ups and the {{lookups.audit}}-event audit of
+   the EDGAR labels remain, so every number here is provisional.
 2. **The size check of the driver tests.** The draft planned regressions with two-way clustered errors and no size
    check of their own. Gate G1, extended to them at milestone 4 and run before their results run, found their
    statistics liberal: {{h5.g1}} (H5), {{h6.g1}} (H6) and {{h7.g1}} (H7) under a true null at 5%. They stay in the
@@ -35,11 +36,18 @@ where marked "revised 2026-10-29". These are the places the results contradict i
    does not survive other surprise measures.
 5. **The Cboe cross-check and subsample.** The draft named Cboe's single-stock volatility indices for five names as
    an independent check on the IV measures, as a second daily subsample ("How far back does it go?") and as a source of
-   extra events (Internal FAQ, "Feasibility"). None of it has been built: no index file has been downloaded.
+   extra events (Internal FAQ, "Feasibility"). *Revised 2026-11-09:* the check ran, with its bars fixed before the
+   download, and its result is mixed (report §3.2). The level spread passes its pre-registered rule for all five names
+   (a rule with little power) and the day-0 crush ratio is {{vx.iv.ratio}}, inside 1 ± 0.2 (provisional). The
+   correlation of daily changes is below the planned 0.8 for GOOGL ({{vx.googl.r}}), IBM ({{vx.ibm.r}}) and the pooled
+   sample ({{vx.pooled.r}}), and every slope is below 1 (pooled {{vx.pooled.slope}}). The pre-registration wrongly said
+   ADR 0003 set no tolerance for the slope; by the ADR's own reading its slope falsifier is met ({{vx.ii_below}} of 5
+   slopes are below {{vx.ii_band_lo}}). The second subsample and the extra events are not built.
 6. **What is committed.** The draft said no Cboe or Yahoo data would be committed. Under the owner's decision of
    2026-10-29 the repository commits the data the app and the docs need: aggregates of VIX-adjusted values, a VIX
    tercile label, two Yahoo-derived labels and the size coefficients (DATA.md). The VIX series, per-event VIX-adjusted
-   values and raw downloads stay local.
+   values and raw downloads stay local. *Revised 2026-11-09:* the Cboe VX\* index values stay local too; only the
+   cross-check's aggregate statistics are committed (`data/derived/vx_crosscheck.json`).
 7. **The robustness tests.** The draft (How it works, step 4) said the Boehmer-Musumeci-Poulsen test and the
    Kolari-Pynnönen family are reported as robustness. They are computed, but for the crush (H1) gate G1 found them
    oversized, so their p-values are withheld and only their estimates are shown ({{withheld.n}} robustness rows in all

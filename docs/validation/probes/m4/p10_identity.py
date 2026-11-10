@@ -1,5 +1,5 @@
-"""p10 (claim 10): every committed table vs 8c3221b (bytes); event_measures column by column (values, not bytes);
-results: the H1-H4 rows (event tests, G1 validation rows, paths) vs 8c3221b's results, value by value.
+"""p10 (claim 10): every committed table vs 4e79f61 (bytes); event_measures column by column (values, not bytes);
+results: the H1-H4 rows (event tests, G1 validation rows, paths) vs 4e79f61's results, value by value.
 Run: uv run --frozen --no-sync python docs/validation/probes/m4/p10_identity.py <scratch_dir>"""
 import hashlib
 import io
@@ -15,7 +15,7 @@ S.mkdir(parents=True, exist_ok=True)
 
 
 def head(path):
-    return subprocess.run(["git", "show", f"8c3221b:{path}"], capture_output=True, check=True).stdout
+    return subprocess.run(["git", "show", f"4e79f61:{path}"], capture_output=True, check=True).stdout
 
 
 for pth in sorted(Path("data/derived").iterdir()):
@@ -41,14 +41,14 @@ print("columns whose values changed (name, rows differing, non-null before, afte
 print("class-R columns committed:", [c for c in new.columns if c.endswith("_yf") or c.endswith("_cboe")])
 ro = pd.read_parquet(io.BytesIO(head("data/derived/results.parquet")))
 rn = pd.read_parquet("data/derived/results.parquet")
-print("results rows: 8c3221b", len(ro), "now", len(rn))
+print("results rows: 4e79f61", len(ro), "now", len(rn))
 key = ["family", "hypothesis", "role", "measure", "statistic", "rel_day", "sample", "subgroup_key", "subgroup_value",
        "adjustment", "model_id", "term"]
 vals = ["estimate", "se", "stat", "df", "p_value", "ci_lo", "ci_hi", "q_bh", "n", "n_clusters", "n_clusters_firm", "rbar"]
 k = lambda d: d[key].apply(lambda c: c.map(lambda v: "" if v is None or (isinstance(v, float) and np.isnan(v)) else str(v))).agg("|".join, axis=1)
 ro["k"], rn["k"] = k(ro), k(rn)
 m = ro.merge(rn, on="k", how="left", suffixes=("_o", "_n"), indicator=True)
-print("8c3221b rows missing now:", int((m["_merge"] != "both").sum()),
+print("4e79f61 rows missing now:", int((m["_merge"] != "both").sum()),
       m.loc[m["_merge"] != "both", "k"].str.slice(0, 90).tolist()[:12])
 both = m[m["_merge"] == "both"]
 diffs = {}

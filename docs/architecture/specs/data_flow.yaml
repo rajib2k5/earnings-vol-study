@@ -5,9 +5,8 @@
 # Dashed edges are inputs that are local only (class R, never committed) or validation-only, the
 # one same-layer feed from eps back to events (match_status -> orphan_nearby), which the fixed
 # order inside the events layer makes legal (README notes), or the SEC EDGAR input (ADR 0002:
-# accepted 2026-10-28, gated on the owner's contact string: the client refuses to run until
-# SEC_EDGAR_USER_AGENT is set, so the edge carries nothing yet and the rule in force is the press
-# release, then the calendar label). timing_check never sets a label: it triggers a second reading
+# in use since 2026-11-09; the submissions JSON is cached locally under raw/ and never committed;
+# the rule in force is the press release, then the 8-K acceptance time, then the calendar label). timing_check never sets a label: it triggers a second reading
 # (daily/mixed) or a look-up (coarse) of the press release, and feeds the sample funnel's by-tercile share.
 # The DoltHub tables are not queried in the shared clones. ingest/dolt.py copies each clone to a
 # private mirror, $VOL_DATA_DIR/earnings-vol-study/cache/dolt_mirror/{earnings,options}, and runs
@@ -41,7 +40,7 @@ nodes:
   - {id: s_yf,     label: yfinance,          sublabel: "Open, Close, shares (local only)",  type: external}
   - {id: s_vx,     label: CBOE VX*,          sublabel: "VXAPL ... VXIBM closes",            type: external}
   - {id: s_pr,     label: press releases,    sublabel: "IR time stamp, in press_release_checks.csv", type: external}
-  - {id: s_edgar,  label: SEC EDGAR 8-K (accepted), sublabel: "acceptanceDateTime; gated on contact string", type: external}
+  - {id: s_edgar,  label: SEC EDGAR 8-K, sublabel: "acceptanceDateTime; in use since 2026-11-09", type: external}
 
   # --- Reference tables (events layer) -------------------------------------
   - {id: t_security, label: security,     sublabel: "PK security_id",              type: store}

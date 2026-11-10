@@ -1,6 +1,6 @@
 # M3 validation — Channel A (documentation audit)
 
-Read-only, 2026-10-29, no code run. HEAD = `fca9972`; ADR 0005's only working-tree edit is its status note. Papers are paraphrased (copyright) and cited by equation/page.
+Read-only, 2026-10-29, no code run. HEAD = `9441774`; ADR 0005's only working-tree edit is its status note. Papers are paraphrased (copyright) and cited by equation/page.
 **Not reached:**
 - CGM 2011 JBES text (paywalled; NBER WP t0327 (2006) and the 2008 author draft read instead);
 - MacKinnon & Webb 2017 and Webb WP 1315 (HTTP 403 / TLS error);
