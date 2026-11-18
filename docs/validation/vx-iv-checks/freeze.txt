@@ -1,0 +1,11 @@
+# Freeze record: vx-iv-checks pre-registration (second freeze; first superseded, see freeze.superseded-1.txt)
+
+frozen_at_utc: 2026-11-18T02:15:34Z
+clone_head: f5904a91f80ac1317d03fcd48096461b0fa5f6a8
+clone_status: ?? docs/validation/vx-iv-checks/ 
+preregistration.md: b640a72508cee85cd629b3b2d68e53586da13579a092f530c8ad57ca4366af75
+probes/SHA256SUMS: 9c39e3cd0aae10728bb69c0c2d784f7bd07abcc66a8c7a46500a95826065fe35
+loader.py (stub, not frozen): ececde2b852bd6ec8dfdc8e99f3efccaef80acfa45c8a3e12aa5995d007d38f5
+sha256sum -c probes/SHA256SUMS: 17 OK, 0 not OK
+orchestrator re-run in a fresh copy (scratchpad/verify-freeze): phase2.py --selftest rc=0 '13 of 13 checks as expected'; phase2.py --gates G1,G2 rc=0 '17 frozen files match; run_probes.py seed 1 reproduced (exit 0)'
+real-data values read before this point: none (phase 1 synthetic only; inputs hashed as bytes)

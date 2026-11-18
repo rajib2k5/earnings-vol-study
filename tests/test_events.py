@@ -167,6 +167,30 @@ def test_lookup_invariant_is_reported_and_enforced_when_complete(sessions):
     events.enforce_lookup_invariant([], lookups_complete=True)
 
 
+def test_required_lookups_count_checked_events_and_violations_only_unchecked(sessions):
+    ev = build(sessions).reset_index()
+    i = ev.index[ev["event_id"] == "AAPL:2025-01-30"][0]
+    ev.loc[i, "timing_status"] = "confirmed"          # looked up: still required, no longer open
+    req = events.required_lookups(ev, {}, sessions, date(2024, 9, 11), 10, RANGES)
+    viol = events.lookup_violations(ev, {}, sessions, date(2024, 9, 11), 10, RANGES)
+    assert sorted(v["event_id"] for v in req) == ["AAPL:2024-10-31", "AAPL:2025-01-30", "AAPL:2025-05-01"]
+    assert {v["event_id"]: v["timing_status"] for v in req}["AAPL:2025-01-30"] == "confirmed"
+    assert sorted(v["event_id"] for v in viol) == ["AAPL:2024-10-31", "AAPL:2025-05-01"]
+
+
+def test_a_duplicate_row_needs_no_lookup(sessions):
+    # A `duplicate_row` is a second calendar row of another event's release (BRK.B:2024-11-01 beside the Saturday
+    # 2024-11-02 release, adversarial review 2026-11-17). It never enters a sample, so ADR 0002 §3 does not require
+    # its look-up, even inside the look-up era and unchecked. Mutant R52 (the skip removed) fails here.
+    ev = build(sessions).reset_index()
+    i = ev.index[ev["event_id"] == "AAPL:2025-01-30"][0]
+    ev.loc[i, "exclusion_reason"] = "duplicate_row"
+    req = events.required_lookups(ev, {}, sessions, date(2024, 9, 11), 10, RANGES)
+    viol = events.lookup_violations(ev, {}, sessions, date(2024, 9, 11), 10, RANGES)
+    assert sorted(v["event_id"] for v in req) == ["AAPL:2024-10-31", "AAPL:2025-05-01"]
+    assert sorted(v["event_id"] for v in viol) == ["AAPL:2024-10-31", "AAPL:2025-05-01"]
+
+
 def test_sample_follows_day0_and_timing_reasons_come_first(sessions):
     cal = pd.DataFrame({
         "act_symbol": ["AAPL", "AAPL"],

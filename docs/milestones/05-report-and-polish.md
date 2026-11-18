@@ -7,7 +7,11 @@
   *Since 2026-11-09* SEC EDGAR is in use: 431 of the 473 look-ups are done (20 press releases, 411 EDGAR 8-K
   times), 42 are open and the 50-event audit has not run, so the labels are still provisional. H1–H7, G1 and the
   sample counts did not change; 13 exploratory rows moved slightly (§12); the report, README and PR/FAQ are
-  re-rendered with the new counts.
+  re-rendered with the new counts. *Since 2026-11-17* EDGAR also labels the `coarse` events and Berkshire Hathaway is timed from its own
+  releases: 453 of the 472 required look-ups are done (42 press releases, 411 EDGAR) and 19 are open. Two BRK.B
+  events joined the primary sample (347 → 349) and every statistic was re-run; H5's Holm p fell from 0.0511 to
+  0.0469 ([report](../report/earnings-vol-report.md) §4.5, [EDGAR-coarse ledger](../validation/edgar-coarse-ledger.md) §8–§9). The report, README and PR/FAQ are re-rendered
+  from the rebuilt data.
 - **Date:** 2026-10-29
 - **Scope:** the written report (Markdown, PDF, DOCX) with its trading-implications section; one script that fills
   every measured number in the report, the README and the PR/FAQ from the committed data, with a `--check` mode and a
@@ -62,7 +66,7 @@
 | 7 | **Report figures cropped from the app** (`fig-*.png`) | a second charting stack in Python | The app already draws every committed number, checked by its tests; a second stack could disagree | Dark-theme figures in a white document (owner question 8) |
 | 8 | 3D stills from **three.js at 2× density, trimmed** | wait for Blender | Blender is unreachable; the stills are real renders of `terrain.json` | Not a hero render |
 | 9 | The day-0 **window** and the events' **range** are two numbers | one | meta.json's `day0_from/to` is params.yaml's window (2024-12-05 to 2026-10-26); the 347 events run 2024-12-10 to 2026-10-22 (§9 F4) | none |
-| 10 | Holm family: the **declared H1–H7 binds**, the post-gate H1–H4 is reported as a sensitivity | adopt the post-gate family | Milestone 4's decision (row 24) stands until the owner decides | Owner question 4 |
+| 10 | Holm family: the **declared H1–H7 binds**, the post-gate H1–H4 is reported as a sensitivity | adopt the post-gate family | Milestone 4's decision (row 24) stood until the owner decided; on 2026-11-17 the owner chose the declared H1–H7 | Owner question 4 (answered 2026-11-17) |
 | 11 | graphify: **code files only through the Python API**, not `graphify update .` | `graphify update .` | `update` also took in Markdown, text outputs and images (4,246 nodes); milestone 0 published code only | A small script, run once |
 | 12 | `graph.svg` **not refreshed** and labelled so | publish the new one | The refreshed SVG is 12.4 MB; `graph.html` is the usable picture | A stale file, labelled |
 
@@ -129,9 +133,9 @@ All on 2026-10-29 in the working tree, after the review's fixes. **Timing labels
 
 <!-- numbers:milestone5-results -->
 The report's headline numbers, filled in from the data by `tools/report_numbers.py` like the report itself: H1
-−0.199 log points (Holm 4.1e−22); H2 +0.232 (Holm 0.0469; 0.0781 with 7
-seasons); H3 and H4 not rejected (1, 1); H5–H7 not rejected (Holm 0.0511,
-1, 1) with G1 sizes 9.55%, 8.10% and 16.15%; b = 0.77 [0.46, 1.07]; 40.1% of
+−0.198 log points (Holm 4.8e−22); H2 +0.231 (Holm 0.0469; 0.0781 with 7
+seasons); H3 and H4 not rejected (1, 1); H5 rejected by Holm (0.0469) but not trusted,
+H6 and H7 not rejected (1, 1), with G1 sizes 8.45%, 6.75% and 17.95%; b = 0.77 [0.47, 1.07]; 40.4% of
 moves beyond the expected size against a fair 42.5%. 14 robustness rows are withheld. The
 report's §4 has the table and §7 every caveat.
 <!-- /numbers:milestone5-results -->
@@ -311,9 +315,12 @@ power: GS's yearly medians step from about 3.8–4.1 vol points (2020–22) to a
 that passes only because the all-years median sits between the two levels. The day-0 crush
 ratio (bar iv) passes. The correlation of daily changes (bar i) passes for AAPL, AMZN and GS and fails for GOOGL, IBM
 and the pooled sample, and every slope is below 1; by ADR 0003's own reading (which the pre-registration missed) the
-slope falsifier is met, for GOOGL, GS and IBM, 3 of 5. The low daily slopes are consistent with being largely a clock
-effect (Cboe's calendar-day clock against our session clock across weekends): they shrink at longer horizons, except
-for IBM, which stays below 1 (exploratory, not proof). `iv_current` behaves like a 30-calendar-day IV, which shows up as
+slope falsifier is met, for GOOGL, GS and IBM, 3 of 5. The low daily slopes rise at longer horizons, except for IBM,
+which stays below 1 (exploratory, not proof). *Correction, 2026-11-17:* this paragraph first read them as a clock
+effect (Cboe's calendar-day clock against our session clock across weekends). That was wrong: on changes that span no
+weekend the slopes are just as low ([vx-ledger.md](../validation/vx-ledger.md) §9.4). The pre-registered checks that
+followed found no fault and could not decide on the strike rule, and they found the vendor's 2026 intraday snapshots
+([vx-iv-checks/results.md](../validation/vx-iv-checks/results.md)). `iv_current` behaves like a 30-calendar-day IV, which shows up as
 about 21 sessions on our grid.
 
 **Limits.**

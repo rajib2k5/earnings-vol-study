@@ -20,6 +20,14 @@
 #   M13 run.build consulting EDGAR for no event (empty scope)
 #   M14 run.edgar_scope without the press-release events
 #   M15 fetch_universe putting the User-Agent in its record
+# and, for params timing.edgar_coarse (docs/validation/edgar-coarse-ledger.md):
+#   MC1 run.coarse_scope returning no event
+#   MC2 run.coarse_scope without its sample filter (a release before coarse is read)
+#   MC3 a contradiction left off the press-release list (EDGAR_WAIT_FOR_RELEASE)
+#   MC4 resolve_edgar taking the 8-K's label on a contradiction (day 0 moves)
+#   MC5 run.build reading coarse_scope instead of, not as well as, the default rule's look-ups
+#   MC6 run.build ignoring edgar_coarse: false
+#   MC7 events.build_events letting EDGAR decide where a press release was read
 
 import json
 from datetime import date, datetime, timedelta, timezone
@@ -273,12 +281,12 @@ FILINGS = doc_with([("0000000042-24-000010", "2024-10-24", "2024-10-24T20:10:00.
                     ("0000000042-25-000009", "2025-10-23", "2025-10-23T20:02:00.000Z", "8-K", "2.02,9.01")])
 
 
-def inputs(checks=CHECK):
+def inputs(checks=CHECK, cal=CAL, hist=HIST):
     selection = pd.DataFrame({"security_id": ["XYZ"], "name": ["Made-up Co"], "gics_sector": ["Financials"],
                               "gics_sub_industry": ["Made-up"], "cik": ["42"], "in_universe": [True],
                               "cboe_vx_index": [None]})
-    return {"commits": {"earnings": "e" * 32, "options": "o" * 32}, "selection": selection, "calendar": CAL,
-            "eps_history": HIST,
+    return {"commits": {"earnings": "e" * 32, "options": "o" * 32}, "selection": selection, "calendar": cal,
+            "eps_history": hist,
             "eps_estimate": pd.DataFrame(columns=["date", "act_symbol", "period", "period_end_date", "consensus",
                                                   "count", "high", "low"]),
             "dtb3": pd.DataFrame({"date": [date(2015, 12, 31)], "value": [1.0]}),
@@ -341,3 +349,174 @@ def test_build_without_edgar_never_reads_it(tmp_path):
     assert len(out["lookup_violations"]) == 4
     with pytest.raises(ValueError, match="no EDGAR loader"):
         run.build(params_edgar(tmp_path, True), inputs(), no_prices)
+
+
+# --- coarse: EDGAR labels the events the default rule leaves not_checked ------------------------
+# Owner decision 2026-11-17 (ADR 0002, dated note; params timing.edgar_coarse): EDGAR is also read
+# for every `coarse` event that the default rule leaves not_checked. resolve_edgar's rules do not
+# change: only `confirmed` (and `inferred` for a NULL label) set a label. A contradiction or an 8-K
+# on another date keeps the calendar label and day 0, and is listed for a press-release check.
+#
+# A made-up company: one release before the coarse sample starts (sample none), five coarse ones
+# (the 2024-04-25 row has no label, so the default rule already requires it), one mixed and two
+# daily. No prices, so no gap trigger: the four labelled coarse rows need no look-up by default.
+
+COARSE_CAL = pd.DataFrame({
+    "act_symbol": ["XYZ"] * 9,
+    "date": [date(2020, 2, 13), date(2023, 4, 27), date(2023, 7, 27), date(2023, 10, 26), date(2024, 1, 25),
+             date(2024, 4, 25), date(2024, 10, 24), date(2025, 4, 24), date(2025, 7, 24)],
+    "when": ["After market close", "After market close", "Before market open", "After market close",
+             "After market close", None, "After market close", "Before market open", "After market close"],
+}, dtype=object)
+COARSE_HIST = pd.DataFrame({
+    "act_symbol": ["XYZ"] * 9,
+    "period_end_date": [date(2019, 12, 31), date(2023, 3, 31), date(2023, 6, 30), date(2023, 9, 30),
+                        date(2023, 12, 31), date(2024, 3, 31), date(2024, 9, 30), date(2025, 3, 31),
+                        date(2025, 6, 30)],
+    "reported": [1.0] * 9, "estimate": [1.0] * 9})
+# Made-up Item 2.02 8-Ks. 2020-02-13 16:05 EST (not consulted: sample none); 2023-04-27 16:05 EDT
+# (agrees with AMC); 2023-07-27 16:05 EDT (contradicts BMO); 2023-10-27 07:00 EDT (the day after
+# the calendar's 10-26); none near 2024-01-25; 2024-04-25 16:05 EDT (NULL label); 2024-10-24
+# 16:10 EDT (mixed); 2025-04-24 16:05 EDT (contradicts the daily BMO); none near 2025-07-24.
+COARSE_FILINGS = doc_with([
+    ("0000000042-20-000001", "2020-02-13", "2020-02-13T21:05:00.000Z", "8-K", "2.02,9.01"),
+    ("0000000042-23-000002", "2023-04-27", "2023-04-27T20:05:00.000Z", "8-K", "2.02,9.01"),
+    ("0000000042-23-000005", "2023-07-27", "2023-07-27T20:05:00.000Z", "8-K", "2.02,9.01"),
+    ("0000000042-23-000008", "2023-10-27", "2023-10-27T11:00:00.000Z", "8-K", "2.02,9.01"),
+    ("0000000042-24-000003", "2024-04-25", "2024-04-25T20:05:00.000Z", "8-K", "2.02,9.01"),
+    ("0000000042-24-000010", "2024-10-24", "2024-10-24T20:10:00.000Z", "8-K", "2.02,9.01"),
+    ("0000000042-25-000004", "2025-04-24", "2025-04-24T20:05:00.000Z", "8-K", "2.02,9.01")])
+
+COLS = ["timing_status", "timing_source", "timing_used", "edgar_accession", "day0_session"]
+
+
+def params_timing(tmp_path, **timing_keys):
+    """params.yaml with the timing keys given; a value of None removes the key."""
+    raw = yaml.safe_load(params_mod.DEFAULT_PATH.read_text(encoding="utf-8"))
+    for k, v in timing_keys.items():
+        if v is None:
+            raw["timing"].pop(k, None)
+        else:
+            raw["timing"][k] = v
+    path = tmp_path / f"params-{len(list(tmp_path.iterdir()))}.yaml"
+    path.write_text(yaml.safe_dump(raw), encoding="utf-8")
+    return params_mod.load(path)
+
+
+def build_coarse(tmp_path, coarse, checks=""):
+    p = params_timing(tmp_path, edgar=True, edgar_coarse=coarse)
+    out = run.build(p, inputs(checks, COARSE_CAL, COARSE_HIST), no_prices,
+                    edgar_loader=lambda sid: edgar.item_202_filings(COARSE_FILINGS))
+    return out, p
+
+
+def rows(out):
+    ev = out["events"].set_index("event_id")
+    return {e: tuple(ev.loc[e, COLS]) for e in ev.index}
+
+
+# The rows that the switch must not touch: the default rule's look-ups (2024-04-25 coarse,
+# 2024-10-24 mixed, 2025-04-24 and 2025-07-24 daily) and the release before the coarse sample.
+UNTOUCHED = {
+    "XYZ:2020-02-13": ("not_checked", "calendar", "AMC", None, date(2020, 2, 14)),
+    "XYZ:2024-04-25": ("inferred", "edgar", "AMC", "0000000042-24-000003", date(2024, 4, 26)),
+    "XYZ:2024-10-24": ("confirmed", "edgar", "AMC", "0000000042-24-000010", date(2024, 10, 25)),
+    "XYZ:2025-04-24": ("not_checked", "calendar", "BMO", "0000000042-25-000004", date(2025, 4, 24)),
+    "XYZ:2025-07-24": ("not_checked", "calendar", "AMC", None, date(2025, 7, 25)),
+}
+
+
+def test_coarse_events_with_a_matching_8k_are_confirmed_by_edgar(tmp_path):
+    out, p = build_coarse(tmp_path, True)
+    got = rows(out)
+    assert got["XYZ:2023-04-27"] == ("confirmed", "edgar", "AMC", "0000000042-23-000002", date(2023, 4, 28))
+    # No 8-K near D: the calendar label stays, not_checked, which coarse still allows.
+    assert got["XYZ:2024-01-25"] == ("not_checked", "calendar", "AMC", None, date(2024, 1, 26))
+    assert {e: got[e] for e in UNTOUCHED} == UNTOUCHED
+    # Consulted: the default rule's look-ups and the four labelled coarse rows; not the release
+    # before the coarse sample, whose matching 8-K would otherwise confirm it.
+    assert out["edgar_outcome"] == {
+        "XYZ:2020-02-13": None, "XYZ:2023-04-27": "confirmed", "XYZ:2023-07-27": "contradicts",
+        "XYZ:2023-10-26": "other_date", "XYZ:2024-01-25": "no_8k", "XYZ:2024-04-25": "inferred",
+        "XYZ:2024-10-24": "confirmed", "XYZ:2025-04-24": "contradicts", "XYZ:2025-07-24": "no_8k"}
+    # The build invariant is unchanged: coarse rows left not_checked are not violations.
+    assert sorted(v["event_id"] for v in out["lookup_violations"]) == ["XYZ:2025-04-24", "XYZ:2025-07-24"]
+    rep = run.report(out, p)["edgar"]
+    assert rep["coarse"] is True and rep["consulted"] == 8
+    assert rep["outcome"] == {"confirmed": 2, "contradicts": 2, "inferred": 1, "no_8k": 2, "other_date": 1}
+
+
+def test_a_coarse_contradiction_keeps_the_calendar_label_and_waits_for_a_press_release(tmp_path):
+    on, p = build_coarse(tmp_path, True)
+    off, _ = build_coarse(tmp_path, False)
+    got, before = rows(on), rows(off)
+    for e, outcome in (("XYZ:2023-07-27", "contradicts"), ("XYZ:2023-10-26", "other_date")):
+        assert on["edgar_outcome"][e] == outcome
+        # The 8-K is recorded, but the label, its source and day 0 are the calendar's, as without EDGAR.
+        assert got[e][:3] == before[e][:3] == (("not_checked", "calendar", "BMO") if outcome == "contradicts"
+                                               else ("not_checked", "calendar", "AMC"))
+        assert got[e][4] == before[e][4]
+        assert got[e][3] is not None
+    assert got["XYZ:2023-07-27"][4] == date(2023, 7, 27)
+    # Listed for a press-release check, with the daily contradiction the default rule already requires.
+    assert on["edgar_press_release_checks"] == ["XYZ:2023-07-27", "XYZ:2023-10-26", "XYZ:2025-04-24"]
+    assert run.report(on, p)["edgar"]["press_release_checks"] == {
+        "n": 3, "by_outcome": {"contradicts": {"coarse": 1, "daily": 1}, "other_date": {"coarse": 1}}}
+
+
+def test_the_coarse_switch_leaves_daily_and_mixed_as_they_were(tmp_path):
+    on, _ = build_coarse(tmp_path, True)
+    off, _ = build_coarse(tmp_path, False)
+    for s in ("daily", "mixed"):
+        a = on["events"][on["events"]["sample"] == s].reset_index(drop=True)
+        b = off["events"][off["events"]["sample"] == s].reset_index(drop=True)
+        assert len(a) > 0
+        pd.testing.assert_frame_equal(a, b)
+        ids = a["event_id"].tolist()
+        assert {e: on["edgar_outcome"][e] for e in ids} == {e: off["edgar_outcome"][e] for e in ids}
+    pd.testing.assert_frame_equal(on["eps"], off["eps"])
+    assert on["lookup_violations"] == off["lookup_violations"]
+    assert on["edgar_pending_gap_checks"] == off["edgar_pending_gap_checks"]
+    # And the switch does act, on coarse only (else the equalities above would prove nothing).
+    changed = sorted(e for e in rows(on) if rows(on)[e] != rows(off)[e])
+    assert changed == ["XYZ:2023-04-27", "XYZ:2023-07-27", "XYZ:2023-10-26"]
+
+
+def test_the_coarse_switch_off_gives_the_old_output(tmp_path):
+    off, p_off = build_coarse(tmp_path, False)
+    absent, _ = build_coarse(tmp_path, None)
+    for k in ("events", "eps", "timing_check"):
+        pd.testing.assert_frame_equal(off[k], absent[k])
+    for k in ("edgar_outcome", "lookup_violations", "edgar_pending_gap_checks", "edgar_press_release_checks"):
+        assert off[k] == absent[k]
+    # The output before the switch existed: EDGAR read only for the default rule's look-ups.
+    got = rows(off)
+    assert {e: got[e] for e in UNTOUCHED} == UNTOUCHED
+    assert {e: got[e] for e in ("XYZ:2023-04-27", "XYZ:2023-07-27", "XYZ:2023-10-26", "XYZ:2024-01-25")} == {
+        "XYZ:2023-04-27": ("not_checked", "calendar", "AMC", None, date(2023, 4, 28)),
+        "XYZ:2023-07-27": ("not_checked", "calendar", "BMO", None, date(2023, 7, 27)),
+        "XYZ:2023-10-26": ("not_checked", "calendar", "AMC", None, date(2023, 10, 27)),
+        "XYZ:2024-01-25": ("not_checked", "calendar", "AMC", None, date(2024, 1, 26))}
+    assert {e for e, o in off["edgar_outcome"].items() if o is not None} == {
+        "XYZ:2024-04-25", "XYZ:2024-10-24", "XYZ:2025-04-24", "XYZ:2025-07-24"}
+    assert off["edgar_press_release_checks"] == ["XYZ:2025-04-24"]
+    assert run.report(off, p_off)["edgar"]["coarse"] is False
+
+
+COARSE_CHECKS = (
+    # The release says 07:00, before the open, although the calendar and the 8-K say AMC.
+    "XYZ,2023-04-27,true,2023-04-27,07:00,time_stamp,BMO,https://example.com/q1,company,"
+    "https://example.com/q1,2026-11-17,false,0.5,made-up row\n"
+    # The release agrees with the 8-K against the calendar's BMO.
+    "XYZ,2023-07-27,true,2023-07-27,16:05,time_stamp,AMC,https://example.com/q2,company,"
+    "https://example.com/q2,2026-11-17,false,0.5,made-up row\n")
+
+
+def test_a_press_release_still_decides_in_coarse(tmp_path):
+    out, _ = build_coarse(tmp_path, True, COARSE_CHECKS)
+    got = rows(out)
+    assert got["XYZ:2023-04-27"] == ("corrected", "press_release", "BMO", "0000000042-23-000002", date(2023, 4, 27))
+    assert got["XYZ:2023-07-27"] == ("corrected", "press_release", "AMC", "0000000042-23-000005", date(2023, 7, 28))
+    assert out["edgar_outcome"]["XYZ:2023-04-27"] == out["edgar_outcome"]["XYZ:2023-07-27"] == "press_release"
+    # A contradiction a release has settled is no longer listed.
+    assert out["edgar_press_release_checks"] == ["XYZ:2023-10-26", "XYZ:2025-04-24"]

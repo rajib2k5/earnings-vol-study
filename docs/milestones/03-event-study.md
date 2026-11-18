@@ -8,6 +8,11 @@
   the app depends on those labels. *Since 2026-11-09* SEC EDGAR is in use: 431 of the 473 look-ups are done (20 press releases, 411 EDGAR 8-K
   times), 42 are open and the 50-event audit has not run, so the labels are still provisional. H1–H7, G1 and the
   sample counts did not change; 13 exploratory rows moved slightly ([milestone 5](05-report-and-polish.md) §12).
+  *Since 2026-11-17* EDGAR also labels the `coarse` events and Berkshire Hathaway is timed from its own
+  releases: 453 of the 472 required look-ups are done (42 press releases, 411 EDGAR) and 19 are open. Two BRK.B
+  events joined the primary sample (347 → 349) and every statistic was re-run; H5's Holm p fell from 0.0511 to
+  0.0469 ([report](../report/earnings-vol-report.md) §4.5, [EDGAR-coarse ledger](../validation/edgar-coarse-ledger.md) §8–§9). The figures on this page are those of its date; the report has the
+  current ones.
 - **Later (milestone 4, 2026-10-29, as fixed after its review):** H5–H7 failed gate G1's regression size check but
   stay in Holm's declared family with their real p-values (ADR 0005 §5, dated note). H1–H4's p_holm are unchanged
   (H1 4.06e−22, H2 0.0469), and H2's G = 7 counterfactual is **0.0781** (not 0.0938: H5's p 0.0102 now ranks before

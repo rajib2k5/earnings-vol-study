@@ -2,28 +2,28 @@
   "data": {
     "by_move_tercile": [
       {
-        "mean_abs_move": 0.01745,
+        "mean_abs_move": 0.01751,
         "mean_crush_mean_adj": -0.1846,
-        "n_crush": 116,
+        "n_crush": 117,
         "n_events": 118,
         "n_gap_check_changed": 0,
         "sample": "daily",
-        "share_gap_contradicts": 0.0354,
+        "share_gap_contradicts": 0.0351,
         "tercile": 1,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 110,
+          "confirmed": 115,
           "corrected": 0,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 8
+          "not_checked": 3
         }
       },
       {
-        "mean_abs_move": 0.04477,
-        "mean_crush_mean_adj": -0.1937,
-        "n_crush": 116,
+        "mean_abs_move": 0.04487,
+        "mean_crush_mean_adj": -0.1909,
+        "n_crush": 117,
         "n_events": 118,
         "n_gap_check_changed": 0,
         "sample": "daily",
@@ -33,10 +33,10 @@
           "ambiguous": 0,
           "confirmed": 113,
           "corrected": 0,
-          "date_corrected": 0,
+          "date_corrected": 2,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 5
+          "not_checked": 3
         }
       },
       {
@@ -69,12 +69,12 @@
         "tercile": 1,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 13,
+          "confirmed": 14,
           "corrected": 0,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 1
+          "not_checked": 0
         }
       },
       {
@@ -116,47 +116,47 @@
         }
       },
       {
-        "mean_abs_move": 0.013,
-        "mean_crush_mean_adj": -0.1622,
-        "n_crush": 201,
+        "mean_abs_move": 0.01276,
+        "mean_crush_mean_adj": -0.1606,
+        "n_crush": 204,
         "n_events": 214,
         "n_gap_check_changed": 0,
         "sample": "coarse",
-        "share_gap_contradicts": 0.0048,
+        "share_gap_contradicts": 0.0049,
         "tercile": 1,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 2,
+          "confirmed": 203,
           "corrected": 0,
-          "date_corrected": 0,
+          "date_corrected": 8,
           "inferred": 1,
           "no_document": 0,
-          "not_checked": 211
+          "not_checked": 2
         }
       },
       {
-        "mean_abs_move": 0.03621,
-        "mean_crush_mean_adj": -0.168,
-        "n_crush": 203,
-        "n_events": 213,
+        "mean_abs_move": 0.03609,
+        "mean_crush_mean_adj": -0.1678,
+        "n_crush": 206,
+        "n_events": 214,
         "n_gap_check_changed": 0,
         "sample": "coarse",
-        "share_gap_contradicts": 0.0144,
+        "share_gap_contradicts": 0.0142,
         "tercile": 2,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 9,
+          "confirmed": 212,
           "corrected": 0,
           "date_corrected": 0,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 204
+          "not_checked": 2
         }
       },
       {
         "mean_abs_move": 0.09114,
-        "mean_crush_mean_adj": -0.2076,
-        "n_crush": 208,
+        "mean_crush_mean_adj": -0.2067,
+        "n_crush": 209,
         "n_events": 213,
         "n_gap_check_changed": 0,
         "sample": "coarse",
@@ -164,12 +164,12 @@
         "tercile": 3,
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 4,
+          "confirmed": 203,
           "corrected": 0,
-          "date_corrected": 0,
+          "date_corrected": 1,
           "inferred": 4,
           "no_document": 0,
-          "not_checked": 205
+          "not_checked": 5
         }
       }
     ],
@@ -200,22 +200,22 @@
     ],
     "evar_nonpositive": {
       "n": 4,
-      "n_events": 347,
-      "n_identified": 347,
+      "n_events": 349,
+      "n_identified": 349,
       "share": 0.0115
     },
-    "evar_nonpositive_status": "computed: E at day -1 over the 347 events of the last step; 0 have no E at day -1 (fewer than two usable expiries span day 0)",
+    "evar_nonpositive_status": "computed: E at day -1 over the 349 events of the last step; 0 have no E at day -1 (fewer than two usable expiries span day 0)",
     "lookups": {
       "complete": false,
-      "n_done": 431
+      "n_done": 1255
     },
     "provenance": {
-      "code_commit": "8c4b36e",
+      "code_commit": "f5904a9",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
+      "params_hash": "d51877f495f7ae67636c8f2b7539e9cb15a9bb84502868a2cde239ad15a1e301",
       "sample_label": "daily"
     },
     "steps": [
@@ -228,35 +228,35 @@
       },
       {
         "label": "One row per release, and day 0 can be placed",
-        "n_events": 1326,
-        "n_removed": 27,
+        "n_events": 1339,
+        "n_removed": 14,
         "reason": "duplicate_row|timing_ambiguous|timing_not_checked",
         "step": "timing_known"
       },
       {
         "label": "Day 0 in the daily range 2024-12-05 to 2026-10-26",
-        "n_events": 366,
-        "n_removed": 960,
+        "n_events": 368,
+        "n_removed": 971,
         "reason": "outside_daily_range",
         "step": "daily_range"
       },
       {
         "label": "Snapshots on day -1 and day 0",
-        "n_events": 356,
+        "n_events": 358,
         "n_removed": 10,
         "reason": "missing_m1|missing_0",
         "step": "crush_observed"
       },
       {
         "label": "A 30-day IV on day -1 and day 0",
-        "n_events": 353,
+        "n_events": 355,
         "n_removed": 3,
         "reason": "no_cm30_m1|no_cm30_0",
         "step": "iv_usable"
       },
       {
         "label": "At least 20 clean baseline sessions and 15 changes",
-        "n_events": 347,
+        "n_events": 349,
         "n_removed": 6,
         "reason": "short_baseline",
         "step": "baseline_minimum"
@@ -267,36 +267,36 @@
         "sample": "daily",
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 351,
+          "confirmed": 356,
           "corrected": 0,
-          "date_corrected": 0,
+          "date_corrected": 2,
           "inferred": 0,
           "no_document": 0,
-          "not_checked": 17
+          "not_checked": 10
         }
       },
       {
         "sample": "mixed",
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 41,
+          "confirmed": 42,
           "corrected": 2,
           "date_corrected": 1,
           "inferred": 1,
           "no_document": 0,
-          "not_checked": 4
+          "not_checked": 3
         }
       },
       {
         "sample": "coarse",
         "timing_status_counts": {
           "ambiguous": 0,
-          "confirmed": 29,
+          "confirmed": 834,
           "corrected": 0,
-          "date_corrected": 0,
+          "date_corrected": 11,
           "inferred": 6,
           "no_document": 0,
-          "not_checked": 833
+          "not_checked": 17
         }
       },
       {
@@ -314,16 +314,16 @@
     ],
     "timing_status_counts": {
       "ambiguous": 0,
-      "confirmed": 421,
+      "confirmed": 1232,
       "corrected": 2,
-      "date_corrected": 1,
+      "date_corrected": 14,
       "inferred": 7,
       "no_document": 0,
-      "not_checked": 922
+      "not_checked": 98
     }
   },
-  "generated_at": "2026-11-10T15:01:45Z",
+  "generated_at": "2026-11-18T02:50:23Z",
   "kind": "sample_funnel",
   "schema_version": "0.5.0",
-  "source_commit": "8c4b36e"
+  "source_commit": "f5904a9"
 }

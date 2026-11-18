@@ -3,11 +3,16 @@
 - **Status:** Accepted (milestone 0), **revised 2026-10-28 after the milestone-0 methodology review**, **again
   after the milestone-0 delta review**, **on 2026-10-29 after the milestone-1 review**, and **again the same day after
   its delta review** (notes below). **The EDGAR rule (§3, source 1) is Accepted 2026-10-28 and in use since
-  2026-11-09** (owner decision; `params.yaml` `timing.edgar: true`; note "SEC EDGAR switched on" below). Of the 473
-  look-ups the default rule requires, 20 rest on press releases, 411 on an Item 2.02 8-K time, and **42 are still open**
-  (no 8-K 26, EDGAR holiday 11, 8-K on another date 4, 8-K against the calendar 1). The milestone-1 EDGAR audit (50
+  2026-11-09** (owner decision; `params.yaml` `timing.edgar: true`; note "SEC EDGAR switched on" below). Of the 472
+  look-ups the default rule requires, 42 rest on press releases, 411 on an Item 2.02 8-K time, and **19 are still open**
+  (no 8-K 3, EDGAR holiday 11, 8-K on another date 4, 8-K against the calendar 1; counts of 2026-11-17, after
+  Berkshire Hathaway's releases, note "Berkshire Hathaway timed from its own releases" below; a duplicate calendar row
+  is no longer counted, [edgar-coarse-ledger](../validation/edgar-coarse-ledger.md) §9). The milestone-1 EDGAR audit (50
   `confirmed` EDGAR labels against press releases) has not run, and 37 EDGAR labels that the price gap questions wait
   for a press-release check, so `timing.lookups_complete` stays false and the labels are still provisional.
+  **Since 2026-11-17 EDGAR also labels the `coarse` events that the default rule does not require** (owner
+  decision; `timing.edgar_coarse: true`; note "SEC EDGAR also labels the `coarse` sample" below): 798 of 812
+  `confirmed`, 14 still `not_checked`, no day 0 moved; that step alone did not change the counts of required look-ups.
 - **Date:** 2026-10-28
 - **Related:** [0001](0001-overall-architecture.md), [0003](0003-iv-measures.md), [0004](0004-baseline-and-event-windows.md),
   [data model](../architecture/data-model.md) (`events`, `timing_check`, `session`)
@@ -128,6 +133,80 @@
 > 7. **For the owner.** Whether EDGAR should also label the `coarse` events that the default rule does not require
 >    (now: no; it would remove the gap-triggered selection of that sample), and whether BRK.B's Saturday releases
 >    should take their timing from the 8-K filed days later (now: no; they stay open).
+
+> **Berkshire Hathaway timed from its own releases, 2026-11-17** ([ledger](../validation/edgar-coarse-ledger.md) §8).
+>
+> 1. **The decision.** The owner answered the second question of item 7 of the note "SEC EDGAR switched on" (relayed
+>    2026-11-17): "Time the 23 open events from Berkshire's own dated releases. A Saturday release puts day 0 on the
+>    next session." Berkshire releases its results on a Saturday and files the 8-K days later, so EDGAR cannot time
+>    them.
+> 2. **What was done.** 26 BRK.B rows were added to `data/manual/press_release_checks.csv`, one per release, each
+>    with the release's date and the BMO label that a Saturday release implies (§3: a weekend date maps to the next
+>    session). The calendar's Friday row of 2024-11-01 is a duplicate of the Saturday 2024-11-02 release (same
+>    release); it gets no check row and stays `duplicate_row`.
+> 3. **Measured effect** (events stage `d51877f495f7ae67` against the committed events of f5904a9):
+>    - BRK.B's 29 events: 13 `confirmed` (the calendar already had the Saturday date; day 0 unchanged), 13
+>      `date_corrected` (the calendar had another date and a NULL label, so they had no day 0; each now gets the
+>      Monday after its release), 3 still `not_checked` (2020-02-28 and 2026-11-06, both outside every sample, and
+>      the duplicate row).
+>    - No other event's day 0, status or sample changed. `timing_not_checked` exclusions fall from 26 to 13.
+>    - Required look-ups: 22 of the 26 open `no_8k` ones are BRK.B's and now rest on a release, so 42 press release,
+>      411 EDGAR, 20 open (no 8-K 4, EDGAR holiday 11, other date 4, against the label 1). *Correction, the same
+>      day:* the duplicate row of 2024-11-01 was counted as an open look-up; it needs none, so 472 required and 19
+>      open (no 8-K 3).
+>    - Two daily-sample events gain a day 0 (BRK.B 2025-02-28 → day 0 2025-02-24, 2026-02-27 → 2026-03-02), so the
+>      primary sample grows from 347 to 349 events. Every statistic was re-run. H5's Holm p moves from 0.0511 to
+>      0.0469 (below 5%, from a statistic G1 found liberal, so the rejection is not trusted; report §4.5).
+
+> **SEC EDGAR also labels the `coarse` sample, 2026-11-17** ([ledger](../validation/edgar-coarse-ledger.md)).
+>
+> 1. **The decision.** The owner answered the first question of item 7 above (relayed 2026-11-17): "Label the 812
+>    coarse events with EDGAR and amend ADR 0002. A contradiction waits for its press-release check before any day 0
+>    moves." `params.yaml` holds `timing.edgar_coarse: true`. With `false` (or the key absent) the events stage gives
+>    the output of 2026-11-09 exactly: every table and list was measured equal.
+> 2. **What changed.** EDGAR is now also read for every `coarse` event that the default rule leaves `not_checked`.
+>    That is 813 events with a calendar label; one of them (META 2020-07-29) was already a required look-up, so 812
+>    are new (AMC 414, BMO 398, no NULL label). The rules are those of 2026-11-09 (ledger D2–D15; only D1's scope
+>    is wider):
+>    - **798 `confirmed`** (`timing_source = edgar`; AMC 408, BMO 390). None is `inferred`, because none has a NULL
+>      label.
+>    - **14 stay `not_checked`** with the calendar label: no 8-K 6 (BRK.B's Saturday releases of 2020-05-02,
+>      2021-02-27, 2021-05-01 and 2022-04-30, GE 2020-04-29, AMAT 2024-05-16), EDGAR holiday 5 (every 8-K time
+>      agrees with the label), against the label 1, on another date 1, during the session 1 (PM 2021-02-04, BMO,
+>      8-K at 10:32; a release at that time would give the same day 0).
+> 3. **A contradiction waits.** An 8-K against the label (`contradicts`) or on another date (`other_date`) keeps the
+>    calendar label and day 0. The event is listed for a press-release check (`edgar_press_release_checks` in the
+>    stage report). Two are new: **AMD 2020-10-27** (calendar AMC, 8-K accepted 06:34, BMO; if a release agrees with
+>    the 8-K, day 0 moves from 2020-10-28 to 2020-10-27) and **COST 2022-09-22** (8-K on 2022-09-23 at 13:38,
+>    inside the session; its day 0, 2022-09-23, is the same unless the release came after the close on 09-23). The
+>    list also holds the 5 such events among the required look-ups: TXN 2024-10-22, META 2020-07-29, MS 2020-04-15,
+>    ORCL 2020-09-09 and WFC 2022-10-13.
+> 4. **What did not change.** No day 0 moved, none was lost and none was gained; day −1, the sample, the exclusion
+>    reason, the EPS links and the gap diagnostic are identical. Events by sample stay 868 / 368 / 49 / 68
+>    (coarse / daily / mixed / none), `timing_not_checked` exclusions stay 26, the required look-ups stay 473 with
+>    42 open, and the gap still questions 37 EDGAR labels (job 1 found no new case). The build invariant is
+>    unchanged: a `coarse` event that stays `not_checked` is still allowed. `resolve_edgar`'s rules are unchanged,
+>    and a press release still decides where one was read. Only four columns of `events` change, `timing_status`,
+>    `timing_source`, `edgar_accession` and `edgar_accepted_utc`. No measure, panel column or test statistic reads
+>    them; only the label counts do (the funnel, the app, the report's look-up numbers). So no row of `results` can
+>    move with this step, apart from its `params_hash` column.
+> 5. **The coarse selection.** The gap no longer decides which `coarse` labels are checked. Over the 640 `coarse`
+>    events with an `abs_move_cand_max`, `not_checked` was 211 / 204 / 205 by tercile (lowest to highest move) and
+>    is now 8 / 7 / 6. The selection measured in §3 ("The `coarse` sample: a partial check"; 2.51 / 1.96 / 0.35%
+>    wrong day 0 at t₃ gaps) therefore no longer describes the label check of `coarse`. One move-dependent step
+>    stays, as in `daily` and `mixed`: job 1, the press-release check of an EDGAR label that the gap questions. So
+>    the labels stay class F (Consequences, "Licensing").
+> 6. **Text this note overrides.** These passages still describe the gap-triggered `coarse` check. Read them with
+>    this note until they are rewritten: "In one paragraph" (the second move-dependent step); §3, source 3 ("the label
+>    of an event nobody looked up") and the `not_checked` row of the status table ("Never looked up": 14 `coarse`
+>    events were read on EDGAR and are still `not_checked`); "The `coarse` sample: a partial check, with its
+>    selection stated" (who is looked up, the measured selection, and "Every coarse table says that quiet events
+>    there carry more label error"); job 2 of the price gap; job 3's "In `coarse` the status mix trends by
+>    construction"; "Three design points" ("The `coarse` sample keeps a larger step"); Consequences (the `coarse`
+>    sample "does select on the move", and Licensing's reason "the `coarse` look-ups are still gap-triggered").
+> 7. **Still open.** The press-release checks of the 7 listed events; the 50-event audit of `confirmed` EDGAR
+>    labels; the 37 gap-questioned labels; the open required look-ups (20 after the Berkshire note above, which also
+>    times BRK.B's 4 `coarse` rows). `timing.lookups_complete` stays false.
 
 > **Milestone 1, 2026-10-29: owner decisions and what was measured.**
 >

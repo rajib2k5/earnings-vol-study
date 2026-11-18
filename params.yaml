@@ -144,6 +144,14 @@ timing:
   # requires (docs/validation/edgar-ledger.md §5, D1-D15). A press release
   # still decides where one was looked up.
   edgar: true
+  # Owner decision 2026-11-17: EDGAR also labels the `coarse` events that the
+  # default rule leaves not_checked (ADR 0002, note of 2026-11-17;
+  # docs/validation/edgar-coarse-ledger.md). The rules do not change: only an
+  # 8-K that confirms the label (or gives a NULL label its timing) sets it; a
+  # contradiction or an 8-K on another date keeps the calendar label and day 0
+  # and is listed for a press-release check. false gives the output of
+  # 2026-11-09. No effect while edgar is false.
+  edgar_coarse: true
   # Owner default taken 2026-10-29, still in force: false. With EDGAR, 42 of
   # the 473 required look-ups stay open and the ADR's 50-event EDGAR audit has
   # not run. While this is false, the build invariant of ADR 0002 §3 is

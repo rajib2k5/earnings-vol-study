@@ -64,27 +64,27 @@
         35,
         23,
         21,
-        24,
+        25,
         20,
         17,
         5,
         0,
         1,
-        0,
+        1,
         0,
         0,
         0,
         0,
         1
       ],
-      "mean": -0.2009,
-      "n": 347,
+      "mean": -0.1999,
+      "n": 349,
       "quantiles": {
-        "p10": -0.3427,
-        "p25": -0.2723,
-        "p50": -0.1888,
-        "p75": -0.1208,
-        "p90": -0.0634
+        "p10": -0.3422,
+        "p25": -0.272,
+        "p50": -0.1882,
+        "p75": -0.1178,
+        "p90": -0.0623
       },
       "units": "log change of the 30-day IV, day -1 to day 0"
     },
@@ -129,8 +129,8 @@
       ],
       "counts": [
         2,
-        3,
-        8,
+        4,
+        9,
         14,
         17,
         23,
@@ -164,35 +164,35 @@
         0,
         1
       ],
-      "n": 343,
-      "n_identified": 347,
+      "n": 345,
+      "n_identified": 349,
       "n_nonpositive": 4,
       "quantiles": {
-        "p10": 0.03269,
-        "p25": 0.0446,
-        "p50": 0.06455,
-        "p75": 0.08771,
-        "p90": 0.11088
+        "p10": 0.0326,
+        "p25": 0.04435,
+        "p50": 0.06435,
+        "p75": 0.08764,
+        "p90": 0.11083
       },
-      "sqrt_mean_evar": 0.07509,
+      "sqrt_mean_evar": 0.07489,
       "units": "decimal move (0.05 = 5%)"
     },
     "provenance": {
-      "code_commit": "8c4b36e",
+      "code_commit": "f5904a9",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
+      "params_hash": "d51877f495f7ae67636c8f2b7539e9cb15a9bb84502868a2cde239ad15a1e301",
       "sample_label": "daily"
     },
     "sample": {
       "label": "daily",
-      "n_events": 347
+      "n_events": 349
     }
   },
-  "generated_at": "2026-11-10T15:01:45Z",
+  "generated_at": "2026-11-18T02:50:23Z",
   "kind": "iv_measures",
   "schema_version": "0.5.0",
-  "source_commit": "8c4b36e"
+  "source_commit": "f5904a9"
 }

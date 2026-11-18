@@ -30,9 +30,10 @@ lane per layer of [ADR 0001](../adr/0001-overall-architecture.md) (ingest, event
 and each layer reads only from the layers before it in that list.
 
 Two sources feed the timing label ([ADR 0002 §3](../adr/0002-day-zero-convention.md)). The rule in force is the
-company's press release (its investor-relations time stamp, checked by hand; 20 look-ups), then the **SEC EDGAR 8-K
-Item 2.02 acceptance time** (in use since 2026-11-09, 411 look-ups; dashed edge, because the submissions JSON is cached
-locally and never committed), then the calendar label. 42 of the 473 required look-ups are still open and the ADR's
+company's press release (its investor-relations time stamp, checked by hand; 42 required look-ups), then the **SEC EDGAR 8-K
+Item 2.02 acceptance time** (in use since 2026-11-09, 411 required look-ups, and since 2026-11-17 the `coarse` events too;
+dashed edge, because the submissions JSON is cached locally and never committed), then the calendar label. 19 of the 472
+required look-ups are still open (2026-11-17) and the ADR's
 50-event audit has not run ([edgar-ledger](../validation/edgar-ledger.md) §10), so the labels stay provisional. The price gap is a local
 diagnostic: it triggers a second reading (daily/mixed) or a look-up (coarse) and never sets a label. Who writes and who reads which
 table:

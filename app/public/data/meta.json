@@ -98,25 +98,25 @@
     },
     "project": "earnings-vol-study",
     "provenance": {
-      "code_commit": "8c4b36e",
+      "code_commit": "f5904a9",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
+      "params_hash": "d51877f495f7ae67636c8f2b7539e9cb15a9bb84502868a2cde239ad15a1e301",
       "sample_label": "daily"
     },
     "sample": {
       "day0_from": "2024-12-05",
       "day0_to": "2026-10-26",
       "label": "daily",
-      "n_events": 347,
+      "n_events": 349,
       "n_securities": 50
     },
     "title": "Earnings and implied volatility: an event study"
   },
-  "generated_at": "2026-11-10T15:01:45Z",
+  "generated_at": "2026-11-18T02:50:23Z",
   "kind": "meta",
   "schema_version": "0.5.0",
-  "source_commit": "8c4b36e"
+  "source_commit": "f5904a9"
 }

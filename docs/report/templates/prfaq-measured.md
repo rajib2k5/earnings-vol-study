@@ -27,13 +27,14 @@ where marked "revised 2026-10-29". These are the places the results contradict i
 2. **The size check of the driver tests.** The draft planned regressions with two-way clustered errors and no size
    check of their own. Gate G1, extended to them at milestone 4 and run before their results run, found their
    statistics liberal: {{h5.g1}} (H5), {{h6.g1}} (H6) and {{h7.g1}} (H7) under a true null at 5%. They stay in the
-   declared Holm family; none is rejected.
+   declared Holm family. Holm rejects H5 only just ({{h5.p_holm}}), and a rejection by a liberal statistic is not
+   trusted.
 3. **The number of seasons.** ADR 0005 expected the run-up's events to fall into 7 seasons. There are
    {{h2.floor_g}}, unbalanced, so the randomisation p-value is H2's primary and its Holm verdict depends on that count
    ({{h2.p_holm}} with {{h2.floor_g}}; {{h2.cut_p_holm}} with {{h2.cut_g}}).
 4. **The surprise question.** The external FAQ asks whether a bigger surprise causes a bigger crush. The measured
-   coefficient points the other way, a slightly smaller fall ({{h5.est}} per sd), and it is not rejected after Holm and
-   does not survive other surprise measures.
+   coefficient points the other way, a slightly smaller fall ({{h5.est}} per sd). Holm rejects it at {{h5.p_holm}}
+   from a liberal statistic, which is not trusted, and it does not survive other surprise measures.
 5. **The Cboe cross-check and subsample.** The draft named Cboe's single-stock volatility indices for five names as
    an independent check on the IV measures, as a second daily subsample ("How far back does it go?") and as a source of
    extra events (Internal FAQ, "Feasibility"). *Revised 2026-11-09:* the check ran, with its bars fixed before the

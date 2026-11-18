@@ -6,8 +6,9 @@
 # Step 2 follows ADR 0002 section 3: documents decide the timing label, the price gap only
 # diagnoses. The rule in force is the press release, then the SEC EDGAR 8-K Item 2.02 acceptance time
 # (in use since 2026-11-09), then the calendar label. The release is looked up for every event with D on
-# or after 2024-09-11 and every NULL label; in the coarse sample only on a gap flag. Of the 473 required
-# look-ups, 431 are done (20 press releases, 411 EDGAR) and 42 are open; events outside the look-up
+# or after 2024-09-11 and every NULL label; in the coarse sample only on a gap flag (since 2026-11-17 EDGAR also
+# labels every coarse event). Of the 472 required look-ups, 453 are done (42 press releases, 411 EDGAR) and 19 are
+# open (2026-11-17); events outside the look-up
 # scope stay not_checked. The ADR's 50-event audit has not run. A gap contradiction triggers a second reading, which sets gap_check_changed.
 kind: sequence
 title: One announcement through the pipeline

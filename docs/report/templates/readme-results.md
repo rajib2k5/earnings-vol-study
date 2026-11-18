@@ -17,14 +17,15 @@ replications; pass at most {{g1.band_hi}}). Holm runs over the declared family H
 | H6 | Does the prior volatility level change it? | {{h6.n}} | {{h6.est}} per sd | {{h6.p}} | **{{h6.g1}}** (fail) | {{h6.p_holm}} |
 | H7 | Is the implied variance unbiased (a = 0, b = 1)? | {{h7.n}} | b = {{h7.b}} {{h7.b_ci}} | {{h7.p}} | **{{h7.g1}}** (fail) | {{h7.p_holm}} |
 
-- **H1 and H2 are rejected; H3–H7 are not.** H2's p is the floor of a randomisation test over {{h2.floor_g}} season
+- **H1, H2 and H5 are rejected after Holm; H3, H4, H6 and H7 are not.** H5's rejection (Holm {{h5.p_holm}}) comes from
+  a statistic that G1 found liberal, so it is not trusted. H2's p is the floor of a randomisation test over {{h2.floor_g}} season
   clusters, so its Holm verdict depends on that count: with the October 2026 tail merged into July
   ({{h2.cut_g}} seasons, as ADR 0005 expected) it is {{h2.cut_p_holm}}, not rejected. Its direction is not in doubt
   (two-way t {{h2.twoway_t}}).
 - **H5–H7 failed gate G1**: their statistics reject {{h5.g1}}, {{h6.g1}} and {{h7.g1}} of the time under a true null,
   so a rejection by them would not be trusted. They stay in the declared Holm family with their real p-values.
   Without them (a descriptive sensitivity, not binding) the Holm p would be H1 {{postgate.h1}}, H2 {{postgate.h2}}
-  ({{h2.cut_g}} seasons: {{postgate.h2_cut}}). Which family binds is the owner's decision.
+  ({{h2.cut_g}} seasons: {{postgate.h2_cut}}). The declared family H1–H7 binds (owner decision, 2026-11-17).
 - {{ivr.share}} of day-0 moves exceeded the implied |move|, against {{ivr.benchmark}} under fair pricing of a normal
   move (p {{ivr.share_p}}). Exploratory: a steeper term structure at day −1 goes with a larger crush
   ({{slope.est}} per sd, q {{slope.q}}, from the same liberal two-way t).
@@ -38,9 +39,12 @@ replications; pass at most {{g1.band_hi}}). Holm runs over the declared family H
   planned 0.8 for GOOGL ({{vx.googl.r}}), IBM ({{vx.ibm.r}}) and the pooled sample ({{vx.pooled.r}}), and every slope
   is below 1 (pooled {{vx.pooled.slope}}). The pre-registration wrongly said ADR 0003 set no tolerance for the slope:
   by the ADR's own reading its slope falsifier is met ({{vx.ii_below}} of 5 slopes, {{vx.ii_below_names}}, are below
-  {{vx.ii_band_lo}}), while its correlation and crush-ratio falsifiers are not. Exploratory checks are consistent with
-  the low daily slopes being largely a clock effect (pooled slope {{vx.step21.pooled.slope}} over 21 sessions; IBM
-  stays below 1), without proving it. The vendor's undocumented `iv_current` is closest to our ATM IV at
+  {{vx.ii_band_lo}}), while its correlation and crush-ratio falsifiers are not. The slopes rise with the horizon (pooled
+  {{vx.step21.pooled.slope}} over 21 sessions; IBM stays below 1), which fits day-to-day noise in our series; an
+  earlier reading as a calendar-clock effect was wrong (report §3.2). Pre-registered checks of the forward, the filters
+  and the expiry roll on GOOGL, GS and IBM found no fault, and the strike rule could not decide
+  ([vx-iv-checks](docs/validation/vx-iv-checks/results.md)). They also found that the vendor's 2026 option snapshots
+  are taken during the day, before the close (exploratory). The vendor's undocumented `iv_current` is closest to our ATM IV at
   {{vh.maturity}} sessions, and reads as a 30-calendar-day IV.
 
 Every measured number in this block is filled in by `tools/report_numbers.py` from `data/derived/results.parquet`,

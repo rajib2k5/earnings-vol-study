@@ -14,7 +14,9 @@
 > since 2026-11-09, {{lookups.edgar}} against the time SEC EDGAR accepted the company's earnings filing (Form 8-K,
 > Item 2.02). The other {{lookups.left}} are open: {{lookups.open.no_8k}} have no such filing near the date,
 > {{lookups.open.edgar_holiday}} fall next to a day EDGAR was closed, {{lookups.open.other_date}} have the filing on
-> another day and {{lookups.open.contradicts}} has a filing against the calendar's label. Of these {{lookups.left}},
+> another day and {{lookups.open.contradicts}} has a filing against the calendar's label. Since 2026-11-17 EDGAR also
+> labels the `coarse` events that the rule does not require, so {{lookups.documented}} labels in all rest on a
+> document ({{lookups.extra}} beyond the required ones). Of the {{lookups.left}} open look-ups,
 > {{lookups.left_labelled}} keep the earnings calendar's label and {{lookups.left_unlabelled}} have no label at all. The audit that the ADR asks for ({{lookups.audit}} EDGAR labels checked against press releases) has
 > not run, and {{lookups.gap_questioned}} EDGAR labels that the stock's price gap questions wait for a press-release
 > check. So a few events may still sit on the wrong day 0.
@@ -47,7 +49,9 @@ lengths, minimum counts) are written by hand.
   expected move, against the {{ivr.benchmark}} that fair pricing of a normal move gives.
 - **Neither the earnings surprise nor the prior volatility level explains the size of the crush in a way that
   survives the checks.** The statistics for these driver tests are liberal at this design (they reject {{h5.g1}},
-  {{h6.g1}} and {{h7.g1}} of the time under a true null at 5%), and none is rejected.
+  {{h6.g1}} and {{h7.g1}} of the time under a true null at 5%). Holm rejects the surprise test (H5) only just, at
+  {{h5.p_holm}}, and a rejection by a liberal statistic is not trusted (section 3.6). Its sign is a slightly smaller
+  crush, and it does not survive other surprise measures. H6 and H7 are not rejected.
 
 ---
 
@@ -98,13 +102,14 @@ rules, so its event count (the `n` in section 4) differs a little from {{funnel.
 
 ![The sample funnel, as the app draws it from sample_funnel.json](../images/fig-funnel.png)
 
-**Timing labels.** {{lookups.done}} labels rest on a document, {{lookups.press_release}} on a press release and
-{{lookups.edgar}} on an SEC EDGAR filing time ({{timing.confirmed}} confirmed, {{timing.corrected}} corrected,
+**Timing labels.** {{lookups.documented}} labels rest on a document, {{lookups.all_press_release}} on a press release
+and {{lookups.all_edgar}} on an SEC EDGAR filing time ({{timing.confirmed}} confirmed, {{timing.corrected}} corrected,
 {{timing.date_corrected}} with a corrected date and {{timing.inferred}} inferred). {{timing.not_checked}} events stay
 `not_checked`: {{timing.not_checked_labelled}} keep the calendar's label and {{timing.not_checked_unlabelled}} have none.
-{{lookups.left}} of the {{timing.not_checked}} are required look-ups that are still open, the others are `coarse` events
-that the rule does not require to be looked up, or events outside every sample. EDGAR's acceptance time is a UTC instant: read that way
-it agrees with each of the {{lookups.press_release}} press releases looked up on date and label; read as New York time
+{{lookups.left}} of the {{timing.not_checked}} are required look-ups that are still open; the others are `coarse` events
+that the rule does not require and EDGAR could not label, or events outside every sample. Since 2026-11-17 EDGAR labels
+the `coarse` sample too (ADR 0002, dated note), and Berkshire Hathaway's events are timed from its own dated releases. EDGAR's acceptance time is a UTC instant: read that way
+it agrees with each of the {{lookups.utc_reference}} press releases of the first check on date and label; read as New York time
 it would put each before-open one inside the trading session (docs/validation/edgar-ledger.md §2). A wrong label puts the crush on the wrong day, which makes a
 crush look smaller and a run-up look longer.
 
@@ -192,23 +197,27 @@ year's median spread from that all-days median; bar iii passes when it is at mos
   the pooled slope is {{vx.sec.slope}} and the reciprocal of the reverse slope {{vx.sec.rev}} {{vx.sec.rev_ci}}, a
   narrower pair, as the correlation is higher. For AAPL and AMZN alone that reciprocal is just below 1 (its interval
   holds 1).
-- **Why the daily slopes are low (exploratory, not pre-registered).** Cboe's index counts calendar days and ours counts
-  sessions, so a change across a weekend moves the two differently. Four checks, each exploratory and not
-  pre-registered, are consistent with a clock effect. (1) {{vx.cal.end_monday}} of the {{vx.pooled.n}} one-session
+- **Why the daily slopes are low (exploratory, not pre-registered).** The first reading was a clock effect: Cboe's index
+  counts calendar days and ours counts sessions, so a change across a weekend moves the two differently. Check (2)
+  below refutes it as the main cause. Four checks, each exploratory and not pre-registered: (1) {{vx.cal.end_monday}} of the {{vx.pooled.n}} one-session
   changes ({{vx.cal.end_monday_share}}) end on a Monday; before {{vx.cal.era_from}}, when our snapshots were taken on
   Mondays, Wednesdays and Fridays only, {{vx.cal.early_monday}} of the {{vx.cal.early}} changes end on a Monday. On Monday changes the mean change in ln
   VX is {{vx.cal.mon_vx}} and in ours {{vx.cal.mon_ours}} (other days {{vx.cal.oth_vx}} and {{vx.cal.oth_ours}}).
-  (2) On Tuesday-to-Friday changes alone, r is {{vx.tf.pooled.r}} {{vx.tf.pooled.r_ci}} pooled ({{vx.tf.pooled.n}}
-  changes; GOOGL {{vx.tf.googl.r}}, IBM {{vx.tf.ibm.r}}). (3) Without the {{vx.d0.dropped}} changes that end on a day 0,
+  (2) On Tuesday-to-Friday changes alone, which span no weekend, r is {{vx.tf.pooled.r}} {{vx.tf.pooled.r_ci}} pooled
+  ({{vx.tf.pooled.n}} changes; GOOGL {{vx.tf.googl.r}}, IBM {{vx.tf.ibm.r}}), but the slope stays low:
+  {{vx.tf.pooled.slope}} pooled (GOOGL {{vx.tf.googl.slope}}, GS {{vx.tf.gs.slope}}, IBM {{vx.tf.ibm.slope}}), no
+  closer to 1 than on all changes ({{vx.pooled.slope}}). A clock effect cannot lower the slope of changes that span no
+  weekend. (3) Without the {{vx.d0.dropped}} changes that end on a day 0,
   the pooled r is {{vx.d0.pooled.r}} {{vx.d0.pooled.r_ci}} (AMZN {{vx.d0.amzn.r}}, IBM {{vx.d0.ibm.r}}), so the
   correlation leans on the largest days. (4) Over non-overlapping changes of k sessions in the daily-snapshot era (from
   {{vx.cal.era_from}}), the pooled slope and 1 / reverse slope are {{vx.step1.pooled.slope}} and
   {{vx.step1.pooled.rev}} at k = 1 ({{vx.step1.pooled.n}} changes), {{vx.step10.pooled.slope}} and
   {{vx.step10.pooled.rev}} at k = 10 ({{vx.step10.pooled.n}}) and {{vx.step21.pooled.slope}} and
   {{vx.step21.pooled.rev}} at k = 21 ({{vx.step21.pooled.n}}); IBM stays below 1 ({{vx.step10.ibm.slope}} and
-  {{vx.step10.ibm.rev}} at k = 10, {{vx.step21.ibm.slope}} and {{vx.step21.ibm.rev}} at k = 21). So the low daily
-  slopes are consistent with being largely a clock effect that shrinks at longer horizons, except for IBM. That is a
-  reading of exploratory numbers, with no intervals, and not proof.
+  {{vx.step10.ibm.rev}} at k = 10, {{vx.step21.ibm.slope}} and {{vx.step21.ibm.rev}} at k = 21). So the slopes rise
+  with the horizon. That fits day-to-day noise in our series: if our change is the true change plus independent noise,
+  the slope falls to about the true change's share of the variance, and noise weighs less in a change over several
+  sessions. That is a reading of exploratory numbers, with no intervals for the k-session slopes, and not proof.
 - **The vendor's `iv_current` (third check, changes no verdict).** In DoltHub's `volatility_history` table,
   `iv_current` has no documented maturity. Our blind at-the-money IV at {{vh.horizons}} sessions (interpolated between the
   listed expiries, or extrapolated by up to {{vh.extrap.max}} sessions beyond them) comes closest to it at
@@ -307,10 +316,11 @@ in log points; H5 and H6 are log points of crush per standard deviation of the r
 | H6 | Does the prior volatility level change it? | {{h6.n}} | {{h6.est}} | {{h6.ci}} | {{h6.p}} | **{{h6.g1}}** | {{h6.p_holm}} |
 | H7 | Is the implied variance unbiased (a = 0, b = 1)? | {{h7.n}} | b = {{h7.b}} | {{h7.b_ci}} (b) | {{h7.p}} | **{{h7.g1}}** | {{h7.p_holm}} |
 
-**Rejected at 5% after Holm: {{holm.rejected}}.** H2's verdict depends on the season count (section 4.3). H3–H7 are not
-rejected. Bold G1 sizes failed the gate.
+**Rejected at 5% after Holm: {{holm.rejected}}.** H2's verdict depends on the season count (section 4.3). H5's Holm p
+is {{h5.p_holm}}, just below 5%, from a statistic that G1 found liberal, so its rejection is not trusted (section 4.5).
+H3, H4, H6 and H7 are not rejected. Bold G1 sizes failed the gate.
 
-**Which Holm family binds is an open owner decision.** The binding family is the one declared at milestone 0, H1–H7.
+**The binding Holm family is H1–H7**, the one declared at milestone 0 (owner decision, 2026-11-17).
 A descriptive sensitivity drops the three hypotheses whose size check failed and corrects over H1–H4 only: H1
 {{postgate.h1}}, H2 {{postgate.h2}}, and H2 with {{h2.cut_g}} seasons {{postgate.h2_cut}}, which would be rejected.
 Dropping hypotheses after seeing their size check can only lower the others' Holm p, so it is not used as binding
@@ -370,7 +380,12 @@ The crush regression has R² {{drivers.r2}} on {{h5.n}} events. A positive coeff
 
 - **H5, the surprise:** {{h5.est4}} per sd (interval {{h5.ci}}, p {{h5.p}}, Holm {{h5.p_holm}}): a bigger surprise
   goes with a slightly smaller crush. The statistic rejects {{h5.g1}} of the time under the null, so the p is weaker
-  than it looks, and Holm does not reject. The effect does not survive other surprise measures: with the surprise
+  than it looks. Holm rejects it, at {{h5.p_holm}}: that is H2's Holm p, because Holm's adjusted p-values never fall
+  down the ordered list. The rejection does not rest on H2's season floor: with H2's p taken from its
+  {{h2.cut_g}}-season cut ({{h2.cut_p}}), H5's Holm p is {{h5.p_holm_h2cut}}. By section 3.6 a rejection by a liberal
+  statistic is not trusted. The verdict is also
+  fragile: before Berkshire Hathaway's two re-timed events entered the sample (2026-11-17), the Holm p was 0.051. The
+  effect does not survive other surprise measures: with the surprise
   scaled by its own history it is {{surprise.sue}} (q {{surprise.sue_q}}), with analyst dispersion {{surprise.disp}}
   (q {{surprise.disp_q}}), and with company fixed effects {{surprise.firmfe}} (q {{surprise.firmfe_q}}).
 - **H6, the prior volatility level:** {{h6.est4}} per sd (interval {{h6.ci}}, p {{h6.p}}): no measurable effect.
@@ -458,14 +473,15 @@ measured numbers describe about the past, and what they cannot say.
 ## 7. Caveats, in one place
 
 1. **Provisional timing labels:** {{lookups.done}} of {{lookups.required}} required look-ups are done
-   ({{lookups.press_release}} by press release, {{lookups.edgar}} by SEC EDGAR filing time since 2026-11-09);
+   ({{lookups.press_release}} by press release, {{lookups.edgar}} by SEC EDGAR filing time since 2026-11-09;
+   EDGAR also labels {{lookups.extra}} events beyond the required ones since 2026-11-17);
    {{lookups.left}} are open: {{lookups.left_labelled}} keep the calendar's label and {{lookups.left_unlabelled}}
    have none. The {{lookups.audit}}-event audit of the EDGAR labels and the
    press-release checks of the {{lookups.gap_questioned}} EDGAR labels that the price gap questions have not been done.
 2. **H2 depends on the season count:** rejected with {{h2.floor_g}} seasons (Holm {{h2.p_holm}}), not rejected with the
    {{h2.cut_g}} that ADR 0005 expected (Holm {{h2.cut_p_holm}}).
 3. **H5–H7's statistics are liberal:** G1 sizes {{h5.g1}}, {{h6.g1}} and {{h7.g1}} at 5% (one-way versions
-   {{h5.g1_oneway}}, {{h6.g1_oneway}}, {{h7.g1_oneway}}). Every exploratory regression p and q comes from the same
+   {{h5.g1_oneway}}, {{h6.g1_oneway}}, {{h7.g1_oneway}}). So H5's Holm rejection ({{h5.p_holm}}) is not trusted. Every exploratory regression p and q comes from the same
    two-way t.
 4. **Withheld robustness rows:** {{withheld.n}} rows keep their estimates but not their p-values, because G1 found
    them oversized.
@@ -475,7 +491,8 @@ measured numbers describe about the past, and what they cannot say.
    linearly unrelated to the change in ln VIX, which is close to automatic because β is fitted on that change. H1's
    two-way statistic is robust to same-date dependence; the Kolari-Pynnönen rows, which model it, are withheld for
    the crush. Adding a second market factor would change every market-adjusted number and is an owner decision.
-6. **Which Holm family binds** (H1–H7 declared, or H1–H4 after the gate) is an owner decision (section 4.1).
+6. **The binding Holm family is H1–H7**, the declared one (owner decision, 2026-11-17; section 4.1). H1–H4 after the
+   gate stays a descriptive sensitivity.
 7. **Survivorship:** the universe is today's largest companies.
 8. **The Cboe check is mixed (section 3.2).** Against Cboe's 30-day indices for five names, the correlation of daily
    changes is below the pre-registered 0.8 for GOOGL ({{vx.googl.r}}), IBM ({{vx.ibm.r}}) and the pooled sample
@@ -484,9 +501,13 @@ measured numbers describe about the past, and what they cannot say.
    ({{vx.ii_below_names}}) are below {{vx.ii_band_lo}}. The correlation falsifier ({{vx.i_fails}} of 5) and the
    crush-ratio falsifier are not met. The level spread passes its pre-registered rule, which has little power (GS's
    yearly medians step by about {{vx.gs.step}} vol points). The day-0 crush ratio is {{vx.iv.ratio}} (pass,
-   provisional like the timing labels: {{vx.iv.not_checked}} of its events keep the calendar's label). Exploratory
-   checks are consistent with the low daily slopes being largely a clock effect, but do not prove it. Whether this
-   meets ADR 0003's "How we'll know it's wrong" is an owner question (section 9).
+   provisional like the timing labels: {{vx.iv.not_checked}} of its events keep the calendar's label). The first
+   reading of the low daily slopes was a clock effect; changes that span no weekend refute it (section 3.2). Then
+   pre-registered checks of the forward, the filters and the expiry roll on GOOGL, GS and IBM
+   (`docs/validation/vx-iv-checks/results.md`) found no fault, and the strike rule could not decide (UNCLEAR on all
+   three). They also found, as an exploratory result, that from 2026 the vendor's option snapshots are taken during
+   the day, before the close, on all five names. That lowers the 2026 slopes on four of the five names, but the
+   2020–2025 slopes are also below 1, so it is not the whole gap. The next step is an owner question (section 9).
 9. **Not built:** the coarse-sample scale correction, the SPY placebo and the drop-the-largest-companies check of
    ADR 0004.
 10. **No 3D hero render:** Blender was unreachable on 2026-10-29, so the Blender script
@@ -523,27 +544,26 @@ uv run --frozen --group report --with playwright==1.64.1 python tools/build_repo
 3. **What to cut.** Candidates: the robustness-row list (section 3.6), the exploratory driver variants (section 4.5),
    the older-sample numbers (section 4.2), the ρ̄ paragraph (section 7, item 5). Should any of them move to an
    appendix or out?
-4. **The Holm family (milestone 4, decisions table row 24).** Keep the declared family H1–H7 as binding (H2 rejected
-   with {{h2.floor_g}} seasons, not with {{h2.cut_g}}), or adopt the post-gate family H1–H4 (H2 rejected either way)?
+4. **The Holm family (milestone 4, decisions table row 24).** *Answered 2026-11-17: the declared family H1–H7 binds.*
+   H1–H4 after the gate stays a descriptive sensitivity.
 5. **Trading implications.** Keep section 6 as observations with their limits, shorten it to the "cannot say" list,
    or drop it? Should it point to `vol-strategy-backtester` for a cost-aware test?
 6. **Timing labels.** Publish with {{lookups.left}} of {{lookups.required}} required look-ups open and the
-   {{lookups.audit}}-event audit of the EDGAR labels not run, or wait for both? Two of the open choices are yours:
-   - **BRK.B.** Berkshire releases on Saturdays and files its 8-K days later, so most of the
-     {{lookups.open.no_8k}} open look-ups without an 8-K are BRK.B's. Look up its press releases by hand, or leave
-     them open?
-   - **EDGAR in `coarse`.** EDGAR now labels only the look-ups ADR 0002 requires. Should it also label the `coarse`
-     events that the rule leaves `not_checked`? That would remove the gap-triggered selection of that sample, and is
-     an ADR change.
+   {{lookups.audit}}-event audit of the EDGAR labels not run, or wait for both? *Answered 2026-11-17:* Berkshire
+   Hathaway's events are now timed from its own dated releases (a Saturday release puts day 0 on the next session),
+   and EDGAR now labels the `coarse` events too (ADR 0002, dated note). A label that contradicts the calendar waits
+   for a press-release check before day 0 moves.
 7. **The common date component.** Add an equal-weighted single-stock IV factor next to VIX in the market model? It would
    change every market-adjusted number.
 8. **Exports.** Are a PDF and a DOCX the right formats, and is the app's dark theme right for the printed figures?
 9. **The Cboe check (section 3.2).** ADR 0003 reads a correlation of daily changes below 0.8, a slope outside
    {{vx.ii_band}} or a day-0 crush ratio outside {{vx.ii_band}}, "for most of the five names", as a sign that the IV
-   calculation is wrong. The pre-registration wrongly said the ADR set no tolerance for the slope. The slope is below
-   {{vx.ii_band_lo}} for {{vx.ii_below}} of the 5 names ({{vx.ii_below_names}}), which is most: that falsifier is met.
-   The correlation is below 0.8 for {{vx.i_fails}} of the 5 and the crush ratio is {{vx.iv.ratio}} (pooled,
-   provisional): neither is met. Does the ADR's response (re-examine the forward, the filters and the interpolation)
-   apply, or do the exploratory checks, which are consistent with the low daily slopes being largely a clock effect
-   (slopes of {{vx.step10.pooled.slope}} at 10 sessions and {{vx.step21.pooled.slope}} at 21, except IBM), justify
-   leaving the IV calculation as it is?
+   calculation is wrong. The slope is below {{vx.ii_band_lo}} for {{vx.ii_below}} of the 5 names
+   ({{vx.ii_below_names}}): that falsifier is met. *Answered 2026-11-17: check three names first.* The pre-registered
+   checks of the forward, the filters and the expiry roll on GOOGL, GS and IBM found no fault; the strike rule could
+   not decide (UNCLEAR on all three), so by the pre-registration nothing is widened
+   (`docs/validation/vx-iv-checks/results.md`). They also found, as an exploratory result, that from 2026 the vendor's
+   option snapshots are taken during the day, before the close, on all five names; {{sample.n_2026}} of the
+   {{sample.n_events}} events in the primary sample have day 0 in 2026. The open choice: accept the UNCLEAR result;
+   run the same frozen rules on sessions after 2026-10-26 (all of them in the 2026 snapshot regime); or first check
+   the 2026 snapshot timing and its effect on the event measures, with its own pre-registration.

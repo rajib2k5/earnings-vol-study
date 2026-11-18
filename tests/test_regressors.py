@@ -202,4 +202,5 @@ def test_committed_regressors_hold_their_rules(committed):
     assert set(em["vix_regime"].dropna()) == {"low", "mid", "high"}
     assert em.loc[em["sample"] == "none", "vix_regime"].isna().all()
     prim = em[(em["sample"] == "daily") & em["eligible_crush"]]
-    assert len(prim) == 347 and prim["abs_surprise_scaled_w"].notna().all() and prim["vix_regime"].notna().all()
+    # 349 since 2026-11-17 (two BRK.B events timed from Berkshire's releases).
+    assert len(prim) == 349 and prim["abs_surprise_scaled_w"].notna().all() and prim["vix_regime"].notna().all()

@@ -8,22 +8,24 @@
 > costs. Past patterns in implied volatility do not predict future returns.
 >
 > **Every result here is provisional.** The session that each announcement reached the option market ("day 0")
-> depends on a before-open or after-close label. ADR 0002 requires 473 of these labels to be checked
-> against a document. 431 are checked: 20 against the company's press release and,
+> depends on a before-open or after-close label. ADR 0002 requires 472 of these labels to be checked
+> against a document. 453 are checked: 42 against the company's press release and,
 > since 2026-11-09, 411 against the time SEC EDGAR accepted the company's earnings filing (Form 8-K,
-> Item 2.02). The other 42 are open: 26 have no such filing near the date,
+> Item 2.02). The other 19 are open: 3 have no such filing near the date,
 > 11 fall next to a day EDGAR was closed, 4 have the filing on
-> another day and 1 has a filing against the calendar's label. Of these 42,
-> 19 keep the earnings calendar's label and 23 have no label at all. The audit that the ADR asks for (50 EDGAR labels checked against press releases) has
+> another day and 1 has a filing against the calendar's label. Since 2026-11-17 EDGAR also
+> labels the `coarse` events that the rule does not require, so 1,255 labels in all rest on a
+> document (802 beyond the required ones). Of the 19 open look-ups,
+> 13 keep the earnings calendar's label and 6 have no label at all. The audit that the ADR asks for (50 EDGAR labels checked against press releases) has
 > not run, and 37 EDGAR labels that the stock's price gap questions wait for a press-release
 > check. So a few events may still sit on the wrong day 0.
 
 Data: DoltHub `post-no-preference/earnings` at `fjrb6h5le9h1qiif2j4pl6cpaas7pnee` and `post-no-preference/options` at
-`msfqpodh24viv7prdqdan8517rkjp861`; parameters hash `d23d18972bf0c8d4`; app data contract 0.5.0, exported from
-commit `8c4b36e`. Every measured number in this report is filled in by `tools/report_numbers.py` from
+`msfqpodh24viv7prdqdan8517rkjp861`; parameters hash `d51877f495f7ae67`; app data contract 0.5.0, exported from
+commit `f5904a9`. Every measured number in this report is filled in by `tools/report_numbers.py` from
 `data/derived/results.parquet`, `data/derived/vx_crosscheck.json`, the app's JSON files and the kept ρ̄ output
 (section 8); the look-up counts that need a local Yahoo flag (the
-473 required look-ups, why 42 are open, and the 37
+472 required look-ups, why 19 are open, and the 37
 gap-questioned EDGAR labels) are pinned in that script. Design parameters quoted from the ADRs (window
 lengths, minimum counts) are written by hand.
 
@@ -32,21 +34,23 @@ lengths, minimum counts) are written by hand.
 ## Summary
 
 - **The crush is large and almost universal.** From the last close before the news (day −1) to the first close after
-  it (day 0), the 30-day implied volatility (IV) falls by 0.199 log points on average, net of the market's
-  volatility: about 18.1%. The market-adjusted change is negative in 99.1% of the 347 events. The test that allows
-  for events on the same date and for one company's events being alike gives p = 5.8e−23 (Holm 4.1e−22).
+  it (day 0), the 30-day implied volatility (IV) falls by 0.198 log points on average, net of the market's
+  volatility: about 18.0%. The market-adjusted change is negative in 98.9% of the 349 events. The test that allows
+  for events on the same date and for one company's events being alike gives p = 6.9e−23 (Holm 4.8e−22).
 - **The crush is the event leaving the 30-day horizon.** Ordinary volatility (σ_d, the volatility outside the event
-  day) does not change measurably (+0.003 log points, p = 0.782), and IV is back at its baseline ten sessions
-  later (+0.008, p = 0.743).
-- **IV is high before the news.** At day −1 the 30-day IV sits +0.232 log points above its own quiet baseline. The
+  day) does not change measurably (+0.003 log points, p = 0.800), and IV is back at its baseline ten sessions
+  later (+0.009, p = 0.718).
+- **IV is high before the news.** At day −1 the 30-day IV sits +0.231 log points above its own quiet baseline. The
   direction is not in doubt. Whether it passes the multiple-testing correction depends on how many earnings seasons the
   sample is cut into (section 4.3).
 - **The options priced the earnings-day move about right on average.** The realised squared move is 0.77 times the
-  implied variance (95% interval [0.46, 1.07], so 1 is inside). 40.1% of the moves were larger than the
+  implied variance (95% interval [0.47, 1.07], so 1 is inside). 40.4% of the moves were larger than the
   expected move, against the 42.5% that fair pricing of a normal move gives.
 - **Neither the earnings surprise nor the prior volatility level explains the size of the crush in a way that
-  survives the checks.** The statistics for these driver tests are liberal at this design (they reject 9.55%,
-  8.10% and 16.15% of the time under a true null at 5%), and none is rejected.
+  survives the checks.** The statistics for these driver tests are liberal at this design (they reject 8.45%,
+  6.75% and 17.95% of the time under a true null at 5%). Holm rejects the surprise test (H5) only just, at
+  0.0469, and a rejection by a liberal statistic is not trusted (section 3.6). Its sign is a slightly smaller
+  crush, and it does not survive other surprise measures. H6 and H7 are not rejected.
 
 ---
 
@@ -79,31 +83,32 @@ bias: companies that shrank or left the index since 2020 are missing.
 
 **The daily sample.** DoltHub's option snapshots are daily only from September 2024 (weekly, then Monday, Wednesday
 and Friday, before that). The baseline needs 60 sessions before day 0, so the primary sample's day-0 window runs from
-2024-12-05 to 2026-10-26; its 347 events have day 0 from 2024-12-10 to
+2024-12-05 to 2026-10-26; its 349 events have day 0 from 2024-12-10 to
 2026-10-22. The older coarse snapshots form a lower-resolution robustness sample.
 
 | Step | Events left | Removed | Why |
 |---|---:|---:|---|
 | Calendar events of the 50 companies | 1,353 | – | |
-| One row per release, and day 0 can be placed | 1,326 | 27 | duplicate rows, timing not placeable |
-| Day 0 in the daily range | 366 | 960 | outside 2024-12-05 to 2026-10-26 |
-| Option snapshots on day −1 and day 0 | 356 | 10 | a missing snapshot |
-| A 30-day IV on day −1 and day 0 | 353 | 3 | no 30-day IV |
-| At least 20 clean baseline sessions and 15 changes | **347** | 6 | short baseline |
+| One row per release, and day 0 can be placed | 1,339 | 14 | duplicate rows, timing not placeable |
+| Day 0 in the daily range | 368 | 971 | outside 2024-12-05 to 2026-10-26 |
+| Option snapshots on day −1 and day 0 | 358 | 10 | a missing snapshot |
+| A 30-day IV on day −1 and day 0 | 355 | 3 | no 30-day IV |
+| At least 20 clean baseline sessions and 15 changes | **349** | 6 | short baseline |
 
 The 1,353 calendar events split into 368 daily-era, 49 mixed-era,
 868 coarse-era and 68 outside every sample's date range. Each hypothesis then has its own eligibility
-rules, so its event count (the `n` in section 4) differs a little from 347.
+rules, so its event count (the `n` in section 4) differs a little from 349.
 
 ![The sample funnel, as the app draws it from sample_funnel.json](../images/fig-funnel.png)
 
-**Timing labels.** 431 labels rest on a document, 20 on a press release and
-411 on an SEC EDGAR filing time (421 confirmed, 2 corrected,
-1 with a corrected date and 7 inferred). 922 events stay
-`not_checked`: 892 keep the calendar's label and 30 have none.
-42 of the 922 are required look-ups that are still open, the others are `coarse` events
-that the rule does not require to be looked up, or events outside every sample. EDGAR's acceptance time is a UTC instant: read that way
-it agrees with each of the 20 press releases looked up on date and label; read as New York time
+**Timing labels.** 1,255 labels rest on a document, 46 on a press release
+and 1,209 on an SEC EDGAR filing time (1,232 confirmed, 2 corrected,
+14 with a corrected date and 7 inferred). 98 events stay
+`not_checked`: 84 keep the calendar's label and 14 have none.
+19 of the 98 are required look-ups that are still open; the others are `coarse` events
+that the rule does not require and EDGAR could not label, or events outside every sample. Since 2026-11-17 EDGAR labels
+the `coarse` sample too (ADR 0002, dated note), and Berkshire Hathaway's events are timed from its own dated releases. EDGAR's acceptance time is a UTC instant: read that way
+it agrees with each of the 20 press releases of the first check on date and label; read as New York time
 it would put each before-open one inside the trading session (docs/validation/edgar-ledger.md §2). A wrong label puts the crush on the wrong day, which makes a
 crush look smaller and a run-up look longer.
 
@@ -191,23 +196,27 @@ year's median spread from that all-days median; bar iii passes when it is at mos
   the pooled slope is 0.80 and the reciprocal of the reverse slope 1.04 [1.00, 1.07], a
   narrower pair, as the correlation is higher. For AAPL and AMZN alone that reciprocal is just below 1 (its interval
   holds 1).
-- **Why the daily slopes are low (exploratory, not pre-registered).** Cboe's index counts calendar days and ours counts
-  sessions, so a change across a weekend moves the two differently. Four checks, each exploratory and not
-  pre-registered, are consistent with a clock effect. (1) 1,515 of the 3,697 one-session
+- **Why the daily slopes are low (exploratory, not pre-registered).** The first reading was a clock effect: Cboe's index
+  counts calendar days and ours counts sessions, so a change across a weekend moves the two differently. Check (2)
+  below refutes it as the main cause. Four checks, each exploratory and not pre-registered: (1) 1,515 of the 3,697 one-session
   changes (41%) end on a Monday; before 2024-09-03, when our snapshots were taken on
   Mondays, Wednesdays and Fridays only, 1,005 of the 1,111 changes end on a Monday. On Monday changes the mean change in ln
   VX is +0.0173 and in ours −0.0053 (other days −0.0037 and +0.0016).
-  (2) On Tuesday-to-Friday changes alone, r is 0.826 [0.749, 0.879] pooled (2,182
-  changes; GOOGL 0.814, IBM 0.765). (3) Without the 43 changes that end on a day 0,
+  (2) On Tuesday-to-Friday changes alone, which span no weekend, r is 0.826 [0.749, 0.879] pooled
+  (2,182 changes; GOOGL 0.814, IBM 0.765), but the slope stays low:
+  0.745 pooled (GOOGL 0.742, GS 0.790, IBM 0.649), no
+  closer to 1 than on all changes (0.77). A clock effect cannot lower the slope of changes that span no
+  weekend. (3) Without the 43 changes that end on a day 0,
   the pooled r is 0.747 [0.668, 0.811] (AMZN 0.768, IBM 0.558), so the
   correlation leans on the largest days. (4) Over non-overlapping changes of k sessions in the daily-snapshot era (from
   2024-09-03), the pooled slope and 1 / reverse slope are 0.742 and
   1.168 at k = 1 (2,586 changes), 0.939 and
   1.011 at k = 10 (263) and 0.954 and
   0.990 at k = 21 (125); IBM stays below 1 (0.854 and
-  0.978 at k = 10, 0.895 and 0.941 at k = 21). So the low daily
-  slopes are consistent with being largely a clock effect that shrinks at longer horizons, except for IBM. That is a
-  reading of exploratory numbers, with no intervals, and not proof.
+  0.978 at k = 10, 0.895 and 0.941 at k = 21). So the slopes rise
+  with the horizon. That fits day-to-day noise in our series: if our change is the true change plus independent noise,
+  the slope falls to about the true change's share of the variance, and noise weighs less in a change over several
+  sessions. That is a reading of exploratory numbers, with no intervals for the k-session slopes, and not proof.
 - **The vendor's `iv_current` (third check, changes no verdict).** In DoltHub's `volatility_history` table,
   `iv_current` has no documented maturity. Our blind at-the-money IV at 10, 15, 21, 30, 42, 63 sessions (interpolated between the
   listed expiries, or extrapolated by up to 10 sessions beyond them) comes closest to it at
@@ -230,9 +239,9 @@ year's median spread from that all-days median; bar iii passes when it is at mos
 For two expiries that both span the event, w_j = σ_d² τ_j + E, where τ_j is the time to expiry in sessions, σ_d² the
 ordinary variance per session and E the extra variance of the event day. Two expiries give both unknowns: σ_d² is the
 forward variance between them, and E = w₁ − σ_d² τ₁. The **implied move** is √E, the standard deviation of the
-earnings-day move that the options price. E is read at day −1. Its median over the 343 events with E > 0 is
-a move of 6.5% (10% of events below 3.3%, 10% above 11.1%). 4
-of the 347 primary events have E ≤ 0 and no implied move.
+earnings-day move that the options price. E is read at day −1. Its median over the 345 events with E > 0 is
+a move of 6.4% (10% of events below 3.3%, 10% above 11.1%). 4
+of the 349 primary events have E ≤ 0 and no implied move.
 
 ![The implied move √E at day −1 (iv_measures.json)](../images/fig-implied-move.png)
 
@@ -281,13 +290,13 @@ statistic passes when its rate is at most 6.30%, the top of the exact 99% binomi
 
 | | H1 | H2 | H3 | H4 | H5 | H6 | H7 |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Primary rejects under the null (target 5%) | 4.60% | 0.40% | 0.50% | 4.60% | 9.55% | 8.10% | 16.15% |
+| Primary rejects under the null (target 5%) | 4.70% | 0.35% | 0.40% | 4.00% | 8.45% | 6.75% | 17.95% |
 | Verdict | pass | pass | pass | pass | **fail** | **fail** | **fail** |
 
 H1–H4 pass (H2 and H3 are conservative). **H5–H7 fail: their statistics are liberal at this design**, so a rejection
 by them would not be trusted. They stay in the declared Holm family with their real p-values (section 4.1). A
 robustness row that G1 finds oversized keeps its estimate and loses its p-value: 14 rows are withheld this
-way (H1: `bmp_t`, `cluster_date_t`, `gen_sign_z`, `kp_ow_t`, `kpp_t`, `patell_z`, `rank_t`; H4: `gen_sign_z`, `rank_t`; H5: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H6: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H7: `cluster_date_wald`).
+way (H1: `bmp_t`, `cluster_date_t`, `gen_sign_z`, `kp_ow_t`, `kpp_t`, `patell_z`, `rank_t`; H4: `bmp_t`, `rank_t`; H5: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H6: `cluster_date_t`, `twoway_date_t` (mean-adjusted twin); H7: `cluster_date_wald`).
 
 ## 4. Results
 
@@ -298,42 +307,43 @@ in log points; H5 and H6 are log points of crush per standard deviation of the r
 
 | | Question | n | Estimate | 95% interval | p | G1 size | Holm p (H1–H7, binding) |
 |---|---|---:|---:|---|---:|---:|---:|
-| H1 | Does the 30-day IV fall from day −1 to day 0? | 347 | −0.199 | [−0.222, −0.177] | 5.8e−23 | 4.60% | **4.1e−22** |
-| H2 | Is IV abnormally high at day −1? | 356 | +0.232 | – | 0.0078 | 0.40% | **0.0469** (G = 7: 0.0781) |
-| H3 | Is IV back at its baseline at day +10? | 329 | +0.008 | [−0.049, 0.065] | 0.743 | 0.50% | 1 |
-| H4 | Does ordinary volatility change? | 262 | +0.003 | [−0.019, 0.026] | 0.782 | 4.60% | 1 |
-| H5 | Does a bigger surprise change the crush? | 347 | +0.013 | [0.003, 0.023] | 0.0102 | **9.55%** | 0.0511 |
-| H6 | Does the prior volatility level change it? | 347 | −0.001 | [−0.023, 0.020] | 0.895 | **8.10%** | 1 |
-| H7 | Is the implied variance unbiased (a = 0, b = 1)? | 336 | b = 0.77 | [0.46, 1.07] (b) | 0.275 | **16.15%** | 1 |
+| H1 | Does the 30-day IV fall from day −1 to day 0? | 349 | −0.198 | [−0.221, −0.176] | 6.9e−23 | 4.70% | **4.8e−22** |
+| H2 | Is IV abnormally high at day −1? | 358 | +0.231 | – | 0.0078 | 0.35% | **0.0469** (G = 7: 0.0781) |
+| H3 | Is IV back at its baseline at day +10? | 331 | +0.009 | [−0.048, 0.066] | 0.718 | 0.40% | 1 |
+| H4 | Does ordinary volatility change? | 263 | +0.003 | [−0.020, 0.025] | 0.800 | 4.00% | 1 |
+| H5 | Does a bigger surprise change the crush? | 349 | +0.013 | [0.004, 0.023] | 0.0079 | **8.45%** | 0.0469 |
+| H6 | Does the prior volatility level change it? | 349 | −0.002 | [−0.024, 0.019] | 0.828 | **6.75%** | 1 |
+| H7 | Is the implied variance unbiased (a = 0, b = 1)? | 338 | b = 0.77 | [0.47, 1.07] (b) | 0.274 | **17.95%** | 1 |
 
-**Rejected at 5% after Holm: H1 and H2.** H2's verdict depends on the season count (section 4.3). H3–H7 are not
-rejected. Bold G1 sizes failed the gate.
+**Rejected at 5% after Holm: H1, H2, H5.** H2's verdict depends on the season count (section 4.3). H5's Holm p
+is 0.0469, just below 5%, from a statistic that G1 found liberal, so its rejection is not trusted (section 4.5).
+H3, H4, H6 and H7 are not rejected. Bold G1 sizes failed the gate.
 
-**Which Holm family binds is an open owner decision.** The binding family is the one declared at milestone 0, H1–H7.
+**The binding Holm family is H1–H7**, the one declared at milestone 0 (owner decision, 2026-11-17).
 A descriptive sensitivity drops the three hypotheses whose size check failed and corrects over H1–H4 only: H1
-2.3e−22, H2 0.0234, and H2 with 7 seasons 0.0469, which would be rejected.
+2.8e−22, H2 0.0234, and H2 with 7 seasons 0.0469, which would be rejected.
 Dropping hypotheses after seeing their size check can only lower the others' Holm p, so it is not used as binding
 here (milestone 4, decisions table row 24).
 
 ### 4.2 H1: the crush
 
-The 30-day IV falls by 0.1994 log points from day −1 to day 0 (se 0.0112, t = −17.73 on 49 df,
-172 day-0 dates and 50 companies). The mean-adjusted twin, with no VIX adjustment, is −0.201.
+The 30-day IV falls by 0.1985 log points from day −1 to day 0 (se 0.0112, t = −17.66 on 49 df,
+174 day-0 dates and 50 companies). The mean-adjusted twin, with no VIX adjustment, is −0.200.
 The median log change of the 30-day IV with no VIX adjustment (the mean-adjusted crush, which for one session is the
-plain change of ln IV) is −0.189; 10% of events are below −0.343 and 10% above
-−0.063.
+plain change of ln IV) is −0.188; 10% of events are below −0.342 and 10% above
+−0.062.
 
 ![The distribution of the crush (iv_measures.json)](../images/fig-crush-histogram.png)
 
 The crush is larger for after-close reporters (−0.230, n = 182) than for before-open ones
-(−0.165, n = 165); this split is exploratory. The front-expiry IV, which holds a larger share of event
-variance, falls by 0.299 (mean-adjusted, n = 264). The older samples agree in sign and size:
-−0.250 in the mixed era (n = 33) and −0.190 in the coarse era (n = 110,
+(−0.164, n = 167); this split is exploratory. The front-expiry IV, which holds a larger share of event
+variance, falls by 0.297 (mean-adjusted, n = 266). The older samples agree in sign and size:
+−0.250 in the mixed era (n = 33) and −0.189 in the coarse era (n = 112,
 where the crush can span two sessions), both exploratory.
 
 ### 4.3 H2: the run-up, and its season-count dependence
 
-At day −1 the abnormal 30-day IV is +0.2319 log points. The primary statistic is the randomisation p-value by
+At day −1 the abnormal 30-day IV is +0.2314 log points. The primary statistic is the randomisation p-value by
 season, because the 8 seasons are unbalanced. With 8 seasons and every season mean on the
 same side, the p-value sits on its floor 2/2^8 = 0.0078, and Holm's multiplier for the second-smallest
 p gives **0.0469**: rejected.
@@ -341,43 +351,48 @@ p gives **0.0469**: rejected.
 **This verdict is a property of the season count, not of the data's strength.** ADR 0005 expected the October 2026
 tail to be merged into July, which gives 7 seasons. Then the floor is 0.0156 and the Holm p is
 **0.0781: not rejected**. The direction is not in doubt: the two-way season × company t, a robustness row,
-is 13.43 (p 3.0e−6), and every season mean is positive (milestone 3 §6.2).
+is 13.57 (p 2.8e−6), and every season mean is positive (milestone 3 §6.2).
 
-The mean path shows where the run-up sits. The abnormal IV is already +0.239 [0.197, 0.280] at day −10 and
-+0.232 [0.191, 0.274] at day −1: the 30-day IV holds the event from day −21 on, and the last ten sessions add
+The mean path shows where the run-up sits. The abnormal IV is already +0.238 [0.197, 0.279] at day −10 and
++0.232 [0.191, 0.273] at day −1: the 30-day IV holds the event from day −21 on, and the last ten sessions add
 nothing on average. After-close reporters run higher at day −1 (+0.270) than before-open ones
-(+0.191).
+(+0.190).
 
 ![The mean abnormal path with its 95% band (event_paths.json, market-adjusted aggregate)](../images/fig-mean-path.png)
 
 ### 4.4 H3 and H4: what is left after the event
 
-At day +10 the abnormal IV is +0.0080 (interval [−0.049, 0.065], 7 seasons, 6 df). The path is
-+0.033 at day 0, +0.012 at day +1, +0.002 at day +5 and +0.007 at day +10. Under the calibrated
-design the test detects a persistence of 0.121 log points 80% of the time, so a smaller lasting effect could
+At day +10 the abnormal IV is +0.0089 (interval [−0.048, 0.066], 7 seasons, 6 df). The path is
++0.033 at day 0, +0.012 at day +1, +0.003 at day +5 and +0.008 at day +10. Under the calibrated
+design the test detects a persistence of 0.122 log points 80% of the time, so a smaller lasting effect could
 go undetected.
 
-Ordinary volatility changes by +0.0031 log points (interval [−0.019, 0.026], n = 262); the test has 80% power at
-0.036 log points. So the crush is the event variance leaving the 30-day horizon, not the market becoming calmer about the
+Ordinary volatility changes by +0.0028 log points (interval [−0.020, 0.025], n = 263); the test has 80% power at
+0.035 log points. So the crush is the event variance leaving the 30-day horizon, not the market becoming calmer about the
 stock.
 
 ![Abnormal log IV by company and event day (heatmap.json; mean-adjusted, descriptive)](../images/fig-heatmap.png)
 
 ### 4.5 H5–H7: the drivers, with liberal statistics
 
-The crush regression has R² 0.427 on 347 events. A positive coefficient means a smaller fall.
+The crush regression has R² 0.430 on 349 events. A positive coefficient means a smaller fall.
 
-- **H5, the surprise:** +0.0132 per sd (interval [0.003, 0.023], p 0.0102, Holm 0.0511): a bigger surprise
-  goes with a slightly smaller crush. The statistic rejects 9.55% of the time under the null, so the p is weaker
-  than it looks, and Holm does not reject. The effect does not survive other surprise measures: with the surprise
-  scaled by its own history it is +0.002 (q 0.803), with analyst dispersion +0.003
-  (q 0.798), and with company fixed effects +0.008 (q 0.587).
-- **H6, the prior volatility level:** −0.0014 per sd (interval [−0.023, 0.020], p 0.895): no measurable effect.
+- **H5, the surprise:** +0.0135 per sd (interval [0.004, 0.023], p 0.0079, Holm 0.0469): a bigger surprise
+  goes with a slightly smaller crush. The statistic rejects 8.45% of the time under the null, so the p is weaker
+  than it looks. Holm rejects it, at 0.0469: that is H2's Holm p, because Holm's adjusted p-values never fall
+  down the ordered list. The rejection does not rest on H2's season floor: with H2's p taken from its
+  7-season cut (0.0156), H5's Holm p is 0.0473. By section 3.6 a rejection by a liberal
+  statistic is not trusted. The verdict is also
+  fragile: before Berkshire Hathaway's two re-timed events entered the sample (2026-11-17), the Holm p was 0.051. The
+  effect does not survive other surprise measures: with the surprise
+  scaled by its own history it is +0.002 (q 0.831), with analyst dispersion +0.003
+  (q 0.812), and with company fixed effects +0.008 (q 0.534).
+- **H6, the prior volatility level:** −0.0023 per sd (interval [−0.024, 0.019], p 0.828): no measurable effect.
 - **The slope (exploratory):** a steeper term structure at day −1 goes with a larger crush, −0.032 per sd
-  (p 3.9e−5, q 0.0006). That is expected and partly mechanical: the slope proxies the event's share of the
+  (p 2.7e−5, q 0.0004). That is expected and partly mechanical: the slope proxies the event's share of the
   30-day variance. Its p and q come from the same two-way t that G1 found liberal for H5 and H6; G1 never sized the
   slope's own coefficient, so read it as an indication, not a test at 5%.
-- **Size (exploratory):** +0.013 per sd (q 0.177).
+- **Size (exploratory):** +0.013 per sd (q 0.148).
 
 Power, from G1's calibrated design: H5's test detects 0.026 log points per sd 80% of the time, H6's
 0.042. These powers belong to oversized tests.
@@ -391,23 +406,23 @@ day 0, on the same expiry both days.
 
 | Measure | Value |
 |---|---:|
-| Events (E, σ_d and r₀ all present) | 336 |
-| Events with E > 0, so with an expected move | 332 |
+| Events (E, σ_d and r₀ all present) | 338 |
+| Events with E > 0, so with an expected move | 334 |
 | Median expected \|move\| | 5.4% |
 | Median realised \|move\| (all 336 events) | 4.4% |
 | Median ratio realised / expected | 0.82 |
-| Share of moves beyond the expected \|move\| (fair: 42.5%) | 40.1% (p 0.319) |
+| Share of moves beyond the expected \|move\| (fair: 42.5%) | 40.4% (p 0.389) |
 | Mean r₀² over mean implied variance | 0.90 |
-| H7 regression r₀² = a + b(E + σ_d²/252): b | 0.767, interval [0.46, 1.07] |
-| H7 joint test a = 0, b = 1 | F(2, 49) = 1.33, p 0.275, Holm 1 |
-| The same with E read at day −2 (n = 331): b; joint p | 0.92; 0.822 |
+| H7 regression r₀² = a + b(E + σ_d²/252): b | 0.766, interval [0.47, 1.07] |
+| H7 joint test a = 0, b = 1 | F(2, 49) = 1.33, p 0.274, Holm 1 |
+| The same with E read at day −2 (n = 333): b; joint p | 0.92; 0.817 |
 
 The typical realised move is smaller than the expected one (median ratio 0.82), but the mean squared
 move is 0.90 of the mean implied variance, so large moves weigh heavily in the average. On variance the
 options are close to unbiased: b = 0.77 with 1 inside its interval, and the share of moves beyond the expected size
-(40.1%) is close to the fair 42.5%. With E read one session
+(40.4%) is close to the fair 42.5%. With E read one session
 earlier, b is 0.92: day −1 quotes are often wide on after-close announcement days, which may inflate E a little.
-The joint test's G1 size is 16.15%, so even a rejection would not have been trusted; the b and share rows come from
+The joint test's G1 size is 17.95%, so even a rejection would not have been trusted; the b and share rows come from
 the same kind of two-way statistic.
 
 ![Expected against realised move, one dot per event (implied_vs_realised.json)](../images/fig-implied-realised.png)
@@ -420,17 +435,17 @@ measured numbers describe about the past, and what they cannot say.
 **What the numbers describe.**
 
 1. **The IV fall was near-universal in direction in this sample.** In this sample the market-adjusted 30-day IV
-   fell from day −1 to day 0 in 99.1% of events, by 0.199 log points on average. But the fall is the
+   fell from day −1 to day 0 in 98.9% of events, by 0.198 log points on average. But the fall is the
    event variance leaving the horizon (H4: ordinary volatility unchanged), and the term structure showed that variance
    in advance: E is read from it at day −1. A falling
    IV is not by itself a gain for anyone short options: that position's result depends on the realised move against
    the implied one, plus costs.
-2. **On average the options priced the move about right.** b = 0.77 [0.46, 1.07], 40.1% of moves beyond the
+2. **On average the options priced the move about right.** b = 0.77 [0.47, 1.07], 40.4% of moves beyond the
    expected size against 42.5% for fair pricing. The data show no reliable average over- or
    under-pricing of the earnings-day move in this sample. The typical move was smaller than expected
    (median ratio 0.82), while the mean squared move was 0.90 of the mean implied variance.
 3. **The run-up is in place ten sessions early.** The 30-day IV already holds the event from 21 sessions before
-   day 0; the abnormal level at day −10 (+0.239) and at day −1 (+0.232) are about the same on average.
+   day 0; the abnormal level at day −10 (+0.238) and at day −1 (+0.232) are about the same on average.
 4. **A steeper term structure went with a larger crush** (−0.032 per sd). This is exploratory, partly
    mechanical, and from a statistic that is liberal at this design.
 5. **The surprise does not reliably size the crush**, and the surprise is unknown before the event anyway.
@@ -444,27 +459,28 @@ measured numbers describe about the past, and what they cannot say.
   moves on the way.
 - **A narrow, survivor sample.** 50 of today's largest S&P 500 companies, day 0 from
   2024-12-10 to 2026-10-22. Smaller, less liquid names and other periods may behave differently.
-- **Provisional timing labels.** 42 of 473 required look-ups are open, and the
-  50-event audit of the EDGAR labels has not run. The 13 events of the daily sample
-  that still have the calendar's label fall 8 / 5 /
+- **Provisional timing labels.** 19 of 472 required look-ups are open, and the
+  50-event audit of the EDGAR labels has not run. The 6 events of the daily sample
+  that still have the calendar's label fall 3 / 3 /
   0 across the terciles of move size, smallest first, so the unresolved timing sits in the
   smaller-move events.
-- **Liberal driver statistics.** H5–H7's tests reject 9.55%, 8.10% and 16.15% of the time under a true
+- **Liberal driver statistics.** H5–H7's tests reject 8.45%, 6.75% and 17.95% of the time under a true
   null at 5%.
 - **The averages hide the spread.** The heaviest-tailed events drive the squared-move regression, and a single event
   can move far more than its options priced (the scatter in section 5).
 
 ## 7. Caveats, in one place
 
-1. **Provisional timing labels:** 431 of 473 required look-ups are done
-   (20 by press release, 411 by SEC EDGAR filing time since 2026-11-09);
-   42 are open: 19 keep the calendar's label and 23
+1. **Provisional timing labels:** 453 of 472 required look-ups are done
+   (42 by press release, 411 by SEC EDGAR filing time since 2026-11-09;
+   EDGAR also labels 802 events beyond the required ones since 2026-11-17);
+   19 are open: 13 keep the calendar's label and 6
    have none. The 50-event audit of the EDGAR labels and the
    press-release checks of the 37 EDGAR labels that the price gap questions have not been done.
 2. **H2 depends on the season count:** rejected with 8 seasons (Holm 0.0469), not rejected with the
    7 that ADR 0005 expected (Holm 0.0781).
-3. **H5–H7's statistics are liberal:** G1 sizes 9.55%, 8.10% and 16.15% at 5% (one-way versions
-   18.45%, 20.10%, 17.00%). Every exploratory regression p and q comes from the same
+3. **H5–H7's statistics are liberal:** G1 sizes 8.45%, 6.75% and 17.95% at 5% (one-way versions
+   17.85%, 21.70%, 18.85%). So H5's Holm rejection (0.0469) is not trusted. Every exploratory regression p and q comes from the same
    two-way t.
 4. **Withheld robustness rows:** 14 rows keep their estimates but not their p-values, because G1 found
    them oversized.
@@ -474,7 +490,8 @@ measured numbers describe about the past, and what they cannot say.
    linearly unrelated to the change in ln VIX, which is close to automatic because β is fitted on that change. H1's
    two-way statistic is robust to same-date dependence; the Kolari-Pynnönen rows, which model it, are withheld for
    the crush. Adding a second market factor would change every market-adjusted number and is an owner decision.
-6. **Which Holm family binds** (H1–H7 declared, or H1–H4 after the gate) is an owner decision (section 4.1).
+6. **The binding Holm family is H1–H7**, the declared one (owner decision, 2026-11-17; section 4.1). H1–H4 after the
+   gate stays a descriptive sensitivity.
 7. **Survivorship:** the universe is today's largest companies.
 8. **The Cboe check is mixed (section 3.2).** Against Cboe's 30-day indices for five names, the correlation of daily
    changes is below the pre-registered 0.8 for GOOGL (0.778), IBM (0.668) and the pooled sample
@@ -483,9 +500,13 @@ measured numbers describe about the past, and what they cannot say.
    (GOOGL, GS and IBM) are below 0.8. The correlation falsifier (2 of 5) and the
    crush-ratio falsifier are not met. The level spread passes its pre-registered rule, which has little power (GS's
    yearly medians step by about 2.1 vol points). The day-0 crush ratio is 0.92 (pass,
-   provisional like the timing labels: 2 of its events keep the calendar's label). Exploratory
-   checks are consistent with the low daily slopes being largely a clock effect, but do not prove it. Whether this
-   meets ADR 0003's "How we'll know it's wrong" is an owner question (section 9).
+   provisional like the timing labels: 2 of its events keep the calendar's label). The first
+   reading of the low daily slopes was a clock effect; changes that span no weekend refute it (section 3.2). Then
+   pre-registered checks of the forward, the filters and the expiry roll on GOOGL, GS and IBM
+   (`docs/validation/vx-iv-checks/results.md`) found no fault, and the strike rule could not decide (UNCLEAR on all
+   three). They also found, as an exploratory result, that from 2026 the vendor's option snapshots are taken during
+   the day, before the close, on all five names. That lowers the 2026 slopes on four of the five names, but the
+   2020–2025 slopes are also below 1, so it is not the whole gap. The next step is an owner question (section 9).
 9. **Not built:** the coarse-sample scale correction, the SPY placebo and the drop-the-largest-companies check of
    ADR 0004.
 10. **No 3D hero render:** Blender was unreachable on 2026-10-29, so the Blender script
@@ -499,7 +520,7 @@ The report is written in `docs/report/templates/earnings-vol-report.md`. `tools/
 placeholder in it (a key in double braces) from `data/derived/results.parquet`, the Cboe cross-check's aggregates
 `data/derived/vx_crosscheck.json` (written by `tools/vx_crosscheck.py`), the app's JSON files and the kept output
 `research/prototypes/rhobar_crush.out.txt`, and writes this file. A few counts are pinned instead of read: the
-473 required look-ups, why 42 of them are open and the 37
+472 required look-ups, why 19 of them are open and the 37
 gap-questioned EDGAR labels, which need a Yahoo flag that stays local (`--check` compares them with the local stage
 report when one exists). The same script fills the results blocks of the README and the PR/FAQ.
 
@@ -522,27 +543,26 @@ uv run --frozen --group report --with playwright==1.64.1 python tools/build_repo
 3. **What to cut.** Candidates: the robustness-row list (section 3.6), the exploratory driver variants (section 4.5),
    the older-sample numbers (section 4.2), the ρ̄ paragraph (section 7, item 5). Should any of them move to an
    appendix or out?
-4. **The Holm family (milestone 4, decisions table row 24).** Keep the declared family H1–H7 as binding (H2 rejected
-   with 8 seasons, not with 7), or adopt the post-gate family H1–H4 (H2 rejected either way)?
+4. **The Holm family (milestone 4, decisions table row 24).** *Answered 2026-11-17: the declared family H1–H7 binds.*
+   H1–H4 after the gate stays a descriptive sensitivity.
 5. **Trading implications.** Keep section 6 as observations with their limits, shorten it to the "cannot say" list,
    or drop it? Should it point to `vol-strategy-backtester` for a cost-aware test?
-6. **Timing labels.** Publish with 42 of 473 required look-ups open and the
-   50-event audit of the EDGAR labels not run, or wait for both? Two of the open choices are yours:
-   - **BRK.B.** Berkshire releases on Saturdays and files its 8-K days later, so most of the
-     26 open look-ups without an 8-K are BRK.B's. Look up its press releases by hand, or leave
-     them open?
-   - **EDGAR in `coarse`.** EDGAR now labels only the look-ups ADR 0002 requires. Should it also label the `coarse`
-     events that the rule leaves `not_checked`? That would remove the gap-triggered selection of that sample, and is
-     an ADR change.
+6. **Timing labels.** Publish with 19 of 472 required look-ups open and the
+   50-event audit of the EDGAR labels not run, or wait for both? *Answered 2026-11-17:* Berkshire
+   Hathaway's events are now timed from its own dated releases (a Saturday release puts day 0 on the next session),
+   and EDGAR now labels the `coarse` events too (ADR 0002, dated note). A label that contradicts the calendar waits
+   for a press-release check before day 0 moves.
 7. **The common date component.** Add an equal-weighted single-stock IV factor next to VIX in the market model? It would
    change every market-adjusted number.
 8. **Exports.** Are a PDF and a DOCX the right formats, and is the app's dark theme right for the printed figures?
 9. **The Cboe check (section 3.2).** ADR 0003 reads a correlation of daily changes below 0.8, a slope outside
    [0.8, 1.2] or a day-0 crush ratio outside [0.8, 1.2], "for most of the five names", as a sign that the IV
-   calculation is wrong. The pre-registration wrongly said the ADR set no tolerance for the slope. The slope is below
-   0.8 for 3 of the 5 names (GOOGL, GS and IBM), which is most: that falsifier is met.
-   The correlation is below 0.8 for 2 of the 5 and the crush ratio is 0.92 (pooled,
-   provisional): neither is met. Does the ADR's response (re-examine the forward, the filters and the interpolation)
-   apply, or do the exploratory checks, which are consistent with the low daily slopes being largely a clock effect
-   (slopes of 0.939 at 10 sessions and 0.954 at 21, except IBM), justify
-   leaving the IV calculation as it is?
+   calculation is wrong. The slope is below 0.8 for 3 of the 5 names
+   (GOOGL, GS and IBM): that falsifier is met. *Answered 2026-11-17: check three names first.* The pre-registered
+   checks of the forward, the filters and the expiry roll on GOOGL, GS and IBM found no fault; the strike rule could
+   not decide (UNCLEAR on all three), so by the pre-registration nothing is widened
+   (`docs/validation/vx-iv-checks/results.md`). They also found, as an exploratory result, that from 2026 the vendor's
+   option snapshots are taken during the day, before the close, on all five names; 155 of the
+   349 events in the primary sample have day 0 in 2026. The open choice: accept the UNCLEAR result;
+   run the same frozen rules on sessions after 2026-10-26 (all of them in the 2026 snapshot regime); or first check
+   the 2026 snapshot timing and its effect on the event measures, with its own pre-registration.

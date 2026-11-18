@@ -257,17 +257,33 @@ def check_chain(ev: pd.DataFrame) -> list[str]:
     return problems
 
 
+def required_lookups(ev: pd.DataFrame, triggered: dict, sessions: Sessions, lookup_from: date,
+                     sessions_before: int, ranges: dict[str, tuple[date, date]]) -> list[dict]:
+    """Every event that ADR 0002 §3's default rule requires to be looked up, whatever its status
+    (the denominator of "required look-ups done"; the gap trigger is read on the label in use).
+
+    A `duplicate_row` is a second calendar row of another event's release and never enters a sample
+    (eps.py drops it), so it needs no look-up of its own: its release is looked up through the other row.
+    """
+    out = []
+    for r in ev.itertuples(index=False):
+        if r.exclusion_reason == "duplicate_row":
+            continue
+        reasons = lookup_reasons(r.announce_date, r.timing_raw, triggered.get(r.event_id, False),
+                                 sessions, lookup_from, sessions_before, ranges)
+        if reasons:
+            out.append({"event_id": r.event_id, "sample": r.sample, "reasons": reasons,
+                        "timing_status": r.timing_status, "timing_source": r.timing_source})
+    return out
+
+
 def lookup_violations(ev: pd.DataFrame, triggered: dict, sessions: Sessions, lookup_from: date,
                       sessions_before: int, ranges: dict[str, tuple[date, date]]) -> list[dict]:
     """The events that ADR 0002 §3's default rule requires to be looked up, but
     that are still `not_checked` (the build invariant)."""
-    out = []
-    for r in ev.itertuples(index=False):
-        reasons = lookup_reasons(r.announce_date, r.timing_raw, triggered.get(r.event_id, False),
-                                 sessions, lookup_from, sessions_before, ranges)
-        if r.timing_status == "not_checked" and reasons:
-            out.append({"event_id": r.event_id, "sample": r.sample, "reasons": reasons})
-    return out
+    return [{"event_id": r["event_id"], "sample": r["sample"], "reasons": r["reasons"]}
+            for r in required_lookups(ev, triggered, sessions, lookup_from, sessions_before, ranges)
+            if r["timing_status"] == "not_checked"]
 
 
 def enforce_lookup_invariant(violations: list[dict], lookups_complete: bool) -> None:

@@ -45,6 +45,23 @@ true (R30-R40: ADR slope falsifier, correlation falsifier, crush-ratio falsifier
 step, the Monday snapshot calendar, Tuesday-to-Friday r, r without day-0 changes, the stepped slopes, the calendar-30
 fit, the extrapolation shares); the open look-ups' label count (R41, events_timing counting `sample` none as open);
 the stage report's null-label count no longer compared with events.parquet (R42).
+Added with EDGAR on the coarse events and Berkshire's releases (2026-11-17; docs/validation/edgar-coarse-ledger.md §8);
+R10, R27, R28 and R42 were applied again to the rewritten stage check and were caught:
+  - R43 the stage comparison of the open look-up count skipped
+  - R44 the stage comparison of the done look-ups by source skipped
+  - R45 the stage report's EDGAR-run flag not checked
+  - R46 numbers() accepts pins that do not add up (required ≠ done by source + open by reason)
+  - R47 numbers() accepts fewer labels on a document than required look-ups done
+  - R48 cross_check accepts more required look-ups done by a source than that source's labels
+  - R49 the H5 part of the Holm sentence ("H1, H2 and H5 rejected") made always true
+  - R50 lookups.edgar printed from the press-release pin
+  - R51 sample.n_2026 counted from 2025-01-01
+Added after the adversarial review of the rebuild (2026-11-17; edgar-coarse-ledger.md §9):
+  - R53 events_timing counts a duplicate row as an open look-up with no label
+  - R54 holm() without the running maximum; R55 holm() without the cap at 1
+  - R56 the H2-floor counterfactual keeps H2's own p
+  - R57 the sentence "H5's rejection does not rest on H2's season floor" made always true
+  (R52, required_lookups counting a duplicate row again, is caught by tests/test_events.py.)
 """
 
 from __future__ import annotations
@@ -134,26 +151,32 @@ def test_render_refuses_an_unknown_key_and_splice_needs_both_markers():
 def test_key_numbers_from_the_committed_data():
     nums = {k: v for k, (v, _) in rn.numbers(rn.load(REPO)).items()}
     m = "−"
-    # results.parquet, H1 primary (market-adjusted twoway_date_t): estimate -0.19938, p 5.80e-23, p_holm 4.06e-22.
-    assert nums["h1.est"] == f"{m}0.199" and nums["h1.fall"] == "0.199"
-    assert nums["h1.p"] == f"5.8e{m}23" and nums["h1.p_holm"] == f"4.1e{m}22"
-    # 1 - exp(-0.199377) = 1 - 0.81924 = 0.18076 -> 18.1%
-    assert nums["h1.pct_fall"] == "18.1%"
-    # 473 required (pinned), 431 done (sample_funnel.json: 421 confirmed + 2 corrected + 1 date_corrected
-    # + 7 inferred) -> 42 left; events.parquet timing_source: 20 press_release, 411 edgar (20 + 411 = 431)
-    assert (nums["lookups.required"], nums["lookups.done"], nums["lookups.left"]) == ("473", "431", "42")
-    assert (nums["lookups.press_release"], nums["lookups.edgar"]) == ("20", "411")
-    # Open by reason (pinned; edgar-ledger.md §6): 26 + 11 + 4 + 1 = 42
+    # results.parquet, H1 primary (market-adjusted twoway_date_t): estimate -0.198476, p 6.88e-23, p_holm 4.81e-22.
+    assert nums["h1.est"] == f"{m}0.198" and nums["h1.fall"] == "0.198"
+    assert nums["h1.p"] == f"6.9e{m}23" and nums["h1.p_holm"] == f"4.8e{m}22"
+    # 1 - exp(-0.198476) = 1 - 0.81998 = 0.18002 -> 18.0%
+    assert nums["h1.pct_fall"] == "18.0%"
+    # Required look-ups (pinned; edgar-coarse-ledger.md): 472 required, 42 done by press release + 411 by EDGAR = 453,
+    # so 19 left: open by EDGAR's outcome 3 + 11 + 4 + 1 = 19
+    assert (nums["lookups.required"], nums["lookups.done"], nums["lookups.left"]) == ("472", "453", "19")
+    assert (nums["lookups.press_release"], nums["lookups.edgar"]) == ("42", "411")
     assert [nums[f"lookups.open.{k}"] for k in ("no_8k", "edgar_holiday", "other_date", "contradicts")] == [
-        "26", "11", "4", "1"]
-    assert (nums["lookups.gap_questioned"], nums["lookups.audit"]) == ("37", "50")
-    # 922 not_checked events (events.parquet): 892 with a calendar label, 30 with none. Of the 42 open look-ups, 23 are
-    # not_checked, NULL-labelled events that can enter a sample (the stage report's by_reason null_label is 23): 42 - 23 = 19
+        "3", "11", "4", "1"]
+    assert (nums["lookups.gap_questioned"], nums["lookups.audit"], nums["lookups.utc_reference"]) == ("37", "50", "20")
+    # Every label on a document (sample_funnel.json: 1,232 confirmed + 2 corrected + 14 date_corrected + 7 inferred
+    # = 1,255), 1,255 - 453 = 802 beyond the required ones; events.parquet timing_source: 46 press_release + 1,209 edgar
+    assert (nums["lookups.documented"], nums["lookups.extra"]) == ("1,255", "802")
+    assert (nums["lookups.all_press_release"], nums["lookups.all_edgar"]) == ("46", "1,209")
+    # 98 not_checked events (events.parquet): 84 with a calendar label, 14 with none. Of the 19 open look-ups, 6 are
+    # not_checked, NULL-labelled events that can enter a sample and are not a duplicate row (the stage report's
+    # by_reason null_label is 6): 19 - 6 = 13
     assert (nums["timing.not_checked"], nums["timing.not_checked_labelled"], nums["timing.not_checked_unlabelled"]) == (
-        "922", "892", "30")
-    assert (nums["lookups.left_labelled"], nums["lookups.left_unlabelled"]) == ("19", "23")
-    # The daily sample's not_checked events by move tercile (sample_funnel.json by_move_tercile): 8 + 5 + 0 = 13
-    assert [nums[f"funnel.daily_open.t{t}"] for t in (1, 2, 3)] == ["8", "5", "0"] and nums["funnel.daily_open"] == "13"
+        "98", "84", "14")
+    assert (nums["lookups.left_labelled"], nums["lookups.left_unlabelled"]) == ("13", "6")
+    # The daily sample's not_checked events by move tercile (sample_funnel.json by_move_tercile): 3 + 3 + 0 = 6
+    assert [nums[f"funnel.daily_open.t{t}"] for t in (1, 2, 3)] == ["3", "3", "0"] and nums["funnel.daily_open"] == "6"
+    # event_paths.json: 155 of the 349 primary events have day 0 in 2026
+    assert (nums["sample.n_2026"], nums["sample.n_events"]) == ("155", "349")
     # vx_crosscheck.json, exploratory: 1,515 of 3,697 changes end on a Monday (41%); 1,005 of 1,111 before 2024-09-03
     assert (nums["vx.cal.end_monday"], nums["vx.pooled.n"], nums["vx.cal.end_monday_share"]) == ("1,515", "3,697", "41%")
     assert (nums["vx.cal.early_monday"], nums["vx.cal.early"], nums["vx.cal.era_from"]) == ("1,005", "1,111", "2024-09-03")
@@ -173,25 +196,30 @@ def test_key_numbers_from_the_committed_data():
         "4,160", "5,413", "2,334", "5,964")
     # Bar iv's 34 events: 32 confirmed, 2 not_checked (vx_crosscheck.json)
     assert (nums["vx.iv.documented"], nums["vx.iv.not_checked"]) == ("32", "2")
-    # G1 calibrated rejection rates in tests.json: 0.0955, 0.081, 0.1615
-    assert (nums["h5.g1"], nums["h6.g1"], nums["h7.g1"]) == ("9.55%", "8.10%", "16.15%")
+    # G1 calibrated rejection rates in tests.json: 0.0845, 0.0675, 0.1795
+    assert (nums["h5.g1"], nums["h6.g1"], nums["h7.g1"]) == ("8.45%", "6.75%", "17.95%")
     # H2: 8 seasons, floor 2/2^8; the cut has 7 seasons, floor 2/2^7 = 0.015625, Holm 0.078125
     assert (nums["h2.floor_g"], nums["h2.p"], nums["h2.cut_g"], nums["h2.cut_p_holm"]) == ("8", "0.0078", "7", "0.0781")
-    # The binding family's verdicts
-    assert nums["holm.rejected"] == "H1 and H2"
+    # The binding family's verdicts: H5's p 0.0078859 sorts after H2's 0.0078125, so its Holm p is
+    # max(6 x 0.0078125, 5 x 0.0078859) = max(0.046875, 0.039430) = 0.046875 <= 0.05
+    assert nums["holm.rejected"] == "H1, H2, H5" and nums["h5.p_holm"] == "0.0469"
+    # H5 with H2 taken from its season cut (raw 0.015625 > H5's 0.0078859): H5 sorts second of 7, 6 x 0.0078859 = 0.0473
+    assert nums["h5.p_holm_h2cut"] == "0.0473"
     assert nums["h5.g1_verdict"] == "**fail**" and nums["h1.g1_verdict"] == "pass"
 
 
 def test_events_timing_counts_labels_and_the_open_events_without_one():
-    # Made-up events: not_checked with a label x2, not_checked without one in a sample x2 and outside every sample x1,
-    # and a confirmed one without a label (resolved by EDGAR, so not counted).
+    # Made-up events: not_checked with a label x2, not_checked without one in a sample x2, outside every sample x1 and
+    # a duplicate calendar row in a sample x1 (it needs no look-up of its own, ADR 0002 §3), and a confirmed one
+    # without a label (resolved by EDGAR, so not counted).
     ev = pd.DataFrame({
-        "timing_source": ["calendar", "calendar", None, None, None, "edgar"],
-        "timing_status": ["not_checked"] * 5 + ["inferred"],
-        "timing_raw": ["BMO", "AMC", None, None, None, None],
-        "sample": ["daily", "coarse", "coarse", "daily", "none", "coarse"]})
+        "timing_source": ["calendar", "calendar", None, None, None, None, "edgar"],
+        "timing_status": ["not_checked"] * 6 + ["inferred"],
+        "timing_raw": ["BMO", "AMC", None, None, None, None, None],
+        "sample": ["daily", "coarse", "coarse", "daily", "none", "mixed", "coarse"],
+        "exclusion_reason": [None, None, None, None, "outside_samples", "duplicate_row", None]})
     got = rn.events_timing(ev)
-    assert (got["not_checked"], got["not_checked_unlabelled"], got["not_checked_open_unlabelled"]) == (5, 3, 2)
+    assert (got["not_checked"], got["not_checked_unlabelled"], got["not_checked_open_unlabelled"]) == (6, 4, 2)
     assert got["timing_source"] == {"calendar": 2, "edgar": 1}
 
 
@@ -202,9 +230,9 @@ def test_check_passes_on_the_committed_files():
 # --- --check fails when a rendered file or the data change ----------------------------------------------
 
 @pytest.mark.parametrize("rel, old, new", [
-    ("docs/report/earnings-vol-report.md", "falls by 0.199 log points", "falls by 0.198 log points"),
+    ("docs/report/earnings-vol-report.md", "falls by 0.198 log points", "falls by 0.197 log points"),
     ("README.md", "| H5 | Does a bigger earnings surprise", "| H5 | Does a larger earnings surprise"),
-    ("docs/prfaq.md", "431 of 473 required look-ups done", "432 of 473 required look-ups done"),
+    ("docs/prfaq.md", "453 of 472 required look-ups done", "454 of 472 required look-ups done"),
 ])
 def test_check_fails_when_a_rendered_file_was_edited(root, capsys, rel, old, new):
     path = root / rel
@@ -235,7 +263,7 @@ def test_new_data_are_rendered_and_make_the_old_files_stale(root, capsys):
     # -0.21 -> "−0.210"; the fall 0.210; 1 - exp(-0.21) = 1 - 0.81058 = 0.18942 -> 18.9%
     assert "falls by 0.210 log points on average" in report
     assert "about 18.9%" in report
-    assert "| H1 | How much does the 30-day IV fall from day −1 to day 0? | 347 | −0.210 |" in (root / "README.md").read_text()
+    assert "| H1 | How much does the 30-day IV fall from day −1 to day 0? | 349 | −0.210 |" in (root / "README.md").read_text()
     # The Markdown is now current, but the PDF and DOCX were built from the old one.
     capsys.readouterr()
     assert rn.main(["--check", "--root", str(root)]) == 1
@@ -245,7 +273,7 @@ def test_new_data_are_rendered_and_make_the_old_files_stale(root, capsys):
 
 def test_the_sample_dates_are_the_events_range_and_the_window_apart():
     nums = {k: v for k, (v, _) in rn.numbers(rn.load(REPO)).items()}
-    # params.yaml's daily window is 2024-12-05 to 2026-10-26; the 347 events' day 0 run from 2024-12-10 to 2026-10-22
+    # params.yaml's daily window is 2024-12-05 to 2026-10-26; the 349 events' day 0 run from 2024-12-10 to 2026-10-22
     # (the earliest and latest day0 in event_paths.json per_event).
     assert (nums["sample.day0_from"], nums["sample.day0_to"]) == ("2024-12-05", "2026-10-26")
     assert (nums["sample.first_day0"], nums["sample.last_day0"]) == ("2024-12-10", "2026-10-22")
@@ -312,9 +340,38 @@ def _flip_h2(root):
                                          if x["hypothesis"] == "H2" and x["role"] == "primary"])
 
 
+def test_holm_steps_down_and_never_falls_down_the_ordered_list():
+    # m = 3: 0.001 x 3 = 0.003; 0.03 x 2 = 0.06; 0.04 x 1 = 0.04, raised to 0.06 because adjusted p never falls; a 0.6
+    # times 2 is capped at 1.
+    got = rn.holm({"a": 0.03, "b": 0.001, "c": 0.04})
+    assert got == pytest.approx({"b": 0.003, "a": 0.06, "c": 0.06})
+    assert rn.holm({"x": 0.6, "y": 0.7}) == pytest.approx({"x": 1.0, "y": 1.0})
+
+
+def _h5_raw_p_above_the_floor_cut(root):
+    # H5's raw p made 0.009 in both inputs that hold it (made up). Its stored Holm p stays 0.0469, so only the new
+    # sentence is wrong: with H2 at its season cut (0.0156) H5 sorts second, 6 x 0.009 = 0.054 > 0.05.
+    _edit_results(root, lambda x: (x.hypothesis == "H5") & (x.role == "primary") & (x.family == "regression"),
+                  "p_value", 0.009)
+    _edit_json(root, "drivers", lambda d: [t.update(p_value=0.009) for m in d["models"] for t in m["terms"]
+                                           if t.get("hypothesis") == "H5" and t.get("role") == "primary"])
+
+
+def _unreject_h5(root):
+    # H5's Holm p put back above 0.05 (0.0511, its value before the two BRK.B events of 2026-11-17) in both inputs that
+    # hold it, so the inputs agree and only the sentence "H1, H2 and H5 rejected" is wrong.
+    _edit_results(root, lambda x: (x.hypothesis == "H5") & (x.role == "primary") & (x.family == "regression"),
+                  "p_holm", 0.0511)
+    _edit_json(root, "drivers", lambda d: [t.update(p_holm=0.0511) for m in d["models"] for t in m["terms"]
+                                           if t.get("hypothesis") == "H5" and t.get("role") == "primary"])
+
+
 # Each edit makes the inputs disagree with each other, or the data contradict a hand-written sentence. --check must
 # name the check that caught it.
 CROSS_AND_PROSE = [
+    ("Holm H5", lambda r: _unreject_h5(r), "Holm: H1, H2 and H5 rejected; H3, H4, H6 and H7 not"),
+    ("H5 without H2's floor", lambda r: _h5_raw_p_above_the_floor_cut(r),
+     "H5's Holm rejection does not rest on H2's season floor"),
     ("H7 F", lambda r: _edit_json(r, "implied_vs_realised", lambda d: d["summary"]["regression"].update(wald_f=1.5)),
      "H7 F results/implied_vs_realised.json"),
     ("G1 rate", lambda r: _edit_json(r, "tests", lambda d: _g1(d, "H1").update(rejection_rate=0.07)),
@@ -328,7 +385,7 @@ CROSS_AND_PROSE = [
     ("timing statuses", lambda r: _edit_json(r, "sample_funnel", lambda d: d["timing_status_counts"].update(
         confirmed=d["timing_status_counts"]["confirmed"] - 1, ambiguous=1)), "no ambiguous, no no_document"),
     ("look-ups by source", lambda r: _edit_events_source(r, "edgar", "calendar"),
-     "look-ups done / press releases + EDGAR (events.parquet)"),
+     "labels on a document / press releases + EDGAR (events.parquet)"),
     # The Cboe VX* cross-check (data/derived/vx_crosscheck.json); the edited values are made up.
     ("VX bar i", lambda r: _edit_vx(r, lambda d: d["bar_i"]["per_name"]["GOOGL"].update(r=0.9, verdict="pass")),
      "VX bar i fails for GOOGL, IBM and the pooled sample"),
@@ -385,7 +442,7 @@ def test_inputs_that_disagree_fail_the_check(root, capsys):
     for model in env["data"]["models"]:
         for term in model["terms"]:
             if term.get("hypothesis") == "H5" and term.get("role") == "primary":
-                term["p_holm"] = 0.04  # results.parquet says 0.0511
+                term["p_holm"] = 0.04  # results.parquet says 0.0469
     dj.write_text(json.dumps(env))
     assert rn.main(["--check", "--root", str(root)]) == 1
     assert "H5 p_holm results/drivers.json" in capsys.readouterr().err
@@ -408,31 +465,62 @@ def test_the_pinned_lookup_count_is_compared_with_a_local_stage_report(root, tmp
     stage.mkdir(parents=True)
     monkeypatch.setenv("VOL_DATA_DIR", str(vol))
 
-    def report(n=42, outcome=None, pending=37, on=True, null_label=23):
-        # A stage report of an EDGAR run, written by hand: 405 confirmed + 6 inferred + 20 press releases, and the
-        # 42 open ones by reason (26 + 11 + 4 + 1).
-        out = {"confirmed": 405, "inferred": 6, "press_release": 20, "no_8k": 26, "edgar_holiday": 11,
-               "other_date": 4, "contradicts": 1} if outcome is None else outcome
-        rep = {"lookup_violations": {"n": n, "by_reason": {"daily_or_mixed_era": 21, "null_label": null_label}},
-               "edgar": {"on": on, "outcome": out, "pending_gap_checks": pending}}
+    def report(required=472, n=19, done_by=None, open_by=None, pending=37, on=True, null_label=6):
+        # A stage report of an EDGAR run, written by hand: 472 required look-ups, 453 of them done (42 on a press
+        # release + 411 on EDGAR) and the 19 open ones by EDGAR's outcome (3 + 11 + 4 + 1). EDGAR's own outcome
+        # counts also cover the `coarse` events the rule does not require, so they are larger.
+        rep = {"required_lookups": {"n": required,
+                                    "done_by_source": done_by or {"edgar": 411, "press_release": 42}},
+               "lookup_violations": {"n": n, "by_reason": {"daily_or_mixed_era": 12, "null_label": null_label},
+                                     "by_edgar_outcome": open_by or {"no_8k": 3, "edgar_holiday": 11,
+                                                                     "other_date": 4, "contradicts": 1}},
+               "edgar": {"on": on, "outcome": {"confirmed": 1203, "inferred": 6, "press_release": 46, "no_8k": 5,
+                                               "edgar_holiday": 16, "other_date": 5, "contradicts": 2},
+                         "pending_gap_checks": pending}}
         (stage / "events_report.json").write_text(json.dumps(rep))
 
     report()
     assert rn.main(["--check", "--root", str(root)]) == 0
-    assert "42 left + 431 done = 473; open by reason and 37 gap-questioned, as pinned" in capsys.readouterr().out
-    report(n=41)  # 41 + 431 = 472
+    assert ("19 left + 453 done = 472; done by source, open by reason and 37 gap-questioned, as pinned"
+            in capsys.readouterr().out)
+    report(required=473)
     assert rn.main(["--check", "--root", str(root)]) == 1
-    assert "not 473" in capsys.readouterr().err
-    report(outcome={"confirmed": 405, "inferred": 6, "press_release": 20, "no_8k": 25, "edgar_holiday": 12,
-                    "other_date": 4, "contradicts": 1})  # the same total, another split
+    assert "requires 473 look-ups, not 472" in capsys.readouterr().err
+    report(n=20)
+    assert rn.main(["--check", "--root", str(root)]) == 1
+    assert "20 open look-ups, not 19" in capsys.readouterr().err
+    report(done_by={"edgar": 410, "press_release": 43})  # the same total, another split
+    assert rn.main(["--check", "--root", str(root)]) == 1
+    assert "done look-ups by source are" in capsys.readouterr().err
+    report(open_by={"no_8k": 4, "edgar_holiday": 10, "other_date": 4, "contradicts": 1})  # the same total, another split
     assert rn.main(["--check", "--root", str(root)]) == 1
     assert "open look-ups are" in capsys.readouterr().err
     report(pending=36)
     assert rn.main(["--check", "--root", str(root)]) == 1
     assert "gap-questioned EDGAR labels are 36" in capsys.readouterr().err
-    report(null_label=22)
+    report(null_label=7)  # the duplicate row counted again
     assert rn.main(["--check", "--root", str(root)]) == 1
-    assert "22 open look-ups with a NULL label, events.parquet 23" in capsys.readouterr().err
+    assert "7 open look-ups with a NULL label, events.parquet 6" in capsys.readouterr().err
     report(on=False)
     assert rn.main(["--check", "--root", str(root)]) == 1
     assert "no EDGAR run" in capsys.readouterr().err
+
+
+def test_inconsistent_lookup_pins_are_refused(monkeypatch):
+    # The pins must add up: 472 required = 453 done by source + 19 open. 42 + 410 = 452 does not.
+    monkeypatch.setattr(rn, "LOOKUPS_DONE_BY_SOURCE", {"press_release": 42, "edgar": 410})
+    with pytest.raises(ValueError, match="look-up pins"):
+        rn.numbers(rn.load(REPO))
+    # A required count so large that more look-ups would be done (1300 - 19 = 1,281) than labels rest on a document
+    # (1,255).
+    monkeypatch.setattr(rn, "LOOKUPS_REQUIRED", 1300)
+    monkeypatch.setattr(rn, "LOOKUPS_DONE_BY_SOURCE", {"press_release": 100, "edgar": 1181})
+    with pytest.raises(ValueError, match="fewer than the 1281 required look-ups done"):
+        rn.numbers(rn.load(REPO))
+
+
+def test_more_required_lookups_by_a_source_than_its_labels_fail_the_check(monkeypatch):
+    # 47 + 406 = 453 adds up, but events.parquet has only 46 press-release labels in all.
+    monkeypatch.setattr(rn, "LOOKUPS_DONE_BY_SOURCE", {"press_release": 47, "edgar": 406})
+    with pytest.raises(ValueError, match="required look-ups done by press_release: 47 pinned, but only 46"):
+        rn.numbers(rn.load(REPO))

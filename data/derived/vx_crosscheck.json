@@ -80,12 +80,12 @@
    }
   },
   "ours": "data/derived/iv_daily.parquet cm30_blind_iv (decimal)",
-  "iv_daily_sha256": "68aa42a346fe748c2fffe09c6768460ebfff09a86ad2798eca88325cbb718bf0",
-  "events_sha256": "5b6a6bff4d62dd5b42e3353ad2a3ac1717aa65ab2aca41cea6ddd80ccd6f03d9",
-  "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
+  "iv_daily_sha256": "f15af972fb4fd972004b1def577376866602b8d488a28e5ee239b7c406fff3b9",
+  "events_sha256": "1d5bb3a45118a2d329f698be6ca4186834d5673fd51e16459b7559500f79d41a",
+  "params_hash": "d51877f495f7ae67636c8f2b7539e9cb15a9bb84502868a2cde239ad15a1e301",
   "options_commit": "msfqpodh24viv7prdqdan8517rkjp861",
   "earnings_commit": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
-  "chain_expiry_sha256": "ce5a8e688a47230553dec8c088e64767b826aaa9011f8b3d071c6eb0d33af98f",
+  "chain_expiry_sha256": "b9996b31e2d63db94e61d54f6bb7930c24658cb3e321f1ef9dd04e879d84fb97",
   "volatility_history": {
    "source": "post-no-preference/options volatility_history.iv_current, read in the private mirror",
    "commit": "msfqpodh24viv7prdqdan8517rkjp861",
@@ -1045,7 +1045,7 @@
   ],
   "rule": "pass when 0.8 ≤ R ≤ 1.2",
   "events": {
-   "n_primary_sample": 347,
+   "n_primary_sample": 349,
    "n_events_five_names": 34,
    "n_by_name": {
     "AAPL": 6,
@@ -2006,7 +2006,7 @@
   },
   "maturity": {
    "per_expiry_atm_ivs": {
-    "source": "cache/stage/d23d18972bf0c8d4/chain_expiry.parquet (local)",
+    "source": "cache/stage/d51877f495f7ae67/chain_expiry.parquet (local)",
     "sessions_with_usable_expiries": 6070,
     "snapshot_ok_sessions": 6072
    },

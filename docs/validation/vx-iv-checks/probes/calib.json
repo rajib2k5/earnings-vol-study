@@ -1,0 +1,130 @@
+{
+ "inflate": {
+  "filter": 1.1,
+  "forward": 1.35,
+  "roll_iv": 1.2,
+  "strike": 1.35
+ },
+ "summary": {
+  "filter|any|20": {
+   "mean_boot_sd": 0.008184499578261504,
+   "mean_point": -0.003339355631402355,
+   "ratio": 1.0896037821463684,
+   "sd_point": 0.008917861695449092,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "filter|any|60": {
+   "mean_boot_sd": 0.0071600443378507924,
+   "mean_point": -0.003339355631402355,
+   "ratio": 1.245503697275419,
+   "sd_point": 0.008917861695449092,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "filter|clean|20": {
+   "mean_boot_sd": 0.013908005621523617,
+   "mean_point": 0.004950976426797336,
+   "ratio": 0.8636297451092416,
+   "sd_point": 0.012011367349894341,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "filter|clean|60": {
+   "mean_boot_sd": 0.012504433230522194,
+   "mean_point": 0.004950976426797336,
+   "ratio": 0.960568714188155,
+   "sd_point": 0.012011367349894341,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "forward||20": {
+   "mean_boot_sd": 0.0003809361850741065,
+   "mean_point": 0.00357991849448972,
+   "ratio": 1.3442035165888244,
+   "sd_point": 0.0005120557595725452,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "forward||60": {
+   "mean_boot_sd": 0.0003586579325420272,
+   "mean_point": 0.00357991849448972,
+   "ratio": 1.427699524009672,
+   "sd_point": 0.0005120557595725452,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "roll_iv||20": {
+   "mean_boot_sd": 0.0014297068133225903,
+   "mean_point": -0.0007477331400479024,
+   "ratio": 1.15194886607944,
+   "sd_point": 0.0016469491424330072,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "roll_iv||60": {
+   "mean_boot_sd": 0.0013366948481102782,
+   "mean_point": -0.0007477331400479024,
+   "ratio": 1.2321055510622667,
+   "sd_point": 0.0016469491424330072,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "strike|any|20": {
+   "mean_boot_sd": 0.008280676884275239,
+   "mean_point": 0.0023518083518842274,
+   "ratio": 1.0815681931436443,
+   "sd_point": 0.008956116735731911,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "strike|any|60": {
+   "mean_boot_sd": 0.007403128676105114,
+   "mean_point": 0.0023518083518842274,
+   "ratio": 1.2097745598613376,
+   "sd_point": 0.008956116735731911,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "strike|clean|20": {
+   "mean_boot_sd": 0.00761572848888822,
+   "mean_point": 0.010261895609168278,
+   "ratio": 1.314415271430215,
+   "sd_point": 0.010010229828860831,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  },
+  "strike|clean|60": {
+   "mean_boot_sd": 0.006686006254569945,
+   "mean_point": 0.010261895609168278,
+   "ratio": 1.497191215162078,
+   "sd_point": 0.010010229828860831,
+   "seeds": 48,
+   "verdicts": {
+    "NO FAULT": 48
+   }
+  }
+ }
+}

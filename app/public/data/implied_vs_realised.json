@@ -1,14 +1,14 @@
 {
   "data": {
     "caveats": [
-      "Timing labels are provisional: 431 labels rest on a document (a company press release or the SEC EDGAR 8-K filing time) and every other event keeps the calendar's label (not_checked), among them some that ADR 0002 requires to be looked up; the ADR's 50-event audit of the EDGAR labels has not run, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
+      "Timing labels are provisional: 1255 labels rest on a document (a company press release or the SEC EDGAR 8-K filing time) and every other event keeps the calendar's label (not_checked), among them some that ADR 0002 requires to be looked up; the ADR's 50-event audit of the EDGAR labels has not run, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
       "Implied: at day -1, E (event variance) and sigma_d (ordinary variance per session = sigma_d^2/252, ADR 0003 \u00a7c). The expected |move| of a normal move with variance E + sigma_d^2/252 is sqrt(2/pi) sqrt(E + sigma_d^2/252); it is exceeded 42.5% of the time, not 50%, when pricing is fair.",
       "Realised: r0, the log change of the option-implied forward from day -1 to day 0 plus carry (DoltHub option quotes), on the same expiry both days.",
-      "H7's Wald test failed gate G1's size check (its calibrated null rejects 16.15% at 5%, band upper edge 6.30%): the test is liberal on this design, so a rejection by it would not be trusted. H7 stays in the declared Holm family (ADR 0005 \u00a75, dated note of 2026-10-29) with this p-value; its Holm p is 1.0, not rejected. The coefficient and share p-values come from the same kind of two-way statistic."
+      "H7's Wald test failed gate G1's size check (its calibrated null rejects 17.95% at 5%, band upper edge 6.30%): the test is liberal on this design, so a rejection by it would not be trusted. H7 stays in the declared Holm family (ADR 0005 \u00a75, dated note of 2026-10-29) with this p-value; its Holm p is 1.0, not rejected. The coefficient and share p-values come from the same kind of two-way statistic."
     ],
     "lookups": {
       "complete": false,
-      "n_done": 431
+      "n_done": 1255
     },
     "points": [
       {
@@ -912,6 +912,21 @@
         "timing_used": "BMO"
       },
       {
+        "abs_realized": 0.04194,
+        "day0": "2025-02-24",
+        "event_id": "BRK.B:2025-02-28",
+        "event_var": 0.00031896,
+        "implied_abs_move_total": 0.01633,
+        "implied_move": 0.01786,
+        "implied_move_status": "ok",
+        "implied_var_total": 0.00041876,
+        "realized_ret_0": 0.04194,
+        "sector": "Financials",
+        "surprise_scaled": 0.004806,
+        "ticker": "BRK.B",
+        "timing_used": "BMO"
+      },
+      {
         "abs_realized": 0.02972,
         "day0": "2025-08-04",
         "event_id": "BRK.B:2025-08-02",
@@ -938,6 +953,21 @@
         "realized_ret_0": -0.00249,
         "sector": "Financials",
         "surprise_scaled": 0.003269,
+        "ticker": "BRK.B",
+        "timing_used": "BMO"
+      },
+      {
+        "abs_realized": 0.04306,
+        "day0": "2026-03-02",
+        "event_id": "BRK.B:2026-02-27",
+        "event_var": 0.00053001,
+        "implied_abs_move_total": 0.02012,
+        "implied_move": 0.02302,
+        "implied_move_status": "ok",
+        "implied_var_total": 0.00063593,
+        "realized_ret_0": -0.04306,
+        "sector": "Financials",
+        "surprise_scaled": -0.000915,
         "ticker": "BRK.B",
         "timing_used": "BMO"
       },
@@ -5053,53 +5083,53 @@
       }
     ],
     "provenance": {
-      "code_commit": "8c4b36e",
+      "code_commit": "f5904a9",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
+      "params_hash": "d51877f495f7ae67636c8f2b7539e9cb15a9bb84502868a2cde239ad15a1e301",
       "sample_label": "daily"
     },
     "summary": {
-      "mean_log_ratio": -0.497,
-      "median_ratio": 0.8161,
-      "n": 336,
+      "mean_log_ratio": -0.4889,
+      "median_ratio": 0.8207,
+      "n": 338,
       "n_evar_nonpositive": 4,
-      "n_with_implied_abs_move": 332,
+      "n_with_implied_abs_move": 334,
       "regression": {
-        "a": 0.00082971,
-        "a_se": 0.00080379,
-        "b": 0.767,
+        "a": 0.00083699,
+        "a_se": 0.00079443,
+        "b": 0.7663,
         "b_ci": [
-          0.4648,
-          1.0691
+          0.4655,
+          1.0672
         ],
-        "b_se": 0.1504,
+        "b_se": 0.1497,
         "g1_bar": 0.063,
         "g1_pass": false,
         "g1_pass_one_way": false,
-        "g1_rate": 0.1615,
-        "g1_rate_one_way": 0.17,
-        "n": 336,
-        "n_clusters_date": 167,
+        "g1_rate": 0.1795,
+        "g1_rate_one_way": 0.1885,
+        "n": 338,
+        "n_clusters_date": 169,
         "n_clusters_firm": 50,
         "p_holm": 1.0,
         "role": "primary",
         "wald_df": 49.0,
         "wald_df_num": 2.0,
-        "wald_f": 1.3253,
-        "wald_p": 0.2751,
+        "wald_f": 1.3286,
+        "wald_p": 0.2742,
         "wald_p_one_way": null
       },
-      "share_exceed": 0.4006,
+      "share_exceed": 0.4042,
       "share_exceed_benchmark": 0.425,
-      "share_exceed_p": 0.3191,
-      "share_exceed_se": 0.0242
+      "share_exceed_p": 0.3894,
+      "share_exceed_se": 0.024
     }
   },
-  "generated_at": "2026-11-10T15:01:45Z",
+  "generated_at": "2026-11-18T02:50:23Z",
   "kind": "implied_vs_realised",
   "schema_version": "0.5.0",
-  "source_commit": "8c4b36e"
+  "source_commit": "f5904a9"
 }

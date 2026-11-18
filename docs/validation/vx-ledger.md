@@ -321,6 +321,20 @@ The report's reading ("consistent with a clock effect that shrinks at longer hor
 "consistent with", not proof; no interval is computed for the k-session slopes (n = 263 and 125 pooled, 25 to 53 per
 name).
 
+*Correction, 2026-11-17: that reading was wrong.* The check that tests it was already in the file: on
+Tuesday-to-Friday changes, which span no weekend, the slopes are pooled 0.745 (AAPL 0.818, AMZN 0.782, GOOGL 0.742,
+GS 0.790, IBM 0.649; `exploratory.bar_i_tue_to_fri`), no closer to 1 than on all changes (pooled 0.77). A clock
+effect cannot lower those. The report gave only the r of these changes, not the slope, and the reading went
+unchallenged until an adversarial review of the owner memo on 2026-11-17. Slopes that rise with the horizon fit
+day-to-day noise in our series (attenuation). The report now gives the Tuesday-to-Friday slopes, and
+`vx_prose_check` holds a claim that fails if they rise to the all-changes slope. The owner then chose ADR 0003's
+response: check the forward, the filters and the interpolation on GOOGL, GS and IBM
+([vx-iv-checks](vx-iv-checks/preregistration.md)). *Outcome, 2026-11-17* ([results](vx-iv-checks/results.md)):
+UNCLEAR. No rule found a fault; the strike rule could not decide on any of the three names, so nothing is widened and
+the owner decides the next step. The review of that run found that from 2026 the vendor's option snapshots are taken
+during the day, before the close, on all five names. In 2026 the one-session slopes are lower on four of the five
+names (pooled 0.696 against 0.784 in 2020 to 2025, exploratory), so this explains part of 1 − slope, not all of it.
+
 ### 9.5 Differential check against the reviewer's numbers
 
 The reviewer's scripts are `adv/{regime,horizon,ivcur,ivcur2,ivcur3,bar3,bar4,bars12,leak,timing}.py` in the session

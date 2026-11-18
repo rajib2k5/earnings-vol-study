@@ -1,21 +1,21 @@
 {
   "data": {
     "caveats": [
-      "Timing labels are provisional: 431 labels rest on a document (a company press release or the SEC EDGAR 8-K filing time) and every other event keeps the calendar's label (not_checked), among them some that ADR 0002 requires to be looked up; the ADR's 50-event audit of the EDGAR labels has not run, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
+      "Timing labels are provisional: 1255 labels rest on a document (a company press release or the SEC EDGAR 8-K filing time) and every other event keeps the calendar's label (not_checked), among them some that ADR 0002 requires to be looked up; the ADR's 50-event audit of the EDGAR labels has not run, so a few events may sit on the wrong day 0. Every number here depends on those labels.",
       "Each cell is one company's mean over its primary events (about 7): a description of the event-time shape, not a test."
     ],
     "lookups": {
       "complete": false,
-      "n_done": 431
+      "n_done": 1255
     },
     "measure": "aliv_mean_adj",
     "provenance": {
-      "code_commit": "8c4b36e",
+      "code_commit": "f5904a9",
       "dolt_commits": {
         "earnings": "fjrb6h5le9h1qiif2j4pl6cpaas7pnee",
         "options": "msfqpodh24viv7prdqdan8517rkjp861"
       },
-      "params_hash": "d23d18972bf0c8d4bc544a986382692e494521de754361569eec937da0790dfc",
+      "params_hash": "d51877f495f7ae67636c8f2b7539e9cb15a9bb84502868a2cde239ad15a1e301",
       "sample_label": "daily"
     },
     "rel_days": [
@@ -128,7 +128,7 @@
         "ticker": "BAC"
       },
       {
-        "n_events": 3,
+        "n_events": 5,
         "sector": "Financials",
         "security_id": "BRK.B",
         "ticker": "BRK.B"
@@ -669,27 +669,27 @@
         -0.0304
       ],
       [
-        0.0009,
-        0.0284,
-        0.0259,
+        0.1028,
+        0.1028,
+        0.093,
+        0.0986,
+        0.0584,
+        0.0716,
+        0.0867,
+        0.0736,
+        0.0953,
+        0.1278,
+        0.0158,
+        0.0328,
+        -0.0154,
+        0.0116,
+        0.0179,
         0.0169,
-        -0.0168,
-        -0.02,
-        -0.0042,
-        0.0093,
-        0.0552,
-        0.0691,
-        -0.103,
-        -0.0759,
-        -0.1391,
-        -0.1041,
-        -0.1245,
-        -0.1581,
-        -0.1403,
-        -0.1338,
-        -0.0773,
-        -0.1126,
-        -0.0655
+        0.0246,
+        0.0264,
+        0.0895,
+        0.0523,
+        0.093
       ],
       [
         0.1441,
@@ -1498,8 +1498,8 @@
       ]
     ]
   },
-  "generated_at": "2026-11-10T15:01:45Z",
+  "generated_at": "2026-11-18T02:50:23Z",
   "kind": "terrain",
   "schema_version": "0.5.0",
-  "source_commit": "8c4b36e"
+  "source_commit": "f5904a9"
 }

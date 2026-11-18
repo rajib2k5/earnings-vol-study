@@ -1,0 +1,11 @@
+# Freeze record: vx-iv-checks pre-registration
+
+frozen_at_utc: 2026-11-18T02:05:43Z
+clone_head: f5904a91f80ac1317d03fcd48096461b0fa5f6a8
+clone_status: ?? docs/validation/vx-iv-checks/ 
+preregistration.md: 0266676b5a9f9a295ea0b424e9950abf382291923cf42f1d77b3856cf80cabe6
+probes/SHA256SUMS: 9914b056c57f2ea103ccd1e595f8fe6b03b403d40774001bc27e620d1726f578
+sha256sum -c probes/SHA256SUMS (from vx-iv-checks/): 17 OK, 0 not OK
+real-data values read before this point: none (phase 1 synthetic only; inputs hashed as bytes)
+review: Opus adversarial review of the first version (synthetic only); refutations 5-8 reproduced by re-running expH and expD (identical output); revision verified by re-running expH and expD against the revised code in a fresh copy (identical to the author's rerun; session-wide faults now UNCLEAR, never NO FAULT)
+superseded: the loader stub inside hashed phase2.py would fail G2; re-freeze after the fix

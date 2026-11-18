@@ -351,8 +351,9 @@ def identify_maturity(median_abs_diff: dict[int, float]) -> dict:
 #
 # Added after the first results, from the adversarial review of 2026-11-09. Each is labelled "exploratory, not
 # pre-registered" wherever it is reported; none changes a verdict. Their question is why the one-session slopes are
-# below 1: Cboe's index clock counts calendar days, ours counts sessions, so a change over a weekend moves the two
-# differently, and our snapshots were taken on Mondays, Wednesdays and Fridays until August 2024.
+# below 1. The first hypothesis was the clock: Cboe's index counts calendar days, ours counts sessions, so a change over
+# a weekend moves the two differently, and our snapshots were taken on Mondays, Wednesdays and Fridays until August
+# 2024. The Tuesday-to-Friday slopes (pooled 0.745, no weekend inside) refute it as the main cause (2026-11-17).
 
 EXPLORATORY_LABEL = "exploratory, not pre-registered"
 DAILY_ERA_FROM = date(2024, 9, 1)     # the Mon/Wed/Fri cadence ends in August 2024; the first daily session is 09-03

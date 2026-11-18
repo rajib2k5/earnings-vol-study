@@ -37,15 +37,16 @@
 <!-- numbers:prfaq-headline -->
 The headline result, measured on 2026-10-29 and re-measured on 2026-11-09 with SEC EDGAR timing labels (still
 provisional): from day −1 to day 0, 30-day IV falls by
-0.199 log points on average, about 18.1%, net of the market's volatility. That is significant at
-p = 5.8e−23 (Holm 4.1e−22 over the seven declared hypotheses), under a two-way cluster-robust t that allows for
+0.198 log points on average, about 18.0%, net of the market's volatility. That is significant at
+p = 6.9e−23 (Holm 4.8e−22 over the seven declared hypotheses), under a two-way cluster-robust t that allows for
 events sharing calendar dates and for one company's events being alike; its size was checked first on the real event
-set (gate G1: 4.60% at 5%). The fall is not reported in vol points: the study measures it in logs, which are
+set (gate G1: 4.70% at 5%). The fall is not reported in vol points: the study measures it in logs, which are
 comparable across names (ADR 0004). The study also reports:
-- IV is back at its baseline by day +10 (+0.008 log points, p = 0.743);
-- the size of the crush does not reliably track the earnings surprise (+0.013 per sd, Holm 0.0511) or how
-  high ordinary volatility was beforehand (−0.001, p = 0.895), and both tests turned out liberal at this design;
-- the stock's day-0 move exceeded the move the options implied 40.1% of the time, against 42.5%
+- IV is back at its baseline by day +10 (+0.009 log points, p = 0.718);
+- the size of the crush does not reliably track the earnings surprise (+0.013 per sd; Holm 0.0469 from a
+  liberal statistic, so not trusted) or how
+  high ordinary volatility was beforehand (−0.002, p = 0.828), and both tests turned out liberal at this design;
+- the stock's day-0 move exceeded the move the options implied 40.4% of the time, against 42.5%
   under fair pricing of a normal move.
 <!-- /numbers:prfaq-headline -->
 
@@ -71,19 +72,19 @@ comparable across names (ADR 0004). The study also reports:
 ## What we measured (2026-10-29)
 
 Measured at milestones 1–4, collected here at milestone 5 and re-measured on 2026-11-09 with SEC EDGAR timing labels,
-which are still **provisional** (431 of 473 required look-ups done, 42 open). Day 0 from 2024-12-10 to
-2026-10-22; 347 primary events of 50 companies. The full account is the
+which are still **provisional** (453 of 472 required look-ups done, 19 open). Day 0 from 2024-12-10 to
+2026-10-22; 349 primary events of 50 companies. The full account is the
 [report](report/earnings-vol-report.md) (a draft the owner has not reviewed yet).
 
 | | Result | Holm p (H1–H7) |
 |---|---|---:|
-| H1 crush | 30-day IV falls by 0.199 log points from day −1 to day 0 (interval [−0.222, −0.177]) | 4.1e−22 |
-| H2 run-up | IV sits +0.232 log points above its baseline at day −1 | 0.0469 (7 seasons: 0.0781) |
-| H3 persistence | +0.008 at day +10 (interval [−0.049, 0.065]) | 1 |
-| H4 ordinary volatility | +0.003 (interval [−0.019, 0.026]) | 1 |
-| H5 surprise | +0.013 per sd (interval [0.003, 0.023]); the test's size is 9.55% | 0.0511 |
-| H6 prior volatility | −0.001 per sd (interval [−0.023, 0.020]); size 8.10% | 1 |
-| H7 implied vs realised | b = 0.77 (interval [0.46, 1.07]); 40.1% of moves beyond the implied \|move\| against a fair 42.5%; size 16.15% | 1 |
+| H1 crush | 30-day IV falls by 0.198 log points from day −1 to day 0 (interval [−0.221, −0.176]) | 4.8e−22 |
+| H2 run-up | IV sits +0.231 log points above its baseline at day −1 | 0.0469 (7 seasons: 0.0781) |
+| H3 persistence | +0.009 at day +10 (interval [−0.048, 0.066]) | 1 |
+| H4 ordinary volatility | +0.003 (interval [−0.020, 0.025]) | 1 |
+| H5 surprise | +0.013 per sd (interval [0.004, 0.023]); the test's size is 8.45% | 0.0469 |
+| H6 prior volatility | −0.002 per sd (interval [−0.024, 0.019]); size 6.75% | 1 |
+| H7 implied vs realised | b = 0.77 (interval [0.47, 1.07]); 40.4% of moves beyond the implied \|move\| against a fair 42.5%; size 17.95% | 1 |
 
 **Where the milestone-0 draft was wrong, or has changed.** The draft above is kept as written at milestone 0 except
 where marked "revised 2026-10-29". These are the places the results contradict it:
@@ -91,19 +92,20 @@ where marked "revised 2026-10-29". These are the places the results contradict i
 1. **Timing look-ups.** The draft said every event since daily option data began would be looked up by hand (How it
    works, step 1; Internal FAQ, "Timing labels"), and that quiet events would be checked as thoroughly as big movers.
    Instead, since 2026-11-09 the SEC EDGAR 8-K filing time decides where no press release was looked up:
-   20 required look-ups rest on press releases and 411 on EDGAR, and
-   42 are open. Neither claim holds fully yet: the open look-ups and the 50-event audit of
+   42 required look-ups rest on press releases and 411 on EDGAR, and
+   19 are open. Neither claim holds fully yet: the open look-ups and the 50-event audit of
    the EDGAR labels remain, so every number here is provisional.
 2. **The size check of the driver tests.** The draft planned regressions with two-way clustered errors and no size
    check of their own. Gate G1, extended to them at milestone 4 and run before their results run, found their
-   statistics liberal: 9.55% (H5), 8.10% (H6) and 16.15% (H7) under a true null at 5%. They stay in the
-   declared Holm family; none is rejected.
+   statistics liberal: 8.45% (H5), 6.75% (H6) and 17.95% (H7) under a true null at 5%. They stay in the
+   declared Holm family. Holm rejects H5 only just (0.0469), and a rejection by a liberal statistic is not
+   trusted.
 3. **The number of seasons.** ADR 0005 expected the run-up's events to fall into 7 seasons. There are
    8, unbalanced, so the randomisation p-value is H2's primary and its Holm verdict depends on that count
    (0.0469 with 8; 0.0781 with 7).
 4. **The surprise question.** The external FAQ asks whether a bigger surprise causes a bigger crush. The measured
-   coefficient points the other way, a slightly smaller fall (+0.013 per sd), and it is not rejected after Holm and
-   does not survive other surprise measures.
+   coefficient points the other way, a slightly smaller fall (+0.013 per sd). Holm rejects it at 0.0469
+   from a liberal statistic, which is not trusted, and it does not survive other surprise measures.
 5. **The Cboe cross-check and subsample.** The draft named Cboe's single-stock volatility indices for five names as
    an independent check on the IV measures, as a second daily subsample ("How far back does it go?") and as a source of
    extra events (Internal FAQ, "Feasibility"). *Revised 2026-11-09:* the check ran, with its bars fixed before the
@@ -130,8 +132,8 @@ where marked "revised 2026-10-29". These are the places the results contradict i
 9. **Where the report is.** The draft pointed to `reports/report.pdf`; the report is
    `docs/report/earnings-vol-report.pdf` (and `.docx`, `.md`).
 
-Confirmed as predicted: the sample size (347 events, inside the draft's 330–360), and a crush large
-against day-to-day noise (t = −17.73).
+Confirmed as predicted: the sample size (349 events, inside the draft's 330–360), and a crush large
+against day-to-day noise (t = −17.66).
 <!-- /numbers:prfaq-measured -->
 
 ---

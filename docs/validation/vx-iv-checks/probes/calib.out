@@ -1,0 +1,16 @@
+calib.py: 48 seeds 101..148; ratio = sd(point over seeds) / mean bootstrap sd
+rule     ref    block seeds mean point  sd point mean boot sd  ratio  verdicts
+filter   any       20    48    -0.0033    0.0089       0.0082   1.09  {'NO FAULT': 48}
+filter   any       60    48    -0.0033    0.0089       0.0072   1.25  {'NO FAULT': 48}
+filter   clean     20    48    +0.0050    0.0120       0.0139   0.86  {'NO FAULT': 48}
+filter   clean     60    48    +0.0050    0.0120       0.0125   0.96  {'NO FAULT': 48}
+forward  -         20    48    +0.0036    0.0005       0.0004   1.34  {'NO FAULT': 48}
+forward  -         60    48    +0.0036    0.0005       0.0004   1.43  {'NO FAULT': 48}
+roll_iv  -         20    48    -0.0007    0.0016       0.0014   1.15  {'NO FAULT': 48}
+roll_iv  -         60    48    -0.0007    0.0016       0.0013   1.23  {'NO FAULT': 48}
+strike   any       20    48    +0.0024    0.0090       0.0083   1.08  {'NO FAULT': 48}
+strike   any       60    48    +0.0024    0.0090       0.0074   1.21  {'NO FAULT': 48}
+strike   clean     20    48    +0.0103    0.0100       0.0076   1.31  {'NO FAULT': 48}
+strike   clean     60    48    +0.0103    0.0100       0.0067   1.50  {'NO FAULT': 48}
+INFLATE (block 20, max over references, rounded up to 0.05, at least 1): {'filter': 1.1, 'forward': 1.35, 'roll_iv': 1.2, 'strike': 1.35}
+ivchecks.INFLATE as frozen: {'filter': 1.1, 'forward': 1.35, 'roll_iv': 1.2, 'strike': 1.35}   match: True

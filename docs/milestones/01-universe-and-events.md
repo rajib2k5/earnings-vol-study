@@ -6,7 +6,9 @@
   press releases were looked up and timed, and the rest waited for SEC EDGAR (owner default, 2026-10-29). *Update
   2026-11-09:* EDGAR now runs (`timing.edgar: true`, [EDGAR ledger](../validation/edgar-ledger.md)). Of the 473
   required look-ups, 411 are resolved by an 8-K time and 42 stay open. The 50-event audit has not run, so the
-  labels are still provisional.
+  labels are still provisional. *Update 2026-11-17:* EDGAR also labels the `coarse` events and Berkshire Hathaway is
+  timed from its own releases; 453 of the 472 required look-ups are done (42 press releases, 411 EDGAR) and 19 are
+  open ([EDGAR-coarse ledger](../validation/edgar-coarse-ledger.md) §8–§9).
 - **Date:** 2026-10-29
 - **Scope:** [milestone 0 §8](00-scaffold-and-design.md#8-whats-next-milestone-1-universe-and-events), items 1 to 5.
 - **Source of truth:** the ADRs (milestone-1 notes in [0001](../adr/0001-overall-architecture.md) and

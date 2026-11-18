@@ -1,16 +1,16 @@
 # Earnings & Implied Volatility: an event study
 
 <!-- numbers:readme-summary -->
-An event study of how earnings announcements move option implied volatility (IV), on 347
+An event study of how earnings announcements move option implied volatility (IV), on 349
 announcements by 50 large US companies with day 0 from 2024-12-10 to
 2026-10-22. A Python pipeline recomputes IV from DoltHub's open option quotes, lines each announcement up in
 event time and tests seven hypotheses declared before any data was seen, after a simulation gate (G1) has checked each
 test's size on the real event structure. **Measured:** from the last close before the news to the first close after it,
-the 30-day IV falls by 0.199 log points (about 18.1%; p = 5.8e−23, Holm 4.1e−22), ordinary
-volatility does not change (+0.003, p = 0.782), IV is back at its baseline ten sessions later, and the options
+the 30-day IV falls by 0.198 log points (about 18.0%; p = 6.9e−23, Holm 4.8e−22), ordinary
+volatility does not change (+0.003, p = 0.800), IV is back at its baseline ten sessions later, and the options
 priced the earnings-day move about right on average (realised squared move 0.77 × the implied variance, interval
-[0.46, 1.07]). **Provisional:** 431 of the 473 required before-open/after-close labels rest
-on a document (411 on SEC EDGAR filing times); 42 are open. A React app draws the exported results, and a written report sums them up.
+[0.47, 1.07]). **Provisional:** 453 of the 472 required before-open/after-close labels rest
+on a document (411 on SEC EDGAR filing times); 19 are open. A React app draws the exported results, and a written report sums them up.
 <!-- /numbers:readme-summary -->
 
 **Not financial advice.** This is research for learning. It describes the past, ignores transaction costs, covers
@@ -19,9 +19,10 @@ large and liquid US stocks only, and recommends no trade.
 **Status (2026-10-29):** milestones 0–4 are built, adversarially reviewed and fixed, and wait for the owner's review.
 Milestone 5, this README, the [report](docs/report/earnings-vol-report.md) and the screenshots, is a draft that the
 owner has not reviewed yet. Since 2026-11-09 the before-open/after-close labels come from SEC EDGAR filing times
-where no press release was looked up: of the 473 required look-ups, 20 rest on press releases, 411 on an 8-K time, and
-42 are still open. Every result stays **provisional** until those 42 are settled and the 50-event audit of the EDGAR
-labels has run ([EDGAR ledger](docs/validation/edgar-ledger.md)).
+where no press release was looked up: of the 472 required look-ups, 42 rest on press releases, 411 on an 8-K time, and
+19 are still open (counts of 2026-11-17). Every result stays **provisional** until those 19 are settled and the 50-event
+audit of the EDGAR labels has run ([EDGAR ledger](docs/validation/edgar-ledger.md),
+[EDGAR on the coarse sample](docs/validation/edgar-coarse-ledger.md)).
 
 ![The 3D terrain: each company's mean abnormal log IV (mean-adjusted) by event day](docs/images/terrain-default.png)
 
@@ -40,10 +41,10 @@ The story, written backwards from the finished study and revised with the measur
 ## Results
 
 <!-- numbers:readme-results -->
-Daily sample (day-0 window 2024-12-05 to 2026-10-26; the 347 primary events have day 0
+Daily sample (day-0 window 2024-12-05 to 2026-10-26; the 349 primary events have day 0
 from 2024-12-10 to 2026-10-22), market-adjusted (VIX, β per company). **Timing labels
-provisional: 431 of 473 required look-ups done (411 by SEC EDGAR),
-42 open.** H1–H4 are equal-weighted means of
+provisional: 453 of 472 required look-ups done (411 by SEC EDGAR),
+19 open.** H1–H4 are equal-weighted means of
 abnormal log IV in log points; H5 and H6 are log points of crush per standard deviation of the regressor (positive: a
 smaller fall); H7 is the joint test that the implied variance is unbiased for the realised squared move. "G1 size" is
 how often the primary statistic rejects a true null at 5% in gate G1's calibrated simulation (2,000
@@ -51,25 +52,26 @@ replications; pass at most 6.30%). Holm runs over the declared family H1–H7, w
 
 | | Question | n | Estimate | p | G1 size | Holm p (H1–H7) |
 |---|---|---:|---:|---:|---:|---:|
-| H1 | How much does the 30-day IV fall from day −1 to day 0? | 347 | −0.199 | 5.8e−23 | 4.60% | **4.1e−22** |
-| H2 | Is IV abnormally high at day −1? | 356 | +0.232 | 0.0078 | 0.40% | **0.0469**; with 7 seasons 0.0781 |
-| H3 | Is IV back at its baseline at day +10? | 329 | +0.008 | 0.743 | 0.50% | 1 |
-| H4 | Does ordinary volatility (σ_d) change? | 262 | +0.003 | 0.782 | 4.60% | 1 |
-| H5 | Does a bigger earnings surprise change the crush? | 347 | +0.013 per sd | 0.0102 | **9.55%** (fail) | 0.0511 |
-| H6 | Does the prior volatility level change it? | 347 | −0.001 per sd | 0.895 | **8.10%** (fail) | 1 |
-| H7 | Is the implied variance unbiased (a = 0, b = 1)? | 336 | b = 0.77 [0.46, 1.07] | 0.275 | **16.15%** (fail) | 1 |
+| H1 | How much does the 30-day IV fall from day −1 to day 0? | 349 | −0.198 | 6.9e−23 | 4.70% | **4.8e−22** |
+| H2 | Is IV abnormally high at day −1? | 358 | +0.231 | 0.0078 | 0.35% | **0.0469**; with 7 seasons 0.0781 |
+| H3 | Is IV back at its baseline at day +10? | 331 | +0.009 | 0.718 | 0.40% | 1 |
+| H4 | Does ordinary volatility (σ_d) change? | 263 | +0.003 | 0.800 | 4.00% | 1 |
+| H5 | Does a bigger earnings surprise change the crush? | 349 | +0.013 per sd | 0.0079 | **8.45%** (fail) | 0.0469 |
+| H6 | Does the prior volatility level change it? | 349 | −0.002 per sd | 0.828 | **6.75%** (fail) | 1 |
+| H7 | Is the implied variance unbiased (a = 0, b = 1)? | 338 | b = 0.77 [0.47, 1.07] | 0.274 | **17.95%** (fail) | 1 |
 
-- **H1 and H2 are rejected; H3–H7 are not.** H2's p is the floor of a randomisation test over 8 season
+- **H1, H2 and H5 are rejected after Holm; H3, H4, H6 and H7 are not.** H5's rejection (Holm 0.0469) comes from
+  a statistic that G1 found liberal, so it is not trusted. H2's p is the floor of a randomisation test over 8 season
   clusters, so its Holm verdict depends on that count: with the October 2026 tail merged into July
   (7 seasons, as ADR 0005 expected) it is 0.0781, not rejected. Its direction is not in doubt
-  (two-way t 13.43).
-- **H5–H7 failed gate G1**: their statistics reject 9.55%, 8.10% and 16.15% of the time under a true null,
+  (two-way t 13.57).
+- **H5–H7 failed gate G1**: their statistics reject 8.45%, 6.75% and 17.95% of the time under a true null,
   so a rejection by them would not be trusted. They stay in the declared Holm family with their real p-values.
-  Without them (a descriptive sensitivity, not binding) the Holm p would be H1 2.3e−22, H2 0.0234
-  (7 seasons: 0.0469). Which family binds is the owner's decision.
-- 40.1% of day-0 moves exceeded the implied |move|, against 42.5% under fair pricing of a normal
-  move (p 0.319). Exploratory: a steeper term structure at day −1 goes with a larger crush
-  (−0.032 per sd, q 0.0006, from the same liberal two-way t).
+  Without them (a descriptive sensitivity, not binding) the Holm p would be H1 2.8e−22, H2 0.0234
+  (7 seasons: 0.0469). The declared family H1–H7 binds (owner decision, 2026-11-17).
+- 40.4% of day-0 moves exceeded the implied |move|, against 42.5% under fair pricing of a normal
+  move (p 0.389). Exploratory: a steeper term structure at day −1 goes with a larger crush
+  (−0.032 per sd, q 0.0004, from the same liberal two-way t).
 - 14 robustness rows keep their estimate but not their p-value, because G1 found them oversized. The
   crush's same-date correlation after the VIX adjustment is ρ̄ = 0.30: one common date component, which H1's
   two-way statistic is robust to.
@@ -80,9 +82,12 @@ replications; pass at most 6.30%). Holm runs over the declared family H1–H7, w
   planned 0.8 for GOOGL (0.778), IBM (0.668) and the pooled sample (0.790), and every slope
   is below 1 (pooled 0.77). The pre-registration wrongly said ADR 0003 set no tolerance for the slope:
   by the ADR's own reading its slope falsifier is met (3 of 5 slopes, GOOGL, GS and IBM, are below
-  0.8), while its correlation and crush-ratio falsifiers are not. Exploratory checks are consistent with
-  the low daily slopes being largely a clock effect (pooled slope 0.954 over 21 sessions; IBM
-  stays below 1), without proving it. The vendor's undocumented `iv_current` is closest to our ATM IV at
+  0.8), while its correlation and crush-ratio falsifiers are not. The slopes rise with the horizon (pooled
+  0.954 over 21 sessions; IBM stays below 1), which fits day-to-day noise in our series; an
+  earlier reading as a calendar-clock effect was wrong (report §3.2). Pre-registered checks of the forward, the filters
+  and the expiry roll on GOOGL, GS and IBM found no fault, and the strike rule could not decide
+  ([vx-iv-checks](docs/validation/vx-iv-checks/results.md)). They also found that the vendor's 2026 option snapshots
+  are taken during the day, before the close (exploratory). The vendor's undocumented `iv_current` is closest to our ATM IV at
   21 sessions, and reads as a 30-calendar-day IV.
 
 Every measured number in this block is filled in by `tools/report_numbers.py` from `data/derived/results.parquet`,

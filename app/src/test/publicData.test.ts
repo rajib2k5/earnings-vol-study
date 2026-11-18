@@ -154,14 +154,14 @@ describe('public/data/*.json (written by the Python exporter)', () => {
     expect(r.data.holm.untested).toEqual([])
     expect(r.data.holm.left_family).toEqual([])
     // the binding Holm p over H1 to H7 (fix R1)
-    expect(primary.map((x) => x.p_holm)).toEqual([4.06e-22, 0.04688, 1, 1])
+    expect(primary.map((x) => x.p_holm)).toEqual([4.814e-22, 0.04688, 1, 1])
     // H2's binding season-cut counterfactual (G = 7) is not rejected, and its primary row says so
     const h2 = primary[1]
     expect(h2.note).toContain('Holm p 0.07812')
     const cut = r.data.rows.filter((x) => x.subgroup_key === 'season_cut')
     expect(cut.map((x) => [x.hypothesis, x.role, x.n_clusters, x.p_holm])).toEqual([['H2', 'robustness', 7, 0.07812]])
     // the caveat on the family names the size failure of H5 to H7 and the post-gate sensitivity
-    expect(r.data.caveats[1]).toMatch(/H5 \(9\.55%\), H6 \(8\.10%\), H7 \(16\.15%\) failed gate G1's regression size check/)
+    expect(r.data.caveats[1]).toMatch(/H5 \(8\.45%\), H6 \(6\.75%\), H7 \(17\.95%\) failed gate G1's regression size check/)
     expect(r.data.caveats[1]).toMatch(/Sensitivity, not binding: over the family without them \(H1, H2, H3, H4\)/)
     // the page groups the robustness rows under hypotheses; none may fall into the "no hypothesis" group
     expect(groupByHypothesis(rowsWithRole(r.data.rows, 'robustness')).every((g) => g.hypothesis !== null)).toBe(true)
@@ -230,28 +230,29 @@ describe('public/data/*.json (written by the Python exporter)', () => {
     expect(r.data.holm.left_family).toEqual(tests.data.holm.left_family)
     expect(r.data.holm.left_family).toEqual([])
     // the old binding family is now a descriptive sensitivity
-    expect(r.data.holm.post_gate).toEqual({ family: ['H1', 'H2', 'H3', 'H4'], p_holm: { H1: 2.32e-22, H2: 0.02344, H3: 1, H4: 1 }, season_cut: { H2: 0.04688 } })
+    expect(r.data.holm.post_gate).toEqual({ family: ['H1', 'H2', 'H3', 'H4'], p_holm: { H1: 2.751e-22, H2: 0.02344, H3: 1, H4: 1 }, season_cut: { H2: 0.04688 } })
   })
   it('drivers.json keeps H5 to H7 primary with their real p-values, binding Holm p, failed G1 size and a note (fix R1)', () => {
     const r = parseDrivers(envelopeOf('drivers').data)
     if (!r.ok) throw new Error(r.error)
     const primaries = r.data.models.flatMap((m) => m.terms.filter((t) => t.role === 'primary'))
     expect(primaries.map((t) => [t.hypothesis, t.statistic, t.p_holm, t.g1_size, t.g1_reps])).toEqual([
-      ['H5', 'twoway_date_t', 0.05108, 0.0955, 2000],
-      ['H6', 'twoway_date_t', 1, 0.081, 2000],
-      ['H7', 'twoway_date_wald', 1, 0.1615, 2000],
+      ['H5', 'twoway_date_t', 0.04688, 0.0845, 2000],
+      ['H6', 'twoway_date_t', 1, 0.0675, 2000],
+      ['H7', 'twoway_date_wald', 1, 0.1795, 2000],
     ])
     for (const t of primaries) {
       expect(t.p_value, t.term).not.toBeNull()
       expect(t.note, t.term).toMatch(/^Size check failed: .* a rejection by it would not be trusted/)
     }
-    expect(primaries[0].p_value).toBe(0.01022)
-    // none of them is rejected at 5%
-    expect(primaries.every((t) => (t.p_holm as number) > 0.05)).toBe(true)
+    expect(primaries[0].p_value).toBe(0.007886)
+    // H5 is rejected at 5% by the binding Holm p (since the rebuild of 2026-11-17), but its size check failed, so its
+    // note says the rejection is not trusted; H6 and H7 are not rejected
+    expect(primaries.map((t) => (t.p_holm as number) <= 0.05)).toEqual([true, false, false])
     // the caveat the page repeats next to the coefficient tables (fix R7): exactly one, and it gives the measured range
     const nearTables = r.data.caveats.filter((c) => /exploratory/i.test(c))
     expect(nearTables).toHaveLength(1)
-    expect(nearTables[0]).toContain('8.10% to 9.55%')
+    expect(nearTables[0]).toContain('6.75% to 8.45%')
   })
   it('drivers.json gate G1 is the one of tests.json: same band and replications, and the same rejection rate for every primary statistic', () => {
     const d = parseDrivers(envelopeOf('drivers').data)
@@ -291,11 +292,11 @@ describe('public/data/*.json (written by the Python exporter)', () => {
     expect(reg.g1_rate).toBe(h7?.rejection_rate)
     expect(reg.g1_pass).toBe(h7?.pass)
     // fix R1: H7 stays primary, with its binding Holm p and its failed size check
-    expect([reg.role, reg.wald_p, reg.p_holm, reg.g1_rate, reg.g1_pass, reg.g1_bar]).toEqual(['primary', 0.2751, 1, 0.1615, false, 0.063])
+    expect([reg.role, reg.wald_p, reg.p_holm, reg.g1_rate, reg.g1_pass, reg.g1_bar]).toEqual(['primary', 0.2742, 1, 0.1795, false, 0.063])
     expect([reg.wald_p, reg.p_holm]).toEqual([h7Term?.p_value, h7Term?.p_holm])
     expect(reg.g1_bar).toBe(d.data.g1.band[1])
     // the one-way Wald failed its own check (the H7 cluster_date_wald entry of drivers.json), so its p-value is withheld
-    expect([reg.g1_rate_one_way, reg.g1_pass_one_way, reg.wald_p_one_way]).toEqual([0.17, false, null])
+    expect([reg.g1_rate_one_way, reg.g1_pass_one_way, reg.wald_p_one_way]).toEqual([0.1885, false, null])
     expect(reg.g1_rate_one_way).toBe(h7OneWay?.rejection_rate)
   })
 })

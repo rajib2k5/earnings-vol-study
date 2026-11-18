@@ -67,13 +67,26 @@ def edgar_scope(viol: list[dict], checks: pd.DataFrame) -> set[str]:
     return {v["event_id"] for v in viol} | pr
 
 
+def coarse_scope(ev: pd.DataFrame) -> set[str]:
+    """The `coarse` events that the first pass leaves not_checked (owner decision
+    2026-11-17, params timing.edgar_coarse): EDGAR is read for them too, with the
+    same rules (timing.resolve_edgar). Most need no look-up under the default
+    rule; the few that do are in edgar_scope() already."""
+    m = (ev["sample"] == "coarse") & (ev["timing_status"] == "not_checked")
+    return set(ev.loc[m, "event_id"])
+
+
 def build(p, inp: dict, price_loader, edgar_loader=None) -> dict:
     """Every table of the layer, from in-memory inputs. Pure apart from the loaders.
 
     With params timing.edgar true, EDGAR (ADR 0002 §3, source 1) is read for the
     events that need a look-up: a first pass finds them under the default rule
     (press releases, then the calendar label, and the gap trigger on that
-    label), and a second pass resolves them from their Item 2.02 8-Ks.
+    label), and a second pass resolves them from their Item 2.02 8-Ks. With
+    timing.edgar_coarse true as well (owner decision 2026-11-17), the second
+    pass also reads EDGAR for every `coarse` event the first pass leaves
+    not_checked (coarse_scope). edgar_coarse has no effect while timing.edgar
+    is false, because EDGAR is then not read at all.
     `edgar_loader(security_id)` returns that security's Item 2.02 8-Ks
     (ingest.edgar.cached_item_202), read from the local cache only.
     """
@@ -134,11 +147,12 @@ def build(p, inp: dict, price_loader, edgar_loader=None) -> dict:
 
     ev, eps_tbl, tc, triggered, viol, outcome = one_pass(None)
     edgar_on = bool(t.get("edgar", False))
+    edgar_coarse = edgar_on and bool(t.get("edgar_coarse", False))
     pending_gap = []
     if edgar_on:
         if edgar_loader is None:
             raise ValueError("params timing.edgar is true, but no EDGAR loader was given")
-        scope = edgar_scope(viol, checks)
+        scope = edgar_scope(viol, checks) | (coarse_scope(ev) if edgar_coarse else set())
         by_id = base.set_index("event_id")
         filings = {sid: edgar_loader(sid) for sid in sorted({by_id.loc[e, "security_id"] for e in scope})}
         readings = {e: edgar.read_acceptance(by_id.loc[e, "announce_date"], filings[by_id.loc[e, "security_id"]],
@@ -149,14 +163,22 @@ def build(p, inp: dict, price_loader, edgar_loader=None) -> dict:
         # the check can be made; the 8-K's label stands until a release says otherwise.
         pending_gap = sorted(e for e, src in zip(ev["event_id"], ev["timing_source"])
                              if src == "edgar" and triggered[e])
+    # An 8-K against the label, or on another date, keeps the calendar label and day 0
+    # until a press release is read (owner decision 2026-11-17). Listed for that check;
+    # an event whose release was read has the outcome "press_release" and is not listed.
+    release_checks = sorted(e for e, o in outcome.items() if o in timing.EDGAR_WAIT_FOR_RELEASE)
     events_mod.enforce_lookup_invariant(viol, bool(t["lookups_complete"]))
+    required = events_mod.required_lookups(ev, triggered, sessions, date.fromisoformat(t["lookup_from"]),
+                                           int(t["lookup_sessions_before"]), ranges)
 
     problems = events_mod.check_chain(ev)
     if problems:
         raise RuntimeError(f"prev/next chain broken: {problems[:5]}")
     return {"session": session_tbl, "market_daily": mkt, "security": security, "ticker_alias": aliases,
             "events": ev, "eps": eps_tbl, "timing_check": tc, "lookup_violations": viol, "sessions": sessions,
-            "edgar_on": edgar_on, "edgar_outcome": outcome, "edgar_pending_gap_checks": pending_gap}
+            "required_lookups": required,
+            "edgar_on": edgar_on, "edgar_coarse": edgar_coarse, "edgar_outcome": outcome,
+            "edgar_pending_gap_checks": pending_gap, "edgar_press_release_checks": release_checks}
 
 
 def report(out: dict, p) -> dict:
@@ -169,10 +191,24 @@ def report(out: dict, p) -> dict:
         "timing_status": ev["timing_status"].value_counts().sort_index().to_dict(),
         "exclusion_reason": ev["exclusion_reason"].fillna("(none)").value_counts().sort_index().to_dict(),
         "eps_match_status": eps_tbl["match_status"].value_counts().sort_index().to_dict(),
+        "required_lookups": {
+            "n": len(out["required_lookups"]),
+            "by_status": pd.Series([v["timing_status"] for v in out["required_lookups"]], dtype=object)
+                         .value_counts().sort_index().to_dict(),
+            # where the label of a required look-up that is done comes from (press_release or edgar)
+            "done_by_source": pd.Series([v["timing_source"] for v in out["required_lookups"]
+                                         if v["timing_status"] != "not_checked"], dtype=object)
+                              .value_counts().sort_index().to_dict(),
+        },
         "lookup_violations": {
             "n": len(out["lookup_violations"]),
             "by_sample": pd.Series([v["sample"] for v in out["lookup_violations"]]).value_counts().sort_index().to_dict(),
             "by_reason": pd.Series([x for v in out["lookup_violations"] for x in v["reasons"]]).value_counts().sort_index().to_dict(),
+            # Why each open required look-up is still open, by EDGAR's outcome. Since EDGAR also reads the
+            # `coarse` events (timing.edgar_coarse), edgar.outcome counts more than the required look-ups.
+            "by_edgar_outcome": (pd.Series([out["edgar_outcome"].get(v["event_id"], "not_read")
+                                            for v in out["lookup_violations"]], dtype=object)
+                                 .value_counts().sort_index().to_dict() if out.get("edgar_on") else {}),
         },
         "gap_verdict_on_timing_used": tc["gap_verdict_yf"].fillna("(none)").value_counts().sort_index().to_dict(),
         "lookups_complete": bool(p["timing"]["lookups_complete"]),
@@ -188,8 +224,13 @@ def edgar_report(out: dict) -> dict:
     outcome = {e: o for e, o in out["edgar_outcome"].items() if o is not None}
     s = pd.Series(outcome, dtype=object)
     resolved = [e for e, o in outcome.items() if o in ("confirmed", "inferred")]
+    waiting: dict = {}
+    for e in out["edgar_press_release_checks"]:
+        by_sample = waiting.setdefault(outcome[e], {})
+        by_sample[ev.loc[e, "sample"]] = by_sample.get(ev.loc[e, "sample"], 0) + 1
     return {
         "on": True,
+        "coarse": bool(out["edgar_coarse"]),
         "consulted": len(outcome),
         "outcome": s.value_counts().sort_index().to_dict(),
         "resolved_by_label": ev.loc[resolved, "timing_used"].fillna("(non-session D)").value_counts()
@@ -199,6 +240,8 @@ def edgar_report(out: dict) -> dict:
                                  for o in sorted(set(outcome.values())) if o not in ("confirmed", "inferred",
                                                                                       "press_release")},
         "pending_gap_checks": len(out["edgar_pending_gap_checks"]),
+        "press_release_checks": {"n": len(out["edgar_press_release_checks"]),
+                                 "by_outcome": {o: dict(sorted(s.items())) for o, s in sorted(waiting.items())}},
     }
 
 

@@ -281,7 +281,8 @@ def test_the_primary_crush_sample_is_the_funnel_s_last_step(committed):
     mine = set(em.loc[em["eligible_crush"] & (em["sample"] == "daily"), "event_id"])
     _, last = funnel.run_steps(committed["events"], committed["iv_daily"], committed["eps"], committed["session"],
                                params.load())
-    assert mine == set(last["event_id"]) and len(mine) == 347
+    # 349 since 2026-11-17: Berkshire's own releases gave BRK.B:2025-02-28 and BRK.B:2026-02-27 a day 0.
+    assert mine == set(last["event_id"]) and len(mine) == 349
     # event_measures is 1:1 with events and carries event_iv's crush unchanged.
     assert len(em) == len(committed["events"]) == em["event_id"].nunique()
     j = committed["event_measures"].merge(committed["event_iv"], on="event_id", suffixes=("", "_iv"))

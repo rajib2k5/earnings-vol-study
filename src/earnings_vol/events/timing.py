@@ -26,7 +26,12 @@
 # the event not_checked for a press-release look-up. params.yaml sets
 # timing.edgar true since 2026-11-09 (owner decision): 411 of the 473
 # required look-ups are resolved by EDGAR, 20 by press releases, 42 are open
-# (docs/validation/edgar-ledger.md §6).
+# (docs/validation/edgar-ledger.md §6). Since 2026-11-17 (owner decision,
+# params timing.edgar_coarse) EDGAR is also read for the `coarse` events the
+# default rule leaves not_checked, with the same rules
+# (docs/validation/edgar-coarse-ledger.md). Counts of 2026-11-17, after
+# Berkshire Hathaway's own releases: 472 required look-ups, 42 by press
+# release, 411 by EDGAR, 19 open (edgar-coarse-ledger.md §8-§9).
 # =============================================================================
 
 import csv
@@ -229,6 +234,11 @@ def resolve_timing(announce: date, timing_raw: str | None, readings: list[Readin
 #                   label is `corrected` only once a press release agrees
 EDGAR_OUTCOMES = ("confirmed", "inferred", "no_8k", "edgar_holiday", "several_8k", "other_date",
                   "during_session", "contradicts")
+# The outcomes that are listed for a press-release check because the release
+# could move day 0 (owner decision 2026-11-17: "A contradiction waits for its
+# press-release check before any day 0 moves"). Until a release is read, the
+# event keeps the calendar label and its day 0.
+EDGAR_WAIT_FOR_RELEASE = ("contradicts", "other_date")
 
 
 def resolve_edgar(announce: date, timing_raw: str | None, reading: dict | None, sessions: Sessions) -> dict:

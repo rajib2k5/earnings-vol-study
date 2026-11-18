@@ -13,13 +13,14 @@ Inputs, all committed:
 - ``data/derived/vx_crosscheck.json``, the aggregates of the Cboe VX* cross-check (``tools/vx_crosscheck.py``; its
   inputs, the VX* files and ``volatility_history``, stay local, so it is read here, not recomputed).
 
-Some look-up counts are not in the committed data. ADR 0002 §3 requires 473 look-ups (``LOOKUPS_REQUIRED``); the
-events run counts them with the Yahoo gap flags, and one of those flags (``outside_flag_yf``) stays local. So do the
-reasons the 42 still-open look-ups are open (``LOOKUPS_OPEN_BY_REASON``) and the 37 EDGAR labels that the price gap
-questions (``LOOKUPS_GAP_QUESTIONED``). They are pinned here with their source (docs/validation/edgar-ledger.md §10,
-``events_report.json`` of the EDGAR run) and, when the local stage report exists, ``--check`` compares each of them
-with that report. How many look-ups each document resolved (``timing_source`` = ``press_release`` or ``edgar``) is
-counted from the committed ``data/derived/events.parquet``.
+Some look-up counts are not in the committed data. ADR 0002 §3 requires 472 look-ups (``LOOKUPS_REQUIRED``); the
+events run counts them with the Yahoo gap flags, and one of those flags (``outside_flag_yf``) stays local. So do how
+many of them each document resolved (``LOOKUPS_DONE_BY_SOURCE``), why the 19 still-open look-ups are open
+(``LOOKUPS_OPEN_BY_REASON``) and the 37 EDGAR labels that the price gap questions (``LOOKUPS_GAP_QUESTIONED``). They
+are pinned here with their source (docs/validation/edgar-coarse-ledger.md, ``events_report.json`` of the EDGAR run)
+and, when the local stage report exists, ``--check`` compares each of them with that report. How many labels in all
+rest on each document (``timing_source`` = ``press_release`` or ``edgar``, required or not) is counted from the
+committed ``data/derived/events.parquet``.
 
 Templates and outputs:
 
@@ -51,16 +52,21 @@ import pandas as pd
 REPO = Path(__file__).resolve().parents[1]
 MINUS = "−"
 
-# ADR 0002 §3's required look-ups (milestone 1 §6: 422 by date, 30 null labels, 43 gap triggers, some with two
-# reasons) and, since SEC EDGAR is the timing source (params timing.edgar, 2026-11-09), why the open ones are open
-# and how many EDGAR labels the price gap questions. Not derivable from committed data: the gap trigger also reads the
-# local outside_flag_yf. Measured by `python -m earnings_vol.events.run` with timing.edgar true (events_report.json:
-# lookup_violations.n = 42, edgar.outcome, edgar.pending_gap_checks); docs/validation/edgar-ledger.md §6 and §10.
-LOOKUPS_REQUIRED = 473
-LOOKUPS_OPEN_BY_REASON = {"no_8k": 26, "edgar_holiday": 11, "other_date": 4, "contradicts": 1}
+# ADR 0002 §3's required look-ups (events that the default rule requires to be checked against a document), how
+# many of them are done and by which document, why the open ones are open (EDGAR's outcome), and how many EDGAR labels
+# the price gap questions. Not derivable from committed data: the gap trigger also reads the local outside_flag_yf.
+# Measured by `python -m earnings_vol.events.run` (events_report.json: required_lookups.n and .done_by_source,
+# lookup_violations.n and .by_edgar_outcome, edgar.pending_gap_checks). Since EDGAR also labels the `coarse` events
+# (timing.edgar_coarse, 2026-11-17), edgar.outcome and events.parquet's timing_source count more than the required
+# look-ups, so the required counts are pinned from required_lookups, not derived from them.
+LOOKUPS_REQUIRED = 472
+LOOKUPS_DONE_BY_SOURCE = {"press_release": 42, "edgar": 411}
+LOOKUPS_OPEN_BY_REASON = {"no_8k": 3, "edgar_holiday": 11, "other_date": 4, "contradicts": 1}
 LOOKUPS_GAP_QUESTIONED = 37
+LOOKUPS_UTC_REFERENCE = 20  # docs/validation/edgar-ledger.md §2, reference A: the press releases EDGAR's UTC time was checked on
 LOOKUPS_AUDIT = 50  # ADR 0002 §3, milestone 1: confirmed EDGAR labels to check against press releases (not run)
-LOOKUPS_SOURCE = "docs/validation/edgar-ledger.md §6 (events_report.json in the local stage, EDGAR run)"
+LOOKUPS_SOURCE = ("docs/validation/edgar-coarse-ledger.md (events_report.json in the local stage, EDGAR run with "
+                  "timing.edgar_coarse)")
 VX_FILE = "data/derived/vx_crosscheck.json"
 
 TEMPLATES = "docs/report/templates"
@@ -150,7 +156,8 @@ def load(root: Path) -> dict:
         "vx": json.loads((root / VX_FILE).read_text()),
         "events_sha256": hashlib.sha256((root / "data/derived/events.parquet").read_bytes()).hexdigest(),
         **events_timing(pd.read_parquet(root / "data/derived/events.parquet",
-                                        columns=["timing_source", "timing_status", "timing_raw", "sample"])),
+                                        columns=["timing_source", "timing_status", "timing_raw", "sample",
+                                                 "exclusion_reason"])),
     }
 
 
@@ -158,14 +165,16 @@ def events_timing(ev: pd.DataFrame) -> dict:
     """What events.parquet says about the timing labels: where they came from, and what is left `not_checked`.
 
     `not_checked_open_unlabelled` is the open required look-ups (ADR 0002 §3) that have no calendar label: a
-    `not_checked` event with a NULL label that can enter a sample (`sample` is not `none`). The other open
-    look-ups have a label, so they are `lookups.left` less this count.
+    `not_checked` event with a NULL label that can enter a sample (`sample` is not `none`) and is not a
+    `duplicate_row` (a second calendar row of another event's release, which needs no look-up of its own). The other
+    open look-ups have a label, so they are `lookups.left` less this count.
     """
     nc = ev[ev["timing_status"] == "not_checked"]
     unlabelled = nc["timing_raw"].isna()
+    duplicate = nc["exclusion_reason"].eq("duplicate_row") if "exclusion_reason" in nc else False
     return {"timing_source": ev["timing_source"].value_counts().to_dict(),
             "not_checked": int(len(nc)), "not_checked_unlabelled": int(unlabelled.sum()),
-            "not_checked_open_unlabelled": int((unlabelled & (nc["sample"] != "none")).sum())}
+            "not_checked_open_unlabelled": int((unlabelled & (nc["sample"] != "none") & ~duplicate).sum())}
 
 
 def one(df: pd.DataFrame, what: str) -> pd.Series:
@@ -173,6 +182,24 @@ def one(df: pd.DataFrame, what: str) -> pd.Series:
     if len(df) != 1:
         raise ValueError(f"{what}: expected 1 row, found {len(df)}")
     return df.iloc[0]
+
+
+def holm(p: dict[str, float]) -> dict[str, float]:
+    """Holm's step-down adjusted p-values: the k-th smallest p times (m - k + 1), capped at 1, never falling down the
+    ordered list (ties keep their given order)."""
+    out, run_max, m = {}, 0.0, len(p)
+    for k, (h, x) in enumerate(sorted(p.items(), key=lambda kv: kv[1])):
+        run_max = max(run_max, min(1.0, (m - k) * x))
+        out[h] = run_max
+    return out
+
+
+def h5_holm_with_h2_cut(rows: dict, cut: pd.Series) -> float:
+    """H5's Holm p over H1-H7 with H2's raw p taken from its season-cut row (one season fewer): whether H5's
+    rejection rests on H2's randomisation floor."""
+    raw = {h: rows[h].p_value for h in rows}
+    raw["H2"] = cut.p_value
+    return holm(raw)["H5"]
 
 
 def primary(r: pd.DataFrame, h: str) -> pd.Series:
@@ -246,6 +273,8 @@ def numbers(d: dict) -> dict[str, tuple[str, str]]:
         raise ValueError(f"event_paths.json has {len(days)} primary events, meta.json {smp['n_events']}")
     put("sample.first_day0", days[0], "event_paths.json per_event: the earliest day 0")
     put("sample.last_day0", days[-1], "event_paths.json per_event: the latest day 0")
+    put("sample.n_2026", fint(sum(day >= "2026-01-01" for day in days)),
+        "event_paths.json per_event: primary events with day 0 in 2026 (the vendor's intraday-snapshot regime)")
     put("meta.schema_version", d["meta_env"]["schema_version"], "meta.json schema_version")
     put("meta.source_commit", d["meta_env"]["source_commit"], "meta.json source_commit")
     put("meta.params_hash", prov["params_hash"][:16], "meta.json provenance.params_hash (first 16)")
@@ -275,13 +304,25 @@ def numbers(d: dict) -> dict[str, tuple[str, str]]:
         "events.parquet: not_checked events with a NULL timing_raw")
     put("timing.not_checked_labelled", fint(d["not_checked"] - d["not_checked_unlabelled"]),
         "events.parquet: not_checked events with a timing_raw (they keep the calendar's label)")
-    done = fun["lookups"]["n_done"]
-    put("lookups.done", fint(done), "sample_funnel.json lookups.n_done")
+    left = sum(LOOKUPS_OPEN_BY_REASON.values())
+    done = LOOKUPS_REQUIRED - left
+    if done != sum(LOOKUPS_DONE_BY_SOURCE.values()):
+        raise ValueError(f"look-up pins: {LOOKUPS_REQUIRED} required − {left} open = {done}, but the done ones by "
+                         f"source add up to {sum(LOOKUPS_DONE_BY_SOURCE.values())}")
+    documented = fun["lookups"]["n_done"]
+    if documented < done:
+        raise ValueError(f"sample_funnel.json: {documented} labels rest on a document, fewer than the {done} required "
+                         "look-ups done")
+    put("lookups.done", fint(done), "lookups.required − lookups.left (required look-ups done)")
     put("lookups.required", fint(LOOKUPS_REQUIRED), LOOKUPS_SOURCE)
-    put("lookups.left", fint(LOOKUPS_REQUIRED - done), "lookups.required − lookups.done")
+    put("lookups.left", fint(left), f"{LOOKUPS_SOURCE}: required look-ups still not_checked")
+    put("lookups.documented", fint(documented), "sample_funnel.json lookups.n_done (every label that rests on a document)")
+    put("lookups.extra", fint(documented - done),
+        "lookups.documented − lookups.done (labels on a document that the default rule does not require)")
+    put("lookups.utc_reference", fint(LOOKUPS_UTC_REFERENCE), "docs/validation/edgar-ledger.md §2, reference A")
     put("lookups.left_unlabelled", fint(d["not_checked_open_unlabelled"]),
-        "events.parquet: not_checked, NULL timing_raw, sample not none (open look-ups with no calendar label)")
-    put("lookups.left_labelled", fint(LOOKUPS_REQUIRED - done - d["not_checked_open_unlabelled"]),
+        "events.parquet: not_checked, NULL timing_raw, sample not none, not a duplicate_row (open look-ups with no calendar label)")
+    put("lookups.left_labelled", fint(left - d["not_checked_open_unlabelled"]),
         "lookups.left − lookups.left_unlabelled (open look-ups that keep the calendar's label)")
     daily_open = {x["tercile"]: x["timing_status_counts"]["not_checked"] for x in fun["by_move_tercile"]
                   if x["sample"] == "daily"}
@@ -291,7 +332,8 @@ def numbers(d: dict) -> dict[str, tuple[str, str]]:
         put(f"funnel.daily_open.t{t}", fint(n), f"sample_funnel.json by_move_tercile[daily, {t}] not_checked")
     put("funnel.daily_open", fint(sum(daily_open.values())), "sample_funnel.json by_move_tercile[daily] not_checked")
     for src in ("press_release", "edgar"):
-        put(f"lookups.{src}", fint(d["timing_source"].get(src, 0)), f"events.parquet timing_source == {src}")
+        put(f"lookups.{src}", fint(LOOKUPS_DONE_BY_SOURCE[src]), f"{LOOKUPS_SOURCE}: required look-ups done by {src}")
+        put(f"lookups.all_{src}", fint(d["timing_source"].get(src, 0)), f"events.parquet timing_source == {src}")
     for why, n in LOOKUPS_OPEN_BY_REASON.items():
         put(f"lookups.open.{why}", fint(n), LOOKUPS_SOURCE)
     put("lookups.gap_questioned", fint(LOOKUPS_GAP_QUESTIONED), LOOKUPS_SOURCE)
@@ -356,6 +398,8 @@ def numbers(d: dict) -> dict[str, tuple[str, str]]:
     put("h2.cut_g", fint(cut.n_clusters), "results.parquet H2 season_cut n_clusters")
     put("h2.cut_p", fp(cut.p_value), "results.parquet H2 season_cut p_value")
     put("h2.cut_p_holm", fp(cut.p_holm), "results.parquet H2 season_cut p_holm")
+    put("h5.p_holm_h2cut", fp(h5_holm_with_h2_cut(rows, cut)),
+        "Holm over results.parquet's H1-H7 primary p_value, H2's taken from its season_cut row")
     tw = one(r[(r.hypothesis == "H2") & (r.statistic == "twoway_season_t") & (r.family == "event_test")
                & (r.adjustment == "market")], "H2 twoway_season_t")
     put("h2.twoway_t", fnum(tw.stat, 2), "results.parquet H2 twoway_season_t stat")
@@ -660,6 +704,7 @@ def vx_numbers(vxd: dict, put) -> None:
             put(f"vx.{label}.{nm.lower()}.r", fnum(x["r"], 3), f"{src} exploratory {part} {nm} r")
             put(f"vx.{label}.{nm.lower()}.r_ci", fci(x["r_block20"]["lo"], x["r_block20"]["hi"], 3),
                 f"{src} exploratory {part} {nm} r_block20")
+            put(f"vx.{label}.{nm.lower()}.slope", fnum(x["slope"], 3), f"{src} exploratory {part} {nm} slope")
     put("vx.d0.dropped", fint(ex["bar_i_without_day0"]["n_dropped"]), f"{src} exploratory bar_i_without_day0 n_dropped")
     for k, by in ex["stepped_changes"]["by_k"].items():
         for nm in names + ["pooled"]:
@@ -768,6 +813,10 @@ def vx_prose_check(vxd: dict, cm30_sessions: int) -> None:
          ex["bar_i_tue_to_fri"]["GOOGL"]["r"] > 0.8 and ex["bar_i_tue_to_fri"]["pooled"]["r"] > 0.8
          and ex["bar_i_tue_to_fri"]["IBM"]["r"] < 0.8
          and all(ex["bar_i_tue_to_fri"][nm]["r"] > b1[nm]["r"] for nm in ("GOOGL", "pooled"))),
+        ("VX exploratory: on Tuesday-to-Friday changes, which span no weekend, every slope stays below 1 and the "
+         "pooled slope is no higher than on all changes, so a clock effect is not the main cause of the low slopes",
+         all(ex["bar_i_tue_to_fri"][nm]["slope"] < 1 for nm in names + ["pooled"])
+         and ex["bar_i_tue_to_fri"]["pooled"]["slope"] <= b2["pooled"]["slope"]),
         ("VX exploratory: without the changes that end on a day 0, r falls for every name and the pooled sample is "
          "below 0.8; IBM's is the lowest",
          all(ex["bar_i_without_day0"][nm]["r"] < b1[nm]["r"] for nm in names + ["pooled"])
@@ -827,8 +876,9 @@ def prose_check(d: dict, rows: dict) -> None:
          and not any(g1[h]["pass"] for h in ("H5", "H6", "H7"))),
         ("G1: H2 and H3 conservative (below the band)", g1["H2"]["rejection_rate"] < lo
          and g1["H3"]["rejection_rate"] < lo),
-        ("Holm: H1 and H2 rejected, H3-H7 not", ph["H1"] <= 0.05 and ph["H2"] <= 0.05
-         and all(ph[h] > 0.05 for h in ("H3", "H4", "H5", "H6", "H7"))),
+        ("Holm: H1, H2 and H5 rejected; H3, H4, H6 and H7 not", ph["H1"] <= 0.05 and ph["H2"] <= 0.05
+         and ph["H5"] <= 0.05 and all(ph[h] > 0.05 for h in ("H3", "H4", "H6", "H7"))),
+        ("H5's Holm rejection does not rest on H2's season floor", h5_holm_with_h2_cut(rows, cut) <= 0.05),
         ("H2's season cut not rejected; post-gate H2 and its cut rejected", cut.p_holm > 0.05 and pg_h2 <= 0.05
          and pg_cut <= 0.05),
         ("H2: the season count of the cut is one less", cut.n_clusters == rows["H2"].n_clusters - 1),
@@ -924,12 +974,15 @@ def cross_check(d: dict, rows: dict) -> None:
     same("sample size meta.json/sample_funnel.json", meta["sample"]["n_events"], n_last, 0)
     same("sample size meta.json/H1 n", meta["sample"]["n_events"], rows["H1"].n, 0)
     tsc = fun["timing_status_counts"]
-    same("look-ups done / timing statuses", fun["lookups"]["n_done"],
+    same("labels on a document / timing statuses", fun["lookups"]["n_done"],
          sum(tsc[k] for k in ("confirmed", "corrected", "date_corrected", "inferred", "ambiguous", "no_document")), 0)
-    same("look-ups done / press releases + EDGAR (events.parquet)", fun["lookups"]["n_done"],
+    same("labels on a document / press releases + EDGAR (events.parquet)", fun["lookups"]["n_done"],
          d["timing_source"].get("press_release", 0) + d["timing_source"].get("edgar", 0), 0)
-    same("look-ups open / pinned reasons", LOOKUPS_REQUIRED - fun["lookups"]["n_done"],
-         sum(LOOKUPS_OPEN_BY_REASON.values()), 0)
+    # That the pins add up (required = done by source + open by reason) is refused earlier, in numbers().
+    for src in ("press_release", "edgar"):
+        if LOOKUPS_DONE_BY_SOURCE[src] > d["timing_source"].get(src, 0):
+            problems.append(f"required look-ups done by {src}: {LOOKUPS_DONE_BY_SOURCE[src]} pinned, but only "
+                            f"{d['timing_source'].get(src, 0)} labels in events.parquet rest on one")
     # Gate G1: the export's rates and pass flags against results.parquet's calibrated rows and the band.
     hi = tests["g1"]["band"][1]
     for x in tests["g1"]["calibrated"]:
@@ -1029,17 +1082,23 @@ def check_lookups_against_stage(root: Path) -> str:
     if not rep.exists():
         return f"look-ups: {LOOKUPS_REQUIRED} pinned, not re-measured (no local {rep.name})"
     stage = json.loads(rep.read_text())
-    left = stage["lookup_violations"]["n"]
-    done = load(root)["sample_funnel"]["lookups"]["n_done"]
-    if left + done != LOOKUPS_REQUIRED:
-        raise ValueError(f"look-ups: the stage report says {left} left + {done} done = {left + done}, "
-                         f"not {LOOKUPS_REQUIRED}")
+    req, viol = stage["required_lookups"], stage["lookup_violations"]
+    if req["n"] != LOOKUPS_REQUIRED:
+        raise ValueError(f"look-ups: the stage report requires {req['n']} look-ups, not {LOOKUPS_REQUIRED}")
+    left = viol["n"]
+    if left != sum(LOOKUPS_OPEN_BY_REASON.values()):
+        raise ValueError(f"look-ups: the stage report has {left} open look-ups, "
+                         f"not {sum(LOOKUPS_OPEN_BY_REASON.values())}")
+    if req["done_by_source"] != LOOKUPS_DONE_BY_SOURCE:
+        raise ValueError(f"look-ups: the stage report's done look-ups by source are {req['done_by_source']}, "
+                         f"not {LOOKUPS_DONE_BY_SOURCE}")
     ed = stage.get("edgar") or {}
     if not ed.get("on"):
         raise ValueError("look-ups: the stage report has no EDGAR run (params timing.edgar), but the pins are from one")
-    open_by = {k: v for k, v in ed["outcome"].items() if k not in ("confirmed", "inferred", "press_release")}
-    if open_by != LOOKUPS_OPEN_BY_REASON:
-        raise ValueError(f"look-ups: the stage report's open look-ups are {open_by}, not {LOOKUPS_OPEN_BY_REASON}")
+    if viol["by_edgar_outcome"] != LOOKUPS_OPEN_BY_REASON:
+        raise ValueError(f"look-ups: the stage report's open look-ups are {viol['by_edgar_outcome']}, "
+                         f"not {LOOKUPS_OPEN_BY_REASON}")
+    done = req["n"] - left
     null_open = stage["lookup_violations"]["by_reason"].get("null_label", 0)
     if null_open != load(root)["not_checked_open_unlabelled"]:
         raise ValueError(f"look-ups: the stage report has {null_open} open look-ups with a NULL label, "
@@ -1047,7 +1106,7 @@ def check_lookups_against_stage(root: Path) -> str:
     if ed["pending_gap_checks"] != LOOKUPS_GAP_QUESTIONED:
         raise ValueError(f"look-ups: the stage report's gap-questioned EDGAR labels are {ed['pending_gap_checks']}, "
                          f"not {LOOKUPS_GAP_QUESTIONED}")
-    return (f"look-ups: {left} left + {done} done = {LOOKUPS_REQUIRED}; open by reason and "
+    return (f"look-ups: {left} left + {done} done = {LOOKUPS_REQUIRED}; done by source, open by reason and "
             f"{LOOKUPS_GAP_QUESTIONED} gap-questioned, as pinned (local {rep.name})")
 
 

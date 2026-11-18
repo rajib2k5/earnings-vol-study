@@ -1,0 +1,128 @@
+seed 1; INFLATE {'filter': 1.1, 'forward': 1.35, 'roll_iv': 1.2, 'strike': 1.35}
+probe rule                     run         expected     got                                      result  detail
+P01   (a) differential         clean       MATCH        MATCH                                    ok      untagged 0, unspecified 0, fields 0, tags 0, accepted 0; n {'atoms': 1603, 'days': 500, 'mismatching_records': 0}
+P02   (a) differential         fwd3        MISMATCH     MISMATCH                                 ok      untagged 1603, unspecified 500, fields {'forward_n_strikes': 1603, 'forward': 1603, 'w_atm': 1603, 'iv_atm': 1603, 'strike_lo': 14, 'strike_hi': 14, 'n_strikes_valid': 2, 'cm30_iv': 497, 'cm30_blind_iv': 500, 'sigma_d_iv': 500, 'event_var': 194}, tags {'untagged': 1603, 'upstream': 500}, accepted 0; n {'atoms': 1603, 'days': 500, 'mismatching_records': 2103}
+P03   (a) differential         minmid      MISMATCH     MISMATCH                                 ok      untagged 5, unspecified 0, fields {'n_strikes_valid': 5}, tags {'untagged': 5}, accepted 0; n {'atoms': 1603, 'days': 500, 'mismatching_records': 5}
+P04   (a) differential         bracket     MISMATCH     MISMATCH                                 ok      untagged 833, unspecified 423, fields {'atm_method': 833, 'w_atm': 833, 'iv_atm': 833, 'cm30_iv': 308, 'cm30_blind_iv': 285, 'sigma_d_iv': 406, 'event_var': 115}, tags {'untagged': 833, 'upstream': 423}, accepted 0; n {'atoms': 1603, 'days': 500, 'mismatching_records': 1256}
+P05   (a) differential         wrongpair   MISMATCH     MISMATCH                                 ok      untagged 500, unspecified 0, fields {'cm30_blind_iv': 500, 'cm30_exp_lo': 287, 'cm30_iv': 287}, tags {'untagged': 500}, accepted 0; n {'atoms': 1603, 'days': 500, 'mismatching_records': 500}
+P06   (b) forward vs close     clean       NO FAULT     NO FAULT                                 ok      median |d| 0.84 bp [0.71, 0.95] n 458
+P07   (b) forward vs close     fwdrev1     FAULT        FAULT                                    ok      median |d| 16.75 bp [14.58, 18.93] n 458
+P08   (b) synthetic truth      clean       NO FAULT     NO FAULT                                 ok      worst |error| event_var 3.7e-16, sigma_d_iv 4.0e-15, cm30_iv 1.6e-15, cm30_blind_iv 1.2e-15, sessions_to_next_event 0.0e+00; n {'days': 500, 'sigma_d_iv': 500, 'cm30_iv': 497, 'cm30_blind_iv': 500, 'event_var': 194}
+P09   (b) synthetic truth      tau1        FAULT        FAULT                                    ok      worst |error| event_var 2.5e-04, sigma_d_iv 4.0e-15, cm30_iv 1.1e-02, cm30_blind_iv 8.5e-03, sessions_to_next_event 0.0e+00; n {'days': 500, 'sigma_d_iv': 500, 'cm30_iv': 497, 'cm30_blind_iv': 500, 'event_var': 194}
+P10   (c) forward share        clean       NO FAULT     NO FAULT                                 ok      share +0.004 [+0.002, +0.005] n 1207 dropped 0 sigma_f 1.17 bp
+P11   (c) forward share        fwdrev      FAULT        FAULT                                    ok      share +0.356 [+0.200, +0.466] n 1207 dropped 0 sigma_f 9.12 bp
+P12   (c) filter share         flat_filt   NO FAULT     NO FAULT                                 ok      share -0.016 [-0.064, +0.011] n 628 group 253 base 280; any-ref -0.011 [-0.037, +0.005] n 1101 group 418 base 409 NO FAULT
+P13   (c) filter share         lowvol_filt FAULT        FAULT                                    ok      share +0.229 [+0.115, +0.296] n 504 group 257 base 208; any-ref +0.158 [+0.075, +0.223] n 1059 group 613 base 325 UNCLEAR
+P14   (c) strike share         lowvol      NO FAULT     NO FAULT                                 ok      share +0.023 [-0.041, +0.076] n 809 group 221 base 588; any-ref -0.005 [-0.043, +0.019] n 1123 group 469 base 654 NO FAULT
+P15   (c) strike share         lowvol_drop FAULT        FAULT                                    ok      share +0.293 [+0.172, +0.373] n 484 group 302 base 182; any-ref +0.194 [+0.003, +0.326] n 1083 group 780 base 303 UNCLEAR
+P16   (c) roll share cm30_iv   clean       NO FAULT     NO FAULT                                 ok      share -0.002 [-0.008, +0.001] n 446 group 98 base 348
+P17   (c) roll share cm30_iv   ts_slope    NOT NO FAULT UNCLEAR                                  ok      share +0.485 [+0.022, +0.622] n 446 group 98 base 348
+P18   (c) roll share cm30_iv   mbump       FAULT        FAULT                                    ok      share +0.235 [+0.132, +0.305] n 446 group 98 base 348
+P19   (c) filter share         sess_filt   NOT NO FAULT UNCLEAR (any reference does not clear)   ok      share -0.001 [-0.005, +0.001] n 648 group 8 base 472; any-ref +0.180 [+0.100, +0.223] n 1099 group 238 base 524 FAULT
+P20   (c) strike share         sess_drop   NOT NO FAULT UNCLEAR                                  ok      share +0.036 [-0.050, +0.101] n 618 group 164 base 454; any-ref +0.241 [+0.060, +0.374] n 1114 group 614 base 500 UNCLEAR
+P21   (b) synthetic truth      spans0      FAULT        FAULT                                    ok      worst |error| event_var 3.7e-16, sigma_d_iv 6.7e-02, cm30_iv 3.4e-02, cm30_blind_iv 1.2e-15, sessions_to_next_event 0.0e+00; n {'days': 500, 'sigma_d_iv': 500, 'cm30_iv': 496, 'cm30_blind_iv': 500, 'event_var': 191}
+P22   (a) differential         spans0      MISMATCH     MISMATCH                                 ok      untagged 10, unspecified 10, fields {'spans_next_event': 10, 'cm30_method': 5, 'cm30_exp_hi': 2, 'cm30_iv': 5, 'event_var': 10, 'sigma_d_iv': 10, 'cm30_exp_lo': 1}, tags {'untagged': 10, 'upstream': 10}, accepted 0; n {'atoms': 1603, 'days': 500, 'mismatching_records': 20}
+null probes P01, P06, P08, P10, P12, P14, P16: all clear: True
+
+Oracle share of each planted (c) fault: 1 - var(control changes)/var(planted changes), same observations
+  P11 fwdrev      vs clean  : oracle +0.172 (n 1207)
+  P12 flat_filt   vs flat   : oracle +0.002 (n 1101)  must be < 0.05: ok
+  P13 lowvol_filt vs lowvol : oracle +0.293 (n 1059)
+  P15 lowvol_drop vs lowvol : oracle +0.301 (n 1083)
+  P17 ts_slope    vs clean  : oracle +0.550 (n 446)
+  P18 mbump       vs clean  : oracle +0.236 (n 446)
+  P19 sess_filt   vs lowvol : oracle +0.129 (n 1099)  must be >= 0.10: ok
+  P20 sess_drop   vs lowvol : oracle +0.121 (n 1114)  must be >= 0.10: ok
+
+M1 no strike is ever unlisted -> no 'listing' switch: ok (0 listing switches)
+P12 is not vacuous: filter switches, clean 253, any 418 >= 30: ok
+
+Every (c) share by run, point [lo, hi] (lo: one-sided Bonferroni 0.05/12; hi: one-sided 95%; both widened
+by INFLATE); forward, filter, strike and roll_iv are the rules; the rest are descriptive:
+run                           forward                    filter                    strike                   roll_iv                   listing                     other                roll_blind
+clean         +0.004 [+0.002, +0.005]         +nan [+nan, +nan]   -0.001 [-0.070, +0.030]   -0.002 [-0.008, +0.001]   -0.002 [-0.046, +0.015]   +0.001 [-0.032, +0.029]   +0.262 [+0.014, +0.391]
+fwd3          +0.005 [+0.003, +0.007]         +nan [+nan, +nan]   -0.001 [-0.074, +0.027]   -0.002 [-0.006, +0.002]   -0.001 [-0.048, +0.016]   +0.000 [-0.032, +0.025]   +0.264 [+0.014, +0.393]
+minmid        +0.004 [+0.002, +0.005]         +nan [+nan, +nan]   -0.001 [-0.070, +0.030]   -0.002 [-0.008, +0.001]   -0.002 [-0.046, +0.015]   +0.001 [-0.032, +0.029]   +0.262 [+0.014, +0.391]
+bracket       +0.001 [+0.001, +0.002]         +nan [+nan, +nan]   -0.008 [-0.143, +0.041]   -0.003 [-0.009, -0.001]   -0.007 [-0.124, +0.038]   -0.001 [-0.026, +0.004]   +0.265 [+0.018, +0.389]
+wrongpair     +0.004 [+0.002, +0.005]         +nan [+nan, +nan]   -0.001 [-0.070, +0.030]   -0.001 [-0.007, +0.002]   -0.002 [-0.046, +0.015]   +0.001 [-0.032, +0.029]   +0.121 [+0.025, +0.189]
+fwdrev        +0.356 [+0.200, +0.466]         +nan [+nan, +nan]   +0.160 [-0.167, +0.424]   +0.014 [-0.023, +0.048]   +0.083 [-0.091, +0.217]   +0.080 [-0.109, +0.217]   +0.252 [+0.003, +0.408]
+fwdrev1       +0.964 [+0.588, +1.228]         +nan [+nan, +nan]   +0.174 [-0.526, +0.662]   -0.031 [-0.092, +0.008]   +0.072 [-0.256, +0.301]   +0.104 [-0.321, +0.354]   +0.210 [-0.048, +0.365]
+tau1          +0.004 [+0.002, +0.005]         +nan [+nan, +nan]   +0.005 [-0.064, +0.044]   -0.003 [-0.013, +0.002]   +0.003 [-0.041, +0.022]   +0.003 [-0.032, +0.037]   +0.286 [+0.017, +0.411]
+spans0        +0.004 [+0.002, +0.005]         +nan [+nan, +nan]   -0.001 [-0.070, +0.030]   +0.214 [-0.049, +0.450]   -0.002 [-0.046, +0.015]   +0.001 [-0.032, +0.029]   +0.262 [+0.014, +0.391]
+fwdcommon     +0.027 [+0.013, +0.038]         +nan [+nan, +nan]   +0.096 [-0.391, +0.378]   +0.019 [-0.026, +0.055]   +0.038 [-0.260, +0.221]   +0.061 [-0.151, +0.183]   +0.267 [+0.013, +0.422]
+lowvol        +0.006 [+0.004, +0.008]         +nan [+nan, +nan]   +0.023 [-0.041, +0.076]   -0.002 [-0.020, +0.008]         +nan [+nan, +nan]   +0.023 [-0.041, +0.076]   +0.577 [+0.191, +0.700]
+lowvol_drop   +0.009 [+0.001, +0.015]         +nan [+nan, +nan]   +0.293 [+0.172, +0.373]   +0.017 [-0.038, +0.050]   +0.252 [+0.150, +0.312]   +0.041 [-0.012, +0.079]   +0.528 [+0.128, +0.688]
+lowvol_filt   +0.005 [+0.003, +0.007]   +0.229 [+0.115, +0.296]   +0.268 [+0.114, +0.352]   -0.006 [-0.044, +0.019]         +nan [+nan, +nan]   +0.040 [-0.011, +0.070]   +0.507 [+0.151, +0.618]
+flat          +0.005 [+0.003, +0.007]         +nan [+nan, +nan]   +0.023 [-0.038, +0.070]   -0.001 [-0.013, +0.006]         +nan [+nan, +nan]   +0.023 [-0.038, +0.070]   +0.581 [+0.192, +0.704]
+flat_filt     +0.005 [+0.003, +0.006]   -0.016 [-0.064, +0.011]   -0.012 [-0.099, +0.032]   +0.029 [-0.017, +0.077]         +nan [+nan, +nan]   +0.004 [-0.038, +0.028]   +0.584 [+0.192, +0.709]
+sess_filt     +0.006 [+0.003, +0.007]   -0.001 [-0.005, +0.001]   +0.025 [-0.056, +0.087]   +0.029 [-0.025, +0.080]         +nan [+nan, +nan]   +0.026 [-0.054, +0.087]   +0.537 [+0.165, +0.662]
+sess_drop     +0.008 [+0.003, +0.015]         +nan [+nan, +nan]   +0.036 [-0.050, +0.101]   -0.008 [-0.034, +0.007]   -0.000 [-0.002, -0.000]   +0.037 [-0.049, +0.101]   +0.539 [+0.171, +0.674]
+ts_slope      +0.002 [+0.002, +0.003]         +nan [+nan, +nan]   +0.017 [-0.175, +0.106]   +0.485 [+0.022, +0.622]   +0.005 [-0.116, +0.070]   +0.014 [-0.075, +0.051]   +0.267 [+0.008, +0.402]
+ts_mild       +0.003 [+0.002, +0.004]         +nan [+nan, +nan]   +0.004 [-0.094, +0.050]   +0.247 [+0.007, +0.371]   +0.000 [-0.063, +0.032]   +0.005 [-0.039, +0.023]   +0.264 [+0.009, +0.396]
+mbump         +0.004 [+0.003, +0.005]         +nan [+nan, +nan]   -0.005 [-0.077, +0.027]   +0.235 [+0.132, +0.305]   -0.004 [-0.052, +0.013]   +0.000 [-0.036, +0.030]   +0.297 [+0.110, +0.423]
+twoshort      +0.004 [+0.002, +0.005]         +nan [+nan, +nan]   -0.001 [-0.070, +0.030]   -0.001 [-0.007, +0.002]   -0.002 [-0.046, +0.015]   +0.001 [-0.032, +0.029]   +0.395 [+0.011, +0.524]
+fixedgrid     +0.004 [+0.002, +0.005]         +nan [+nan, +nan]   -0.008 [-0.074, +0.028]   -0.003 [-0.008, -0.000]         +nan [+nan, +nan]   -0.008 [-0.074, +0.028]   +0.262 [+0.014, +0.390]
+
+Any-reference versions of filter and strike (the guard of §6):
+clean       filter         +nan [+nan, +nan] NO FAULT                       strike   +0.016 [-0.020, +0.034] NO FAULT
+fwd3        filter         +nan [+nan, +nan] NO FAULT                       strike   +0.016 [-0.019, +0.034] NO FAULT
+minmid      filter         +nan [+nan, +nan] NO FAULT                       strike   +0.016 [-0.020, +0.034] NO FAULT
+bracket     filter         +nan [+nan, +nan] NO FAULT                       strike   +0.015 [-0.040, +0.054] NO FAULT
+wrongpair   filter         +nan [+nan, +nan] NO FAULT                       strike   +0.016 [-0.020, +0.034] NO FAULT
+fwdrev      filter         +nan [+nan, +nan] NO FAULT                       strike   +0.023 [-0.288, +0.187] UNCLEAR
+fwdrev1     filter         +nan [+nan, +nan] NO FAULT                       strike   +0.024 [-0.574, +0.388] UNCLEAR
+tau1        filter         +nan [+nan, +nan] NO FAULT                       strike   +0.012 [-0.023, +0.029] NO FAULT
+spans0      filter         +nan [+nan, +nan] NO FAULT                       strike   +0.016 [-0.020, +0.034] NO FAULT
+fwdcommon   filter         +nan [+nan, +nan] NO FAULT                       strike   -0.058 [-0.520, +0.201] UNCLEAR
+lowvol      filter         +nan [+nan, +nan] NO FAULT                       strike   -0.005 [-0.043, +0.019] NO FAULT
+lowvol_drop filter         +nan [+nan, +nan] NO FAULT                       strike   +0.194 [+0.003, +0.326] UNCLEAR
+lowvol_filt filter   +0.158 [+0.075, +0.223] UNCLEAR                        strike   +0.204 [+0.072, +0.309] UNCLEAR
+flat        filter         +nan [+nan, +nan] NO FAULT                       strike   -0.008 [-0.051, +0.017] NO FAULT
+flat_filt   filter   -0.011 [-0.037, +0.005] NO FAULT                       strike   -0.011 [-0.051, +0.013] NO FAULT
+sess_filt   filter   +0.180 [+0.100, +0.223] FAULT                          strike   +0.174 [+0.071, +0.227] UNCLEAR
+sess_drop   filter         +nan [+nan, +nan] NO FAULT                       strike   +0.241 [+0.060, +0.374] UNCLEAR
+ts_slope    filter         +nan [+nan, +nan] NO FAULT                       strike   +0.034 [-0.054, +0.083] NO FAULT
+ts_mild     filter         +nan [+nan, +nan] NO FAULT                       strike   +0.030 [-0.031, +0.059] NO FAULT
+mbump       filter         +nan [+nan, +nan] NO FAULT                       strike   +0.015 [-0.021, +0.034] NO FAULT
+twoshort    filter         +nan [+nan, +nan] NO FAULT                       strike   +0.016 [-0.020, +0.034] NO FAULT
+fixedgrid   filter         +nan [+nan, +nan] NO FAULT                       strike   +0.003 [-0.059, +0.029] NO FAULT
+
+Descriptive (§11), 30-day level: forward share of cm30_iv and cm30_blind_iv (same draws), -2 rho1 (95%),
+strike switches seen in cm30_blind_iv, and the blind residual line (sum, joint bootstrap, 95%):
+run                   forward_cm30_iv     forward_cm30_blind_iv              lag1_cm30_iv        lag1_cm30_blind_iv      strike_cm30_blind_iv                 blind_sum
+clean         +0.002 [+0.001, +0.003]   +0.001 [+0.001, +0.002]   -0.101 [-0.262, +0.112]   -0.045 [-0.205, +0.121]   -0.185 [-0.495, +0.166]   +0.078 [-0.146, +0.344]
+fwd3          +0.003 [+0.001, +0.004]   +0.002 [+0.001, +0.003]   -0.101 [-0.262, +0.114]   -0.043 [-0.204, +0.124]   -0.178 [-0.497, +0.168]   +0.088 [-0.138, +0.348]
+minmid        +0.002 [+0.001, +0.003]   +0.001 [+0.001, +0.002]   -0.101 [-0.262, +0.112]   -0.045 [-0.205, +0.121]   -0.185 [-0.495, +0.166]   +0.078 [-0.146, +0.344]
+bracket       +0.001 [+0.000, +0.002]   +0.001 [+0.000, +0.001]   -0.090 [-0.243, +0.113]   -0.054 [-0.211, +0.113]   +0.095 [-0.011, +0.243]   +0.360 [+0.162, +0.579]
+wrongpair     +0.002 [+0.001, +0.003]   +0.001 [+0.001, +0.002]   -0.109 [-0.268, +0.104]   -0.052 [-0.214, +0.131]   +0.003 [-0.083, +0.044]   +0.125 [+0.043, +0.214]
+fwdrev        +0.227 [+0.112, +0.303]   +0.140 [+0.092, +0.191]   +0.042 [-0.139, +0.251]   +0.027 [-0.132, +0.215]   -0.045 [-0.708, +0.315]   +0.346 [-0.040, +0.688]
+fwdrev1       +0.670 [+0.423, +0.860]   +0.492 [+0.315, +0.664]   +0.177 [+0.009, +0.387]   +0.132 [-0.013, +0.303]   +0.544 [-1.313, +1.351]   +1.245 [+0.212, +2.090]
+tau1          +0.002 [+0.001, +0.003]   +0.002 [+0.001, +0.003]   -0.073 [-0.229, +0.134]   -0.099 [-0.251, +0.069]   -0.201 [-0.680, +0.153]   +0.087 [-0.220, +0.360]
+spans0        +0.002 [+0.001, +0.003]   +0.001 [+0.001, +0.002]   +0.234 [-0.157, +0.551]   -0.045 [-0.205, +0.121]   -0.185 [-0.495, +0.166]   +0.078 [-0.146, +0.344]
+fwdcommon     +0.022 [+0.007, +0.038]   +0.014 [+0.002, +0.030]   -0.070 [-0.295, +0.205]   +0.025 [-0.142, +0.211]   -0.758 [-2.774, +0.553]   -0.477 [-1.476, +0.528]
+lowvol        +0.002 [+0.000, +0.003]   +0.001 [+0.001, +0.002]   -0.071 [-0.187, +0.105]   -0.003 [-0.142, +0.165]   +0.063 [-0.130, +0.182]   +0.641 [+0.340, +0.837]
+lowvol_drop   +0.008 [-0.002, +0.023]   +0.003 [-0.000, +0.008]   +0.191 [+0.035, +0.339]   +0.085 [-0.021, +0.253]   +0.538 [-0.067, +1.049]   +1.068 [+0.581, +1.600]
+lowvol_filt   +0.002 [+0.000, +0.005]   +0.001 [+0.001, +0.002]   +0.134 [-0.041, +0.284]   -0.040 [-0.275, +0.216]   +0.146 [-0.675, +0.588]   +0.654 [+0.156, +1.045]
+flat          +0.001 [+0.000, +0.003]   +0.001 [+0.000, +0.002]   -0.060 [-0.170, +0.107]   +0.002 [-0.135, +0.169]   +0.059 [-0.147, +0.181]   +0.641 [+0.337, +0.834]
+flat_filt     +0.001 [+0.000, +0.002]   +0.001 [+0.000, +0.002]   -0.064 [-0.171, +0.096]   +0.003 [-0.134, +0.172]   -0.073 [-0.411, +0.167]   +0.512 [+0.248, +0.746]
+sess_filt     +0.001 [+0.000, +0.003]   +0.001 [+0.000, +0.002]   -0.036 [-0.153, +0.142]   +0.031 [-0.098, +0.208]   +0.306 [+0.079, +0.439]   +0.844 [+0.560, +1.039]
+sess_drop     +0.005 [-0.001, +0.020]   +0.002 [+0.000, +0.008]   +0.018 [-0.149, +0.255]   +0.037 [-0.092, +0.216]   +0.458 [+0.123, +0.688]   +0.999 [+0.680, +1.259]
+ts_slope      +0.001 [+0.000, +0.002]   +0.001 [+0.001, +0.002]   -0.076 [-0.232, +0.084]   -0.052 [-0.215, +0.115]   +0.001 [-0.195, +0.087]   +0.270 [+0.092, +0.400]
+ts_mild       +0.002 [+0.001, +0.003]   +0.001 [+0.001, +0.002]   -0.186 [-0.385, +0.028]   -0.058 [-0.222, +0.109]   -0.010 [-0.194, +0.086]   +0.256 [+0.086, +0.393]
+mbump         +0.002 [+0.001, +0.002]   +0.001 [+0.001, +0.002]   -0.061 [-0.349, +0.239]   -0.064 [-0.198, +0.093]   -0.182 [-0.575, +0.193]   +0.117 [-0.104, +0.402]
+twoshort      +0.003 [+0.001, +0.004]   +0.002 [+0.001, +0.004]   -0.150 [-0.293, +0.098]   -0.081 [-0.237, +0.071]   +0.019 [-0.073, +0.064]   +0.416 [+0.137, +0.572]
+fixedgrid     +0.002 [+0.001, +0.004]   +0.002 [+0.001, +0.003]   -0.102 [-0.261, +0.115]   -0.047 [-0.206, +0.121]   -0.014 [-0.187, +0.117]   +0.249 [+0.064, +0.399]
+
+Common-mode forward (descriptive, an UPPER BOUND: sigma_c^2 = var(forward-vs-close d)/2):
+  clean      sigma_c 0.95 bp (sigma_f 1.17): fixed +0.003 [+0.002, +0.003], cm30_iv +0.001 [+0.001, +0.002], cm30_blind_iv +0.001 [+0.001, +0.001]
+  lowvol     sigma_c 0.83 bp (sigma_f 0.91): fixed +0.005 [+0.003, +0.006], cm30_iv +0.001 [+0.000, +0.003], cm30_blind_iv +0.001 [+0.000, +0.002]
+  fwdcommon  sigma_c 9.95 bp (sigma_f 1.17): fixed +0.363 [+0.184, +0.509], cm30_iv +0.221 [+0.116, +0.312], cm30_blind_iv +0.135 [+0.077, +0.196]
+  fwdcommon oracle: fixed +0.190, strike observations +0.198, cm30_blind_iv +0.057; the forward rule reads +0.027 [+0.013, +0.038] NO FAULT, the strike rule +0.096 [-0.391, +0.378] UNCLEAR, forward vs close 9.51 bp NO FAULT
+
+roll, clean: switch changes cm30_iv 98 of 446 (excluded {'class_switch': 6, 'no_common_expiry': 9, 'no_value': 6}), blind 102 of 458; sample 467 changes, excluded {'event_zone': 32}
+roll, ts_slope: switch changes cm30_iv 98 of 446 (excluded {'class_switch': 6, 'no_common_expiry': 9, 'no_value': 6}), blind 102 of 458; sample 467 changes, excluded {'event_zone': 32}
+roll, mbump: switch changes cm30_iv 98 of 446 (excluded {'class_switch': 6, 'no_common_expiry': 9, 'no_value': 6}), blind 102 of 458; sample 467 changes, excluded {'event_zone': 32}
+Power notes (not probes): forward vs close, 4-strike reversed forward: median |d| 9.69 bp, verdict NO FAULT; its (c) forward share 0.356 (FAULT). Roll, term structure (tau/21)^-0.25: +0.247 [+0.007, +0.371] UNCLEAR, oracle +0.301. Two-shortest mutant: roll_iv NO FAULT, (a) MISMATCH.
+
+all probes as expected: True
+elapsed: 216 s

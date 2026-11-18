@@ -6,6 +6,11 @@
   *Since 2026-11-09* SEC EDGAR is in use: 431 of the 473 look-ups are done (20 press releases, 411 EDGAR 8-K
   times), 42 are open and the 50-event audit has not run, so the labels are still provisional. H1–H7, G1 and the
   sample counts did not change; 13 exploratory rows moved slightly ([milestone 5](05-report-and-polish.md) §12).
+  *Since 2026-11-17* EDGAR also labels the `coarse` events and Berkshire Hathaway is timed from its own
+  releases: 453 of the 472 required look-ups are done (42 press releases, 411 EDGAR) and 19 are open. Two BRK.B
+  events joined the primary sample (347 → 349) and every statistic was re-run; H5's Holm p fell from 0.0511 to
+  0.0469 ([report](../report/earnings-vol-report.md) §4.5, [EDGAR-coarse ledger](../validation/edgar-coarse-ledger.md) §8–§9). The figures on this page are those of its date; the report has the
+  current ones.
 - **Date:** 2026-10-29
 - **Scope:** the regressor columns of `event_measures` that milestone 3 left null; OLS with two-way clustered
   inference (`stats/regression.py`); the crush regression of H5 and H6 and the implied-against-realised test of H7
@@ -92,7 +97,7 @@ Choices the ADRs and the data model leave open, and the ones this milestone adde
 | 21 | Holm runs over the **declared family H1–H7** with H5–H7's real p-values; their failed G1 size check is printed beside their rows, not used to drop them. The family without every failed G1 primary (H1–H4) is kept as **descriptive rows** (`holm_post_gate`) | Holm over the post-gate family H1–H4 as binding (the first build's choice, refuted at review) | ADR 0005 declared G1's size designs for the intercept-only H1–H4 and called a regression's reference-check failure "not a reason to drop a hypothesis"; a gate added after milestone 0 can only lower H1–H4's Holm p (§9 R1) | Two Holm numbers per hypothesis to read; a rejection of H5–H7 would rest on a liberal statistic (none is rejected) |
 | 22 | No regression on `mixed` (33 events, one season) | fit it | A model needs 10 events beyond its columns (`drivers.MIN_DF`) | none |
 | 23 | The ρ̂̄ investigation lives in **pure functions** (`stats/common_factor.py`, tested) and a kept prototype; it changes no test | change H1's statistic | The brief: investigate, do not change H1's primary | none |
-| 24 | **A regression size check, added at milestone 4** (G1 for H5–H7): run before the results, reported beside each row, not binding on Holm's family (`results.SIZE_GATED` = H1–H4) | no size check for regressions (milestone 0's plan) | ADR 0005 §3 had flagged the regressions as "not separately simulated"; the check shows their statistics are liberal (§6.1) | **The owner may choose the post-gate family instead** (`SIZE_GATED` = all seven): H1 2.3e−22, H2 0.0234, G = 7 0.0469 |
+| 24 | **A regression size check, added at milestone 4** (G1 for H5–H7): run before the results, reported beside each row, not binding on Holm's family (`results.SIZE_GATED` = H1–H4) | no size check for regressions (milestone 0's plan) | ADR 0005 §3 had flagged the regressions as "not separately simulated"; the check shows their statistics are liberal (§6.1) | **Owner decision, 2026-11-17: the declared family H1–H7 binds.** The post-gate family (`SIZE_GATED` = all seven: H1 2.3e−22, H2 0.0234, G = 7 0.0469) stays a descriptive sensitivity |
 
 ---
 
@@ -535,8 +540,8 @@ Explain it back (interview questions):
 - **The common date component** (§6.6): whether ADR 0004's market model should add an equal-weighted single-stock IV
   factor next to VIX is an owner decision; it would change every market-adjusted number. Whether the component is
   a factor of its own or VIX entering in another form is not measured.
-- **Which Holm family binds** is the owner's call (decisions table row 24): the declared H1–H7 (now) or the post-gate
-  H1–H4 (the sensitivity rows).
+- **Which Holm family binds** was the owner's call (decisions table row 24). On 2026-11-17 the owner chose the declared
+  H1–H7; the post-gate H1–H4 stays as the sensitivity rows.
 - **SIZE assumes the rank date's share count** (decision 5); a share-count history from Yahoo would remove it.
 - **G1's H7 calibration** reads ν from one sample kurtosis (5.62); the stress designs bracket it (normal 12.30%,
   t(4.5) 20.50%) and every one fails.

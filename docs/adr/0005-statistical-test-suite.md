@@ -921,6 +921,9 @@ happens.
      (`results` rows `holm_post_gate`). The owner may choose that family instead (milestone-4 page, decisions table
      row 24; code `results.SIZE_GATED`). `stats/run.py result_rows` refuses a G1 report that lacks a verdict for any
      hypothesis it writes rows for (fix R2: a missing verdict used to count as a pass).
+   - *Dated note, 2026-11-17: owner decision.* The owner chose the declared family H1–H7 (milestone-4 page,
+     decisions table row 24). Holm keeps running over H1–H7, as it has since the milestone-4 review, and the
+     post-gate family H1–H4 stays a descriptive sensitivity (`holm_post_gate` rows). No code or result changed.
 5. **Mutations to try at review, and what must catch each:**
 
    | Mutation | Caught by |
