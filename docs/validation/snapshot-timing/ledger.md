@@ -63,7 +63,44 @@ now pushes the draft with the plan and freezes it in a second push.
 
 ## 2. The code freeze
 
-_(after the plan push)_
+| Item | Value |
+|---|---|
+| plan push | `f59e5c5` (plan, map, ledger and the check's code) |
+| code freeze | `f59e5c5`: no code changed after the plan push; this ledger commit changes `ledger.md` only |
+| fresh clone of `f59e5c5` | plan and map SHA-256 equal §1; `tests/test_snapshot_timing.py` + layering: 69 passed; `tools/snapshot_timing_map.py --check`: "timing map ok: 84 off, 8 late, 3 unknown of 1222 sessions" |
+| hand mutants | `mutants_check.py`: T1–T5 and C1–C19, 24 of 24 caught, module restored |
+| full suite (working tree = `f59e5c5`) | 776 passed |
+
+**Plumbing run** (`tools/snapshot_timing_check.py --plumbing`, 2026-11-18, on the real inputs; it stops before any
+fit). Block C equals `crush_mean_adj` and `dsigma_d_mean_adj` row by row (the run stops otherwise). Counts:
+
+| | n | day 0 off | day −1 off | both | day +10 off | late day +10 | Σ s_e (off baseline share) |
+|---|---|---|---|---|---|---|---|
+| H1 | 349 | 67 | 46 | 15 | | 1 | |
+| H2 | 358 | | 51 | | | 1 | 56.58 (151 late baseline sessions in 30 events) |
+| H3 | 331 | | | | 59 | 1 | 42.66 |
+| H4 | 263 | 49 | 28 | 11 | | 0 | |
+
+All equal the plan's §4 and §5a (H4: 49 + 28 − 11 = 66 events with day −1 or day 0 off). No crush or ΔSIGMA_D
+event has day −1 or day 0 late or unknown. The lines equal the published se (0.011237, 0.017046, 0.023384,
+0.011169).
+
+Block rows (rows / off rows / ISO weeks), against the simulation of plan §12 (one world, every level present):
+
+| Block | Real | Simulation |
+|---|---|---|
+| cm30 O | 16,879 / 1,278 / 100 | 18,690 / 1,382 / 104 |
+| cm30 P | 288 / 37 / 69 | 297 / 45 / 69 |
+| cm30 A | 303 / 35 / 69 | 308 / 35 / 70 |
+| cm30 C | 349 / 67 and 46 / 75 | 349 / 67 / 75 |
+| σ P | 203 / 27 / 63 | 227 / 35 / 66 |
+| σ A | 168 / 18 / 58 | 241 / 25 / 68 |
+| σ C | 263 / 49 and 28 / 74 | 263 / 49 / 74 |
+
+**What this changes, recorded before the run:** the real data lack some `ok` snapshots and σ_d levels that the
+simulation had, so the real blocks have fewer off rows, most of all for σ (P 27 against 35, A 18 against 25). The
+simulated power is therefore an upper bound, most of all for H4, and the tests' size was measured with more treated
+rows than the real blocks have. The plan is not changed; the results file will repeat this.
 
 ## 3. The run
 
