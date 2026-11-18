@@ -234,6 +234,36 @@ year's median spread from that all-days median; bar iii passes when it is at mos
   intervals overlap. In the median, `iv_current` sits 0.26 vol points above our IV and the index
   2.30 above `iv_current`.
 
+**The 2026 snapshot timing (pre-registered check, 2026-11-18; owner decision on question 9).** From
+2026-02-19 the vendor often took the option snapshot during the trading day, before the close: on
+76 sessions of 2026 (and 8 in 2024–2025); the other sessions stay at the close. A
+frozen map classifies each session by the gap between the parity spot and the closing price
+(`docs/validation/snapshot-timing/`). On such an "off" day 0 the 30-day IV sits +0.0191 in log terms above
+its close level (90% interval [0.0031, 0.0348]), estimated from the one-session changes next to the event. The
+check plugs these level errors into each primary mean and tests the shift against a line of one published standard
+error: SMALL means two one-sided tests at 5% (a restricted wild bootstrap by ISO week, 9,999 draws) put the
+shift inside the line.
+
+| | Shift of the mean | 90% interval | Line (1 se) | Largest bound / line | Verdict |
+|---|---:|---|---:|---:|---|
+| H1 | +0.0027 | [−0.0009, 0.0062] | 0.0112 | 0.55 | SMALL |
+| H2 | −0.0005 | [−0.0033, 0.0024] | 0.0170 | 0.20 | SMALL |
+| H3 | +0.0005 | [0.0000, 0.0010] | 0.0234 | 0.04 | SMALL |
+| H4 | 0.0000 | [−0.0098, 0.0098] | 0.0112 | 0.88 | SMALL |
+
+For H2 and H3 the shift is shown to be well inside one standard error. For H1 and H4 the result rests on the check's
+neighbour estimate of the level errors and on an identity check of that estimate, which passed (p
+0.63 for the 30-day IV, 0.90 for σ_d) but catches a violation worth one line
+only about one time in five. H4 passes narrowly (p 0.040 and 0.036 against 0.05), and the
+noisier direct estimate from the crush rows cannot exclude a shift of about one line for H4 (exploratory, after the
+run). So the rows of section 4.1 stay as they are, with the 2026 events in. H5–H7 are not covered by the check;
+section 4.1 shows them without the off events and without 2026. The robustness, path and PERSIST_1/5 tables are not
+checked. Two descriptive results: on changes with both ends at the close, the Cboe slope of 2026 is
+0.809 against 0.799 for 2020–2025, and 0.599 on changes with an off end,
+so the timing accounts for the lower 2026 slope; and the 2026 crush is smaller than 2025's within company
+(+0.056, 95% interval [0.028, 0.083]), but not mainly because of the timing: among events whose day −1 and
+day 0 are both at the close the gap is +0.051 ([0.014, 0.088]).
+
 ### 3.3 Event variance and the implied move
 
 For two expiries that both span the event, w_j = σ_d² τ_j + E, where τ_j is the time to expiry in sessions, σ_d² the
@@ -324,6 +354,22 @@ A descriptive sensitivity drops the three hypotheses whose size check failed and
 2.8e−22, H2 0.0234, and H2 with 7 seasons 0.0469, which would be rejected.
 Dropping hypotheses after seeing their size check can only lower the others' Holm p, so it is not used as binding
 here (milestone 4, decisions table row 24).
+
+**H5–H7 without the 2026 snapshot timing (descriptive; not covered by the timing check, section 3.2).** The same
+regressions without the 98 events whose day −1 or day 0 snapshot was taken during the day
+(93 for H7), and without the 155 events with day 0 in 2026
+(154 for H7). Each column re-runs the primary regression on its events (the regressors are
+re-standardised on them), with its two-way 95% interval, no Holm correction and no G1 check, so no verdict:
+
+| | All events | Without off day −1 or day 0 | Without 2026 |
+|---|---|---|---|
+| H5, per sd | +0.0135 [0.0037, 0.0233], n 349 | +0.0072 [−0.0035, 0.0178], n 251 | +0.0033 [−0.0092, 0.0158], n 194 |
+| H6, per sd | −0.0023 [−0.0239, 0.0192], n 349 | +0.0036 [−0.0209, 0.0282], n 251 | +0.0005 [−0.0256, 0.0267], n 194 |
+| H7, b | 0.766 [0.465, 1.067], n 338 | 0.733 [0.317, 1.149], n 245 | 0.687 [0.296, 1.078], n 184 |
+
+H5's slope is smaller in both columns and its interval then holds 0: the measured surprise effect leans on the 2026
+events, though each column also has fewer events and a wider interval. H6's interval holds 0 and H7's b interval holds
+1 in every column.
 
 ### 4.2 H1: the crush
 
@@ -504,9 +550,11 @@ measured numbers describe about the past, and what they cannot say.
    reading of the low daily slopes was a clock effect; changes that span no weekend refute it (section 3.2). Then
    pre-registered checks of the forward, the filters and the expiry roll on GOOGL, GS and IBM
    (`docs/validation/vx-iv-checks/results.md`) found no fault, and the strike rule could not decide (UNCLEAR on all
-   three). They also found, as an exploratory result, that from 2026 the vendor's option snapshots are taken during
-   the day, before the close, on all five names. That lowers the 2026 slopes on four of the five names, but the
-   2020–2025 slopes are also below 1, so it is not the whole gap. The next step is an owner question (section 9).
+   three). They also found, as an exploratory result, that from 2026 the vendor's option snapshots are often taken
+   during the day, before the close. That lowers the 2026 slopes, but the 2020–2025 slopes are also below 1, so it is
+   not the whole gap. A pre-registered check of the timing (section 3.2) finds its shift of H1–H4 inside one standard
+   error (H4 narrowly, and for H1 and H4 under the check's own estimator); H5–H7 are not covered, and section 4.1
+   shows them without the affected events.
 9. **Not built:** the coarse-sample scale correction, the SPY placebo and the drop-the-largest-companies check of
    ADR 0004.
 10. **No 3D hero render:** Blender was unreachable on 2026-10-29, so the Blender script
@@ -563,6 +611,11 @@ uv run --frozen --group report --with playwright==1.64.1 python tools/build_repo
    not decide (UNCLEAR on all three), so by the pre-registration nothing is widened
    (`docs/validation/vx-iv-checks/results.md`). They also found, as an exploratory result, that from 2026 the vendor's
    option snapshots are taken during the day, before the close, on all five names; 155 of the
-   349 events in the primary sample have day 0 in 2026. The open choice: accept the UNCLEAR result;
+   349 events in the primary sample have day 0 in 2026. The choice was: accept the UNCLEAR result;
    run the same frozen rules on sessions after 2026-10-26 (all of them in the 2026 snapshot regime); or first check
-   the 2026 snapshot timing and its effect on the event measures, with its own pre-registration.
+   the 2026 snapshot timing and its effect on the event measures, with its own pre-registration. *Answered
+   2026-11-18: check the timing first.* The strike rule stays UNCLEAR and nothing is widened. The check
+   (section 3.2, `docs/validation/snapshot-timing/results.md`) finds the timing's shift of H1–H4 inside one standard
+   error: +0.0027, −0.0005, +0.0005 and 0.0000 against lines of
+   0.0112, 0.0170, 0.0234 and 0.0112. H4 passes narrowly, and for H1 and H4 the
+   result rests on the check's estimator. The rows stay as they are and the 2026 events stay in.

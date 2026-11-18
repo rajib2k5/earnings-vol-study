@@ -1,0 +1,159 @@
+{
+ "cells": {
+  "H5": {
+   "all": {
+    "ci_hi": 0.023273,
+    "ci_lo": 0.003705,
+    "companies": 50,
+    "dates": 174,
+    "df": 49.0,
+    "estimate": 0.013489,
+    "fallback": false,
+    "n": 349,
+    "p": 0.007886,
+    "se": 0.004869
+   },
+   "no_2026": {
+    "ci_hi": 0.015812,
+    "ci_lo": -0.00919,
+    "companies": 50,
+    "dates": 100,
+    "df": 49.0,
+    "estimate": 0.003311,
+    "fallback": false,
+    "n": 194,
+    "p": 0.59697,
+    "se": 0.006221
+   },
+   "no_off": {
+    "ci_hi": 0.017811,
+    "ci_lo": -0.003493,
+    "companies": 50,
+    "dates": 128,
+    "df": 49.0,
+    "estimate": 0.007159,
+    "fallback": false,
+    "n": 251,
+    "p": 0.183025,
+    "se": 0.005301
+   }
+  },
+  "H6": {
+   "all": {
+    "ci_hi": 0.019242,
+    "ci_lo": -0.023932,
+    "companies": 50,
+    "dates": 174,
+    "df": 49.0,
+    "estimate": -0.002345,
+    "fallback": false,
+    "n": 349,
+    "p": 0.828082,
+    "se": 0.010742
+   },
+   "no_2026": {
+    "ci_hi": 0.026673,
+    "ci_lo": -0.025608,
+    "companies": 50,
+    "dates": 100,
+    "df": 49.0,
+    "estimate": 0.000533,
+    "fallback": false,
+    "n": 194,
+    "p": 0.967508,
+    "se": 0.013008
+   },
+   "no_off": {
+    "ci_hi": 0.028162,
+    "ci_lo": -0.02088,
+    "companies": 50,
+    "dates": 128,
+    "df": 49.0,
+    "estimate": 0.003641,
+    "fallback": false,
+    "n": 251,
+    "p": 0.766657,
+    "se": 0.012202
+   }
+  },
+  "H7": {
+   "all": {
+    "ci_hi": 1.067156,
+    "ci_lo": 0.465487,
+    "companies": 50,
+    "dates": 169,
+    "df": 49.0,
+    "estimate": 0.766322,
+    "fallback": false,
+    "n": 338,
+    "p": 0.124967,
+    "se": 0.149701,
+    "wald_F": 1.328635,
+    "wald_p": 0.27421
+   },
+   "no_2026": {
+    "ci_hi": 1.078393,
+    "ci_lo": 0.29552,
+    "companies": 50,
+    "dates": 95,
+    "df": 49.0,
+    "estimate": 0.686957,
+    "fallback": false,
+    "n": 184,
+    "p": 0.114454,
+    "se": 0.194785,
+    "wald_F": 1.524018,
+    "wald_p": 0.22798
+   },
+   "no_off": {
+    "ci_hi": 1.149001,
+    "ci_lo": 0.31666,
+    "companies": 50,
+    "dates": 124,
+    "df": 49.0,
+    "estimate": 0.73283,
+    "fallback": false,
+    "n": 245,
+    "p": 0.203074,
+    "se": 0.207094,
+    "wald_F": 1.051998,
+    "wald_p": 0.356993
+   }
+  }
+ },
+ "code_commit": "21865723f4452842b2c15f3336ce0a23414c616b",
+ "columns": {
+  "all": "every event (reproduces results.parquet)",
+  "no_2026": "without the events whose day 0 is in 2026",
+  "no_off": "without the events whose day -1 or day 0 is off"
+ },
+ "dropped": {
+  "H5": {
+   "no_2026": 155,
+   "no_off": 98
+  },
+  "H6": {
+   "no_2026": 155,
+   "no_off": 98
+  },
+  "H7": {
+   "no_2026": 154,
+   "no_off": 93
+  }
+ },
+ "kind": "snapshot_timing_columns",
+ "late_or_unknown_at_day_m1_or_0": {
+  "H5": 0,
+  "H6": 0,
+  "H7": 0
+ },
+ "params_hash": "d51877f495f7ae67636c8f2b7539e9cb15a9bb84502868a2cde239ad15a1e301",
+ "plan": "docs/validation/snapshot-timing/preregistration.md \u00a711",
+ "plan_sha256": "0e7663232df05a328444c3228b1fb04a80b91040d9676a215fba02e479c0ff55",
+ "statistic": {
+  "H5": "twoway_date_t of abs_surprise in crush_drivers (market)",
+  "H6": "twoway_date_t of ln_sigma_d in crush_drivers (market)",
+  "H7": "twoway_date_t of b in implied_realised; wald_F/wald_p: twoway_date_wald of a=0,b=1"
+ },
+ "timing_map_sha256": "ed633f2bc8932e8f1ea9cb3ffde16ec23838e8a007ac7433478416785cdcb0c8"
+}

@@ -217,6 +217,15 @@ Not pre-registered. §14 makes every cut by period exploratory, and none of this
   during day t, before the close, still falls before an after-close announcement on day t and after a before-open
   announcement on day t. So the pre/post order of the crush sessions should hold. That is an inference, not a
   measurement. The 2025 episode touches one crush-eligible event (MU, day 0 2025-03-21; its day +1 is 2025-03-24).
+- **Since 2026-11-18: the timing is per day** (the pre-registered
+  [snapshot-timing check](../snapshot-timing/results.md), its frozen map). Two corrections to this section. (1) The
+  2026 timing is a property of the day, not of the year: from 2026-01-02 to 2026-02-18 every session is at the close;
+  from 2026-02-19, 76 sessions of 2026 are off and the others at the close (2025 has 7 off days, 2024 one). A yearly
+  split mixes the two: on changes with both ends at the close the pooled 2026 slope is 0.809, against 0.799 for
+  2020 to 2025, and 0.599 on 2026 changes with an off end. (2) The late episode is 6 sessions, 2025-03-24 to
+  2025-03-31; 2025-04-01 is at the close (a change into it starts from the late 2025-03-31). The check finds the
+  timing's shift of the event measures H1–H4 inside one standard error, and the inference above about the pre/post
+  order holds in the data: the off day −1 snapshots sit before the news and the off day 0 ones after it.
 
 ### 4.9 Components no rule can see
 

@@ -87,7 +87,9 @@ replications; pass at most 6.30%). Holm runs over the declared family H1–H7, w
   earlier reading as a calendar-clock effect was wrong (report §3.2). Pre-registered checks of the forward, the filters
   and the expiry roll on GOOGL, GS and IBM found no fault, and the strike rule could not decide
   ([vx-iv-checks](docs/validation/vx-iv-checks/results.md)). They also found that the vendor's 2026 option snapshots
-  are taken during the day, before the close (exploratory). The vendor's undocumented `iv_current` is closest to our ATM IV at
+  are often taken during the day, before the close (exploratory). A pre-registered check of that timing finds its shift
+  of H1–H4 inside one standard error (H4 narrowly, and for H1 and H4 under the check's own estimator), so the 2026
+  events stay in ([snapshot-timing](docs/validation/snapshot-timing/results.md)). The vendor's undocumented `iv_current` is closest to our ATM IV at
   21 sessions, and reads as a 30-calendar-day IV.
 
 Every measured number in this block is filled in by `tools/report_numbers.py` from `data/derived/results.parquet`,

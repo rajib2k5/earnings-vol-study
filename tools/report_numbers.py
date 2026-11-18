@@ -68,6 +68,7 @@ LOOKUPS_AUDIT = 50  # ADR 0002 §3, milestone 1: confirmed EDGAR labels to check
 LOOKUPS_SOURCE = ("docs/validation/edgar-coarse-ledger.md (events_report.json in the local stage, EDGAR run with "
                   "timing.edgar_coarse)")
 VX_FILE = "data/derived/vx_crosscheck.json"
+TIMING_DIR = "docs/validation/snapshot-timing"  # the 2026 snapshot-timing check: aggregate.json, columns.json
 
 TEMPLATES = "docs/report/templates"
 REPORT_TEMPLATE = f"{TEMPLATES}/earnings-vol-report.md"
@@ -154,6 +155,13 @@ def load(root: Path) -> dict:
                                       "implied_vs_realised")},
         "rhobar_out": (root / "research/prototypes/rhobar_crush.out.txt").read_text(),
         "vx": json.loads((root / VX_FILE).read_text()),
+        "timing": json.loads((root / TIMING_DIR / "aggregate.json").read_text()),
+        "timing_cols": json.loads((root / TIMING_DIR / "columns.json").read_text()),
+        "timing_map": json.loads((root / TIMING_DIR / "timing_map.json").read_text()),
+        "timing_post": json.loads((root / TIMING_DIR / "post_run_sensitivity.json").read_text()),
+        "timing_viol": json.loads((root / TIMING_DIR / "power/results/viol_drift_1line.json").read_text()),
+        "timing_plan_sha256": hashlib.sha256((root / TIMING_DIR / "preregistration.md").read_bytes()).hexdigest(),
+        "timing_map_sha256": hashlib.sha256((root / TIMING_DIR / "timing_map.json").read_bytes()).hexdigest(),
         "events_sha256": hashlib.sha256((root / "data/derived/events.parquet").read_bytes()).hexdigest(),
         **events_timing(pd.read_parquet(root / "data/derived/events.parquet",
                                         columns=["timing_source", "timing_status", "timing_raw", "sample",
@@ -534,6 +542,7 @@ def numbers(d: dict) -> dict[str, tuple[str, str]]:
     put("results.rows", fint(len(r)), "results.parquet row count")
 
     vx_numbers(d["vx"], put)
+    timing_numbers(d, put)
 
     # Verdicts the tables print, from the data
     for h in ("H1", "H2", "H3", "H4", "H5", "H6", "H7"):
@@ -545,7 +554,129 @@ def numbers(d: dict) -> dict[str, tuple[str, str]]:
     cross_check(d, rows)
     prose_check(d, rows)
     vx_prose_check(d["vx"], cm30_sessions=int(par["cm30_horizon_sessions"]))
+    timing_check(d, rows)
     return out
+
+
+def timing_numbers(d: dict, put) -> None:
+    """The 2026 snapshot-timing check (docs/validation/snapshot-timing): its single run's aggregates and the
+    H5-H7 columns of its plan §11. Both are read, not recomputed: their inputs (per-event levels) stay local."""
+    t, cols, tm = d["timing"], d["timing_cols"], d["timing_map"]
+    src, csrc = f"{TIMING_DIR}/aggregate.json", f"{TIMING_DIR}/columns.json"
+    put("snap.off", fint(t["map_counts"]["off"]), f"{src} map_counts.off")
+    put("snap.late", fint(t["map_counts"]["late"]), f"{src} map_counts.late")
+    put("snap.sessions", fint(t["map_counts"]["sessions"]), f"{src} map_counts.sessions")
+    put("snap.off_2026", fint(tm["counts_by_year"]["2026"]["off"]), f"{TIMING_DIR}/timing_map.json counts_by_year")
+    put("snap.off_before_2026", fint(sum(y.get("off", 0) for k, y in tm["counts_by_year"].items() if k < "2026")),
+        f"{TIMING_DIR}/timing_map.json counts_by_year")
+    put("snap.off_from_2026", min(x for x in tm["off_dates"] if x >= "2026"),
+        f"{TIMING_DIR}/timing_map.json off_dates, the first in 2026")
+    put("snap.reps", fint(t["bootstrap"]["reps"]), f"{src} bootstrap.reps")
+    for h in ("H1", "H2", "H3", "H4"):
+        s, k = t["shifts"][h], h.lower()
+        put(f"snap.{k}.shift", fsigned(s["estimate"], 4), f"{src} shifts.{h}.estimate")
+        put(f"snap.{k}.ci90", fci(*s["ci90"], 4), f"{src} shifts.{h}.ci90 (unrestricted bootstrap-t, descriptive)")
+        put(f"snap.{k}.line", fnum(s["line"], 4), f"{src} shifts.{h}.line (the published se, rounded)")
+        put(f"snap.{k}.reach", fnum(max(abs(x) for x in s["ci90"]) / s["line"], 2),
+            f"{src} shifts.{h}: the 90% interval's largest |bound| / line")
+        put(f"snap.{k}.verdict", t["verdicts"][h], f"{src} verdicts.{h}")
+    h4 = t["shifts"]["H4"]
+    put("snap.h4.p_lo", fnum(h4["test_at_minus_line"]["p_up"], 3), f"{src} shifts.H4.test_at_minus_line.p_up")
+    put("snap.h4.p_hi", fnum(h4["test_at_plus_line"]["p_dn"], 3), f"{src} shifts.H4.test_at_plus_line.p_dn")
+    for x in ("cm30", "sigma"):
+        put(f"snap.identity.{x}_p", fnum(t["identity"][x]["p_boot"], 2), f"{src} identity.{x}.p_boot")
+    bp = t["coefficients"]["cm30.P:off0"]
+    put("snap.b0_cm30", fsigned(-bp["estimate"], 4), f"{src} coefficients cm30.P:off0, sign changed (b0 = -beta_P)")
+    put("snap.b0_cm30_ci90", fci(-bp["ci90"][1], -bp["ci90"][0], 4), f"{src} coefficients cm30.P:off0 ci90, negated")
+    d1 = t["d1_vx"]
+    for k, key in (("cc_early", "close_close_2020_2025"), ("cc_2026", "close_close_2026"), ("off_2026", "off_end_2026")):
+        put(f"snap.d1.{k}", fnum(d1[key]["slope"], 3), f"{src} d1_vx.{key}.slope")
+        put(f"snap.d1.{k}_n", fint(d1[key]["n"]), f"{src} d1_vx.{key}.n")
+    for k in ("all", "both_close"):
+        g = t["d2_crush_gap"][k]
+        put(f"snap.d2.{k}", fsigned(g["estimate"], 3), f"{src} d2_crush_gap.{k}.estimate")
+        put(f"snap.d2.{k}_ci", fci(g["ci_lo"], g["ci_hi"], 3), f"{src} d2_crush_gap.{k} 95% interval")
+        put(f"snap.d2.{k}_n2026", fint(g["n_2026"]), f"{src} d2_crush_gap.{k}.n_2026")
+    for h in ("H5", "H6", "H7"):
+        nd = 3 if h == "H7" else 4
+        for k, c in cols["cells"][h].items():
+            put(f"snap.{h.lower()}.{k}", fnum(c["estimate"], nd) if h == "H7" else fsigned(c["estimate"], nd),
+                f"{csrc} cells.{h}.{k}.estimate")
+            put(f"snap.{h.lower()}.{k}_ci", fci(c["ci_lo"], c["ci_hi"], nd), f"{csrc} cells.{h}.{k} 95% interval")
+            put(f"snap.{h.lower()}.{k}_n", fint(c["n"]), f"{csrc} cells.{h}.{k}.n")
+        for k in ("no_off", "no_2026"):
+            put(f"snap.{h.lower()}.{k}_dropped", fint(cols["dropped"][h][k]), f"{csrc} dropped.{h}.{k}")
+
+
+def timing_check(d: dict, rows: dict) -> None:
+    """The timing check's inputs against the other inputs (cross-check), then the templates' sentences about it
+    (prose): a new run or new columns that contradicted a sentence fail --check."""
+    t, cols, r = d["timing"], d["timing_cols"], d["results"]
+    problems = []
+    for what, a, b in (("plan", t["plan_sha256"], d["timing_plan_sha256"]),
+                       ("timing map", t["timing_map_sha256"], d["timing_map_sha256"]),
+                       ("columns' plan", cols["plan_sha256"], d["timing_plan_sha256"]),
+                       ("columns' timing map", cols["timing_map_sha256"], d["timing_map_sha256"]),
+                       ("aggregate params", t["stage"], d["meta"]["provenance"]["params_hash"][:16]),
+                       ("columns params", cols["params_hash"][:16], d["meta"]["provenance"]["params_hash"][:16])):
+        if a != b:
+            problems.append(f"snapshot timing {what}: {a} against {b}")
+    for h in ("H1", "H2", "H3", "H4"):
+        if t["shifts"][h]["line"] != round(float(t["lines_published_se"][h]), 4):
+            problems.append(f"snapshot timing {h} line {t['shifts'][h]['line']} against its published se")
+    b = reg_term(r, "implied_realised", "b")
+    for h, est, n in (("H5", rows["H5"].estimate, rows["H5"].n), ("H6", rows["H6"].estimate, rows["H6"].n),
+                      ("H7", b.estimate, b.n)):
+        c = cols["cells"][h]["all"]
+        if abs(c["estimate"] - est) > 5e-6 or c["n"] != n:
+            problems.append(f"snapshot timing columns {h} all ({c['estimate']}, n {c['n']}) against results "
+                            f"({est}, n {n}): re-run tools/snapshot_timing_columns.py")
+    if problems:
+        raise ValueError("the inputs disagree:\n  " + "\n  ".join(problems))
+
+    s, c, post = t["shifts"], cols["cells"], d["timing_post"]["direct"]
+
+    def holds(lo_hi, x):
+        return lo_hi[0] < x < lo_hi[1]
+
+    def width(x):
+        return x["ci_hi"] - x["ci_lo"]
+    d2 = t["d2_crush_gap"]
+    claims = [
+        ("snapshot timing: H2 and H3 well inside the line (90% interval within a quarter of it)",
+         all(max(abs(v) for v in s[h]["ci90"]) < 0.25 * s[h]["line"] for h in ("H2", "H3"))),
+        ("snapshot timing: the identity check catches a one-line violation about one time in five (15-25%)",
+         all(0.15 <= v <= 0.25 for v in d["timing_viol"]["identity_rej_boot"].values())),
+        ("snapshot timing: H4's direct estimate cannot exclude about one line (UNCLEAR, 90% bound past -0.9 line)",
+         post["H4"]["rule_applied"] == "UNCLEAR" and post["H4"]["ci90_lines"][0] < -0.9),
+        ("snapshot timing D2: the gap among both-close events is most of the gap (at least 80%)",
+         d2["both_close"]["estimate"] >= 0.8 * d2["all"]["estimate"] > 0),
+        ("snapshot timing: H5's slope is smaller in both columns, each with a wider interval",
+         all(c["H5"][k]["estimate"] < c["H5"]["all"]["estimate"] and width(c["H5"][k]) > width(c["H5"]["all"])
+             for k in ("no_off", "no_2026"))),
+        ("snapshot timing: H1-H4 all SMALL, before and after the identity gate",
+         all(t["verdicts"][h] == "SMALL" == t["verdicts_before_gate"][h] for h in ("H1", "H2", "H3", "H4"))),
+        ("snapshot timing: the identity check rejects for neither series",
+         not t["identity"]["cm30"]["rejected"] and not t["identity"]["sigma"]["rejected"]),
+        ("snapshot timing: H4 SMALL by a narrow margin (both p between 0.01 and 0.05)",
+         all(0.01 < p < 0.05 for p in (s["H4"]["test_at_minus_line"]["p_up"], s["H4"]["test_at_plus_line"]["p_dn"]))),
+        ("snapshot timing: an off day-0 CM30 level sits above the close level (90% interval above 0)",
+         t["coefficients"]["cm30.P:off0"]["ci90"][1] < 0),
+        ("snapshot timing D1: the plan's prediction holds", t["d1_vx"]["prediction_holds"]),
+        ("snapshot timing D2: the crush gap stays among events with both sessions close (95% interval above 0)",
+         t["d2_crush_gap"]["both_close"]["ci_lo"] > 0),
+        ("snapshot timing: H5's interval holds 0 without the off events and without 2026, and not on all events",
+         holds((c["H5"]["no_off"]["ci_lo"], c["H5"]["no_off"]["ci_hi"]), 0)
+         and holds((c["H5"]["no_2026"]["ci_lo"], c["H5"]["no_2026"]["ci_hi"]), 0)
+         and not holds((c["H5"]["all"]["ci_lo"], c["H5"]["all"]["ci_hi"]), 0)),
+        ("snapshot timing: H6's interval holds 0 in every column",
+         all(holds((x["ci_lo"], x["ci_hi"]), 0) for x in c["H6"].values())),
+        ("snapshot timing: H7's b interval holds 1 and its Wald p is above 0.05 in every column",
+         all(holds((x["ci_lo"], x["ci_hi"]), 1) and x["wald_p"] > 0.05 for x in c["H7"].values())),
+    ]
+    wrong = [what for what, ok in claims if not ok]
+    if wrong:
+        raise ValueError("the data now contradict sentences in the templates; revise them:\n  " + "\n  ".join(wrong))
 
 
 def _verdict(v: str) -> str:

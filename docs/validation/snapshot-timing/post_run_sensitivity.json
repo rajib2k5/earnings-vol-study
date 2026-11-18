@@ -1,0 +1,79 @@
+{
+ "analytic_t_at_minus_line": {
+  "H1": {
+   "blocks": [
+    "cm30.A",
+    "cm30.C",
+    "cm30.P"
+   ],
+   "own_series_blocks": 6.184,
+   "stacked": 6.871
+  },
+  "H2": {
+   "blocks": [
+    "cm30.A",
+    "cm30.C",
+    "cm30.O",
+    "cm30.P"
+   ],
+   "own_series_blocks": 10.58,
+   "stacked": 10.531
+  },
+  "H3": {
+   "blocks": [
+    "cm30.A",
+    "cm30.C",
+    "cm30.O",
+    "cm30.P"
+   ],
+   "own_series_blocks": 84.525,
+   "stacked": 84.135
+  },
+  "H4": {
+   "blocks": [
+    "sigma.A",
+    "sigma.C",
+    "sigma.P"
+   ],
+   "own_series_blocks": 1.915,
+   "stacked": 2.23
+  }
+ },
+ "code_commit": "21865723f4452842b2c15f3336ce0a23414c616b",
+ "direct": {
+  "H1": {
+   "ci90": [
+    0.000617,
+    0.010961
+   ],
+   "ci90_lines": [
+    0.055,
+    0.979
+   ],
+   "estimate": 0.005826,
+   "estimate_lines": 0.52,
+   "p_dn_at_plus_line": 0.049805,
+   "p_up_at_minus_line": 0.0,
+   "rule_applied": "SMALL"
+  },
+  "H4": {
+   "ci90": [
+    -0.012438,
+    0.006813
+   ],
+   "ci90_lines": [
+    -1.111,
+    0.608
+   ],
+   "estimate": -0.002852,
+   "estimate_lines": -0.255,
+   "p_dn_at_plus_line": 0.017402,
+   "p_up_at_minus_line": 0.083008,
+   "rule_applied": "UNCLEAR"
+  }
+ },
+ "exploratory": true,
+ "kind": "snapshot_timing_post_run_sensitivity",
+ "reps": 9999,
+ "seed": 20261118
+}

@@ -70,6 +70,7 @@ now pushes the draft with the plan and freezes it in a second push.
 | fresh clone of `f59e5c5` | plan and map SHA-256 equal §1; `tests/test_snapshot_timing.py` + layering: 69 passed; `tools/snapshot_timing_map.py --check`: "timing map ok: 84 off, 8 late, 3 unknown of 1222 sessions" |
 | hand mutants | `mutants_check.py`: T1–T5 and C1–C19, 24 of 24 caught, module restored |
 | full suite (working tree = `f59e5c5`) | 776 passed |
+| *correction, 2026-11-18 (§4)* | the two rows above were wrong about their tree: the full suite and the mutants ran at 08:48, before `f59e5c5` was committed at 09:23. Re-run on a fresh clone of `f59e5c5` after the run: 776 passed (65.5 s), mutants 24 of 24 caught, the clone left clean |
 
 **Plumbing run** (`tools/snapshot_timing_check.py --plumbing`, 2026-11-18, on the real inputs; it stops before any
 fit). Block C equals `crush_mean_adj` and `dsigma_d_mean_adj` row by row (the run stops otherwise). Counts:
@@ -119,4 +120,59 @@ regression (+0.0558); results.md §5 says so.
 
 ## 4. Validation after the run
 
-_(verifier and adversarial pass)_
+### 4.1 Verifier (Sonnet), every figure of results.md and §3
+
+Every figure re-measured from `aggregate.json`, git and an independent script AGREEs, including the re-derived
++0.0546 (its own script: 50 companies, +0.054605, se 0.009940, 80% positive) and the privacy scan of `aggregate.json`.
+Its qualifications: the t values use the rounded lines (as results.md states them); D1's difference is 0.0105, which
+results.md first gave as 0.011 (now 0.0105); the run's start time was not seen in a log (the output file's time, 17 s
+after it, agrees). It did not recompute D1, D2, the identity statistics or the ordering regressions from the data.
+
+### 4.2 Adversarial pass (Opus), ten claims, default verdict "broken"
+
+It ran on the real inputs by importing the tool (never as a script) and wrote only to the session scratchpad. No
+blocker to the pre-registered verdicts. Per claim, and what I did:
+
+| # | Claim | Verdict | Checked by me | Action |
+|---|---|---|---|---|
+| 1 | Procedure followed (hashes, one run, freeze) | CONFIRMED ("one run" only by the absence of another) | yes: §2's freeze evidence predated the commit (below) | §2 corrected; fresh-clone re-run |
+| 2 | Shift formulas match the measure code | CONFIRMED: independent recount from the event windows equal; the late-session error bounded at ≤ 0.02 lines (its estimate) | no (no action) | none |
+| 3 | The restricted bootstrap p are right | CONFIRMED: its own restricted bootstrap 0.039–0.041 / 0.036–0.038, refit per draw 0.0365 / 0.0423 | no (no action) | none |
+| 4 | Reliable with few treated weeks | CONFIRMED: 11–24 treated weeks per block; its re-simulation on the real designs (6 error models, 3,000 × 999) gives one-sided size 4.6–6.1% (H4) and 3.8–5.5% (H1) | no: its scratchpad run, not reproducible from the repo | cited as its measurement |
+| 5 | H4 not fragile to the inference | CONFIRMED: analytic 0.014 (stacked) / 0.030 (own blocks), unrestricted bootstrap 0.032 / 0.031 | the stacked against own-block t: **reproduced** (2.23 against 1.915) | results.md §2 labels the se and t |
+| 6 | As good as random | PARTIALLY: year and dm×2026 re-specifications keep SMALL; **the direct block-C plug-in gives H4 UNCLEAR and H1 SMALL at p 0.0498** | **reproduced** with the check's own code: H4 −0.25 lines (90% −1.11 to +0.61), p 0.083 / 0.017; H1 +0.52 lines, p_dn 0.0498 | results.md §2a; the report qualifies H1 and H4 |
+| 7 | One class per day is adequate on event days | CONFIRMED in effect: 0–3.7% off-like on close event days, 22–30% close-like on off event days, inside b | no | results.md §6 cites it |
+| 8 | §5's readings | ordering PARTIALLY (true but follows from any intraday snapshot); D1 CONFIRMED (reweighting raises the close-close slopes); D2 CONFIRMED (the gap is there before the first off day of 2026) | D2's "0.005 of 0.056": from aggregate.json | results.md §5 reworded: "not mainly the timing"; the ordering note |
+| 9 | §11's consequence and wording | PARTIALLY: rows and 2026 events stand; "shown to be inside one standard error" overclaims for H4 | agreed: p 0.040 / 0.036, 95% interval past the line, direct estimate UNCLEAR, identity power 17% | the report says it for H2, H3; qualifies H1, H4 |
+| 10 | Nothing missed | REFUTED (minor): the stacked CR1 factor; untested tool helpers; the direct estimator not reported; the freeze evidence's time | the first and last reproduced | all four now in results.md or here |
+
+### 4.3 What was wrong, said plainly
+
+- §2 said the full suite (776) and the mutants (24 of 24) ran on `f59e5c5`. They ran 35 minutes before that commit.
+  The fresh-clone re-run gives the same counts.
+- results.md §2 printed the se and t of the stacked fit without a label. For H1 and H4 they read 11% and 16% more
+  precise than a fit of the series' own blocks. The p values and intervals, which decide, do not depend on it.
+- results.md §5 said the smaller 2026 crush "is not the snapshot timing". It is not *mainly* the timing (0.005 of
+  0.056), and it presented the ordering of the snapshots as a finding when any intraday snapshot gives it.
+- The planned report wording ("shown to be inside one standard error" for all four) overclaimed for H4, and for H1
+  without the qualifier. The report now says that the verdict rests on the check's estimator for H1 and H4.
+
+### 4.4 The actions of plan §11 (after this validation)
+
+- `tools/snapshot_timing_columns.py` writes `columns.json`: H5–H7's primary regressions without the events with an
+  off day −1 or day 0, and without 2026. It refits the full set first and stops unless that reproduces the committed
+  rows. Tests `tests/test_snapshot_timing_columns.py` (metamorphic: the same events dropped through another column
+  give the same fit); hand mutants 5 of 5 caught.
+- `post_run_sensitivity.py` writes `post_run_sensitivity.json` (exploratory): the direct plug-in and the CR1 factor.
+- `tools/report_numbers.py` reads both and the run's aggregates, cross-checks them against the other inputs, and
+  checks every sentence the report makes about them; 11 new cases in `tests/test_report_numbers.py`, hand mutants 11
+  of 11 caught.
+- Report §3.2 (the check, its table and the qualifiers), §4.1 (the H5–H7 columns), §7 item 8 and §9 question 9
+  (answered); the README summary; VX results §4.8 (the per-day line with the two corrections).
+- Both JSONs were made on a fresh clone of `2186572` (the commit that holds the two scripts), each script run while
+  the other's output was absent: an untracked output marks the tree dirty, so the first clean-clone run of
+  `post_run_sensitivity.py` read `2186572…-dirty`. Both now record `code_commit` `2186572` with no suffix. Against the
+  earlier working-tree run, only `code_commit` and H7's p changed (H7's p now tests b = 1, as plan §11 states; it
+  tested b = 0 before).
+- After the edits: `tools/report_numbers.py --check` ok (561 numbers; PDF and DOCX built from this Markdown by
+  `tools/build_report.py`); full suite 791 passed (67 s); the licensing gate clean; the owner's e-mail in no file.

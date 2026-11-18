@@ -83,6 +83,12 @@ INPUTS = [
     "data/derived/results.parquet",
     "data/derived/events.parquet",
     "data/derived/vx_crosscheck.json",
+    "docs/validation/snapshot-timing/aggregate.json",
+    "docs/validation/snapshot-timing/columns.json",
+    "docs/validation/snapshot-timing/timing_map.json",
+    "docs/validation/snapshot-timing/preregistration.md",
+    "docs/validation/snapshot-timing/post_run_sensitivity.json",
+    "docs/validation/snapshot-timing/power/results/viol_drift_1line.json",
     "research/prototypes/rhobar_crush.out.txt",
     "README.md",
     "docs/prfaq.md",
@@ -311,6 +317,13 @@ def _edit_json(root, kind, fn):
     path.write_text(json.dumps(env))
 
 
+def _edit_timing(root, fn, name="aggregate.json"):
+    path = root / "docs/validation/snapshot-timing" / name
+    doc = json.loads(path.read_text())
+    fn(doc)
+    path.write_text(json.dumps(doc))
+
+
 def _edit_vx(root, fn):
     path = root / "data/derived/vx_crosscheck.json"
     doc = json.loads(path.read_text())
@@ -426,6 +439,28 @@ CROSS_AND_PROSE = [
         "median_abs_diff_same_days"].update(calendar_30=0.7)), "iv_current read as 30 calendar days"),
     ("VX extrapolated", lambda r: _edit_vx(r, lambda d: d["volatility_history"]["maturity"]["extrapolated"][
         "by_horizon"]["42"].update(n_beyond_last_expiry=10)), "most 42-session values lie beyond the last listed expiry"),
+    # The 2026 snapshot-timing check (2026-11-18): its inputs against the others, and the sentences about it
+    ("timing plan hash", lambda r: _edit_timing(r, lambda d: d.update(plan_sha256="0" * 64)), "snapshot timing plan:"),
+    ("timing columns stale", lambda r: _edit_timing(r, lambda d: d["cells"]["H5"]["all"].update(estimate=0.02),
+                                                    "columns.json"), "snapshot timing columns H5 all"),
+    ("timing verdict", lambda r: _edit_timing(r, lambda d: d["verdicts"].update(H4="UNCLEAR")),
+     "snapshot timing: H1-H4 all SMALL"),
+    ("timing identity", lambda r: _edit_timing(r, lambda d: d["identity"]["sigma"].update(rejected=True)),
+     "the identity check rejects for neither series"),
+    ("timing H4 margin", lambda r: _edit_timing(r, lambda d: d["shifts"]["H4"]["test_at_minus_line"].update(
+        p_up=0.001)), "H4 SMALL by a narrow margin"),
+    ("timing H2 margin", lambda r: _edit_timing(r, lambda d: d["shifts"]["H2"].update(ci90=[-0.01, 0.002])),
+     "H2 and H3 well inside the line"),
+    ("timing direct H4", lambda r: _edit_timing(r, lambda d: d["direct"]["H4"].update(rule_applied="SMALL"),
+                                                "post_run_sensitivity.json"), "H4's direct estimate"),
+    ("timing D1", lambda r: _edit_timing(r, lambda d: d["d1_vx"].update(prediction_holds=False)),
+     "snapshot timing D1"),
+    ("timing D2", lambda r: _edit_timing(r, lambda d: d["d2_crush_gap"]["both_close"].update(estimate=0.01)),
+     "the gap among both-close events is most of the gap"),
+    ("timing H5 column", lambda r: _edit_timing(r, lambda d: d["cells"]["H5"]["no_off"].update(ci_lo=0.001),
+                                                "columns.json"), "H5's interval holds 0"),
+    ("timing H7 column", lambda r: _edit_timing(r, lambda d: d["cells"]["H7"]["no_2026"].update(wald_p=0.01),
+                                                "columns.json"), "H7's b interval holds 1"),
 ]
 
 
