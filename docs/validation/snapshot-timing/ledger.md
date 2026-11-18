@@ -104,7 +104,18 @@ rows than the real blocks have. The plan is not changed; the results file will r
 
 ## 3. The run
 
-_(once)_
+| Item | Value |
+|---|---|
+| when | 2026-11-18T09:25:39−06:00; 17 s; exit code 0 |
+| command | `.venv/bin/python -I tools/snapshot_timing_check.py` on a clean tree at `f2d0d37` (its code equals `f59e5c5`: `git diff --stat f59e5c5 f2d0d37` lists `ledger.md` only) |
+| output | `aggregate.json` (plan and map SHA-256 equal §1; stage `d51877f495f7ae67`); the tool printed "verdicts {'H1': 'SMALL', 'H2': 'SMALL', 'H3': 'SMALL', 'H4': 'SMALL'}; identity rejected {'cm30': False, 'sigma': False}" |
+| deviations | none |
+| results | [results.md](results.md): all four SMALL; H4 by a narrow margin (p 0.040 and 0.036) |
+
+The check ran once and is not run again. `aggregate.json` was scanned before the commit: no event id, ticker, date,
+or per-day VX\* or IV value. One figure of results.md was re-derived by a separate script, not by the check: the
+plan's +0.0546 for the 2026 crush gap is the mean of 50 companies' differences (+0.0546, se 0.0099), not D2's
+regression (+0.0558); results.md §5 says so.
 
 ## 4. Validation after the run
 
