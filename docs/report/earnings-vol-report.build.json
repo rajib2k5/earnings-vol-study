@@ -1,12 +1,12 @@
 {
   "docx": {
     "file": "earnings-vol-report.docx",
-    "sha256": "ea7dd6d6b82662d902e525075b37ca3329d630fbd51b7966e0ac78a6008cbc24",
-    "markdown_sha256": "bfed814784ed6d5ed4d4485b65c517b93b709e137096d386bc352950a9ddf49b"
+    "sha256": "50fa44d282a7ad3630996965ec4ac3c38b9fc56688440aad89155924eab2e4da",
+    "markdown_sha256": "cb505c3137a88be9fc7217d9c1066164a5fd12fe8a942f0e5063dc1174583e5c"
   },
   "pdf": {
     "file": "earnings-vol-report.pdf",
-    "sha256": "5041305ea0862d75dadffd88c42b039598be5710b6393c95b958ff077b2a8558",
-    "markdown_sha256": "bfed814784ed6d5ed4d4485b65c517b93b709e137096d386bc352950a9ddf49b"
+    "sha256": "334526f0e7571129b1b6b0fad715c5c825a090765aa240696072a5a13789eb3a",
+    "markdown_sha256": "cb505c3137a88be9fc7217d9c1066164a5fd12fe8a942f0e5063dc1174583e5c"
   }
 }
